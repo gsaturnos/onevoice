@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14171c">
+<meta name="description" content="One Voice — a strategy game about awareness, courage, and how systems change.">
 <title>One Voice — a game about awareness and change</title>
+<!-- Favicon: the mark, inlined so the file stays standalone and works offline -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Crect width='240' height='240' rx='30' fill='%2314171c'/%3E%3Cg fill='none' stroke='%237ea6d8'%3E%3Ccircle cx='120' cy='120' r='52' stroke-opacity='0.55' stroke-width='2.4'/%3E%3Ccircle cx='120' cy='120' r='82' stroke-opacity='0.3' stroke-width='1.8' stroke-dasharray='3 8'/%3E%3C/g%3E%3Cg stroke='%234fae8d' stroke-width='4' fill='none' stroke-linecap='round'%3E%3Cg transform='translate(58,132)'%3E%3Cpath d='M-5,12 L0,0 L5,12'/%3E%3Cpath d='M0,0 L0,-14'/%3E%3Cpath d='M-8,-9 L0,-11 L8,-9'/%3E%3C/g%3E%3Cg transform='translate(182,132)'%3E%3Cpath d='M-5,12 L0,0 L5,12'/%3E%3Cpath d='M0,0 L0,-14'/%3E%3Cpath d='M-8,-9 L0,-11 L8,-9'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%234fae8d'%3E%3Ccircle cx='58' cy='111' r='5'/%3E%3Ccircle cx='182' cy='111' r='5'/%3E%3C/g%3E%3Cg transform='translate(120,150)'%3E%3Ccircle cx='0' cy='-58' r='3.6' fill='%23e0a458'/%3E%3Ccircle cx='0' cy='-58' r='10' fill='%23e0a458' opacity='0.3'/%3E%3Ccircle cx='0' cy='-13' r='27' fill='none' stroke='%238d7bdb' stroke-opacity='0.3' stroke-width='2.2'/%3E%3Cg stroke='%238d7bdb' stroke-width='4.6' fill='none' stroke-linecap='round'%3E%3Cpath d='M-6,16 L0,0 L6,16'/%3E%3Cpath d='M0,0 L0,-22'/%3E%3Cpath d='M-12,-19 L0,-23 L12,-19'/%3E%3C/g%3E%3Ccircle cx='0' cy='-30' r='6.2' fill='%238d7bdb'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#14171c; --panel:#1d2129; --panel2:#232834; --ink:#e8e4d8; --muted:#8b8e96;
@@ -78,17 +82,78 @@ button.nope{opacity:0.42;}
 #journal .j-gold{color:#e0c48a;}
 /* accessibility */
 button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px solid var(--lamp); outline-offset:2px;}
+/* ---------- LOGO & TITLE ---------- */
+#logo{display:block; width:100%; max-width:480px; height:auto; margin:0 auto 4px;}
+.titlebar{display:flex; align-items:center; gap:9px; min-width:0;}
+.markicon{width:26px; height:26px; flex:none;}
+#lvl-title{font-size:23px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.gamehead{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:0 0 12px;}
+.headbtns{display:flex; gap:8px; flex-wrap:wrap;}
+
+/* ---------- RESPONSIVE ---------- */
+/* Tablets & small laptops */
+@media (max-width:820px){
+  .wrap{padding:20px 14px 48px;}
+  #logo{max-width:400px;}
+  .stat{min-width:76px;}
+}
+/* Phones */
 @media (max-width:560px){
-  .actions button{min-height:44px; flex:1 1 46%;}
-  .bs{max-width:none;}
-  #a-end{min-height:52px;}
-  .stat{min-width:30%;}
-  .stat .l{font-size:10px;}
-  #journal, #log{font-size:13.5px;}
-  .grow .gl{min-width:118px; font-size:11.5px;}
+  .wrap{padding:16px 12px 40px; padding-left:max(12px,env(safe-area-inset-left)); padding-right:max(12px,env(safe-area-inset-right));}
+  #logo{max-width:330px; margin-bottom:0;}
+  .sub{font-size:13.5px; margin:2px 0 16px;}
+  .story{font-size:14.5px; padding:13px 14px;}
+  .chapter{margin:16px 0 6px;}
+  .file{padding:11px 13px; gap:8px;}
+  .file .name{font-size:15.5px;}
+  .file .desc{font-size:11.5px;}
+  .stamp{font-size:9.5px; padding:2px 7px; letter-spacing:1.2px;}
+  #lvl-title{font-size:19px;}
+  .markicon{width:22px; height:22px;}
+  .headbtns button{font-size:11.5px; padding:7px 9px; min-height:38px;}
+  /* stats: 3 per row, never cramped */
+  .stat{flex:1 1 30%; min-width:0; padding:6px 8px;}
+  .stat.utility{flex:1 1 22%;}
+  .stat .l{font-size:9.5px; letter-spacing:0.3px;}
+  .stat .v{font-size:15px;}
+  .stat.primary .v{font-size:16px;}
+  .goal{font-size:13.5px; padding:9px 11px;}
+  .grow{font-size:11.5px;}
+  .grow .gl{min-width:0; flex:1 1 auto;}
+  .gbar{flex:0 0 62px;}
+  #coach{font-size:13px; padding:9px 11px; align-items:flex-start;}
+  #coach button{min-height:38px;}
+  #log{font-size:13.5px; padding-left:9px;}
+  #report{font-size:11.5px;}
+  #journal, #roster{font-size:13px; max-height:190px;}
+  .rp{font-size:13.5px;}
+  /* action buttons: two per row, thumb-sized */
+  .actions{gap:8px;}
+  .actions button{min-height:52px; flex:1 1 calc(50% - 4px); padding:8px 10px;}
+  .bs{max-width:none; font-size:9.5px;}
+  #a-end{min-height:54px; font-size:15px;}
+  .group-label{margin:10px 0 3px;}
+  .legend{gap:9px; font-size:11px;}
+  #embox, #dilemma{padding:20px 18px 16px;}
+  #dilemma .choice{padding:11px 12px;}
+  #pcard{font-size:13.5px; padding:8px 11px;}
+}
+/* Narrow phones */
+@media (max-width:380px){
+  #logo{max-width:280px;}
+  .stat{flex:1 1 46%;}
+  .stat.utility{flex:1 1 26%;}
+  .actions button{flex:1 1 100%;}
+}
+/* Landscape phones: keep the map visible, shrink chrome */
+@media (max-height:520px) and (orientation:landscape){
+  #logo{max-width:240px;}
+  .wrap{padding-top:10px;}
+  .stat .l{font-size:9px;}
+  #story-box, #roster-box{display:none;}
 }
 #opp{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid #7ea6d8; color:#a8c8e8; font-family:ui-monospace,monospace; background:rgba(126,166,216,.10);}
-canvas{width:100%; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair;}
+canvas{width:100%; aspect-ratio:720/440; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair; touch-action:manipulation;}
 .banner{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid; font-family:ui-monospace,monospace;}
 .banner.warn{color:var(--lamp); border-color:var(--lamp); background:rgba(224,164,88,.08);}
 .banner.bad{color:var(--danger); border-color:var(--danger); background:rgba(201,79,79,.08);}
@@ -156,7 +221,57 @@ button:hover{border-color:var(--lamp);}
 <div class="wrap">
 
 <div id="screen-campaign">
-  <h1>One <span class="accent">Voice</span></h1>
+  <svg id="logo" viewBox="0 0 640 300" role="img" aria-label="One Voice — one voice becomes many">
+    <defs>
+      <radialGradient id="lglow" cx="50%" cy="46%" r="60%">
+        <stop offset="0%" stop-color="#e0a458" stop-opacity="0.20"/>
+        <stop offset="45%" stop-color="#e0a458" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#e0a458" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="320" cy="150" rx="250" ry="150" fill="url(#lglow)"/>
+    <!-- ripples: the voice traveling -->
+    <g fill="none" stroke="#7ea6d8" stroke-linecap="round">
+      <circle cx="320" cy="150" r="58"  stroke-opacity="0.55" stroke-width="2"/>
+      <circle cx="320" cy="150" r="92"  stroke-opacity="0.32" stroke-width="1.6" stroke-dasharray="3 7"/>
+      <circle cx="320" cy="150" r="126" stroke-opacity="0.16" stroke-width="1.3" stroke-dasharray="2 9"/>
+    </g>
+    <!-- the crowd: hunched and gray at the edges, standing and green toward the center -->
+    <g stroke-linecap="round" fill="none">
+      <g stroke="#565a63" stroke-width="3">
+        <g transform="translate(150,190)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(490,190) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(122,138)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(518,138) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+      </g>
+      <g fill="#565a63">
+        <circle cx="157" cy="175" r="4"/><circle cx="483" cy="175" r="4"/>
+        <circle cx="129" cy="123" r="4"/><circle cx="511" cy="123" r="4"/>
+      </g>
+      <g stroke="#6f8f80" stroke-width="3.2">
+        <g transform="translate(215,195)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
+        <g transform="translate(425,195) scale(-1,1)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
+      </g>
+      <g fill="#6f8f80"><circle cx="216" cy="178" r="4.3"/><circle cx="424" cy="178" r="4.3"/></g>
+      <g stroke="#4fae8d" stroke-width="3.4">
+        <g transform="translate(258,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
+        <g transform="translate(382,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
+      </g>
+      <g fill="#4fae8d"><circle cx="258" cy="176" r="4.6"/><circle cx="382" cy="176" r="4.6"/></g>
+    </g>
+    <!-- the one voice -->
+    <g transform="translate(320,198)">
+      <circle cx="0" cy="-64" r="3.4" fill="#e0a458"/>
+      <circle cx="0" cy="-64" r="9" fill="#e0a458" opacity="0.28"/>
+      <circle cx="0" cy="-11" r="26" fill="none" stroke="#8d7bdb" stroke-opacity="0.28" stroke-width="2"/>
+      <g stroke="#8d7bdb" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M-6,15 L0,0 L6,15"/><path d="M0,0 L0,-20"/><path d="M-11,-18 L0,-21 L11,-18"/>
+      </g>
+      <circle cx="0" cy="-27" r="5.6" fill="#8d7bdb"/>
+    </g>
+    <text x="320" y="262" text-anchor="middle" font-size="54" letter-spacing="1" fill="#e8e4d8" font-family="Georgia,'Times New Roman',serif">One <tspan fill="#e0a458">Voice</tspan></text>
+    <text x="320" y="288" text-anchor="middle" font-size="13" letter-spacing="4.5" fill="#8b8e96" font-family="ui-monospace,monospace">ONE VOICE BECOMES MANY</text>
+  </svg>
   <p class="sub">A strategy game about awareness, courage, and how systems change.</p>
   <div class="story">
     This is your neighborhood. Something is wrong, and everyone feels it,
@@ -180,9 +295,21 @@ button:hover{border-color:var(--lamp);}
 </div>
 
 <div id="screen-game" class="hidden">
-  <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin:0 0 12px;">
-    <h1 style="font-size:23px;" id="lvl-title">District</h1>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+  <div class="gamehead">
+    <div class="titlebar">
+      <svg class="markicon" viewBox="0 0 240 240" aria-hidden="true">
+        <g fill="none" stroke="#7ea6d8"><circle cx="120" cy="120" r="52" stroke-opacity="0.5" stroke-width="5"/><circle cx="120" cy="120" r="86" stroke-opacity="0.25" stroke-width="4" stroke-dasharray="4 10"/></g>
+        <g transform="translate(120,150)">
+          <circle cx="0" cy="-58" r="5" fill="#e0a458"/>
+          <g stroke="#8d7bdb" stroke-width="9" fill="none" stroke-linecap="round">
+            <path d="M-7,16 L0,0 L7,16"/><path d="M0,0 L0,-22"/><path d="M-13,-19 L0,-23 L13,-19"/>
+          </g>
+          <circle cx="0" cy="-31" r="7" fill="#8d7bdb"/>
+        </g>
+      </svg>
+      <h1 id="lvl-title">District</h1>
+    </div>
+    <div class="headbtns">
       <button id="btn-music" aria-label="Toggle background music">♫ music: on</button>
       <button id="btn-sound" aria-label="Toggle sound effects">♪ sound: on</button>
       <button id="btn-back">← Back to the map</button>
@@ -1234,6 +1361,9 @@ cv.addEventListener('click',e=>{
   if(over||pendingDilemma)return;
   const r=cv.getBoundingClientRect();
   const mx=(e.clientX-r.left)*(W/r.width),my=(e.clientY-r.top)*(H/r.height);
+  /* touch-friendly hit radius: grows as the canvas is displayed smaller, so a
+     fingertip on a phone is as accurate as a mouse on a desktop */
+  const HIT=Math.max(26,26*(W/Math.max(r.width,1))*0.85);
   if(muralMode){
     const d=Math.hypot(mx-ag[player].x,my-ag[player].y);
     if(d<=linkReach()){
@@ -1254,7 +1384,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(letterMode){
-    let best=-1,bd=26;
+    let best=-1,bd=HIT;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
       if(nbr[player].includes(j))continue;
@@ -1272,7 +1402,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(linkMode){
-    let best=-1,bd=26;
+    let best=-1,bd=HIT;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
       if(nbr[player].includes(j))continue;
@@ -1293,7 +1423,7 @@ cv.addEventListener('click',e=>{
     } else log('No one there you can reach.');
     ui();return;
   }
-  let best=-1,bd=26;
+  let best=-1,bd=HIT;
   for(let j=0;j<NN;j++){
     if(ag[j].inc||ag[j].gone||j===player)continue;
     const d=Math.hypot(ag[j].x-mx,ag[j].y-my);
