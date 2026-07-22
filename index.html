@@ -768,7 +768,12 @@ let epiEvents=[],startName='',startRole='',firstWinSeen=false,inf30Told=false,in
 let opp=null,nearMissTold=false,freeZoneTold=false,embersAwarded=false;
 const cv=$('game'),ctx=cv.getContext('2d');
 let bgCanvas=null;   /* pre-rendered district backdrop (streets, buildings, square) */
+let city=null;       /* shared city geometry: streets, buildings, windows, square */
+let grainCanvas=null;/* prerendered paper grain, built once, composited each frame */
 let winGlows=[];     /* structural-win light blooms: fog lifts, lights come on */
+/* honour reduced-motion for the NEW drifting/day-cycle motion (canvas isn't covered by the CSS query) */
+const _rmq=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)'))||null;
+function reducedMotion(){return !!(_rmq&&_rmq.matches);}
 
 /* ---------- JUICE ---------- */
 let floaters=[],rippleAnims=[],nearMisses=[],pops={},shake={mag:0,t0:0},vignette=null,pulses=[];
@@ -786,60 +791,123 @@ function doVignette(color){vignette={color:color||'201,79,79',t0:nowMs()};}
    building silhouettes with a few dim-lit windows, a public square, alleys.
    Seeded by level so every district wears its own face — kept deliberately
    faint so people, threads and fog always stay the loudest thing on screen. */
-function buildBackdrop(){
-  bgCanvas=document.createElement('canvas');
-  bgCanvas.width=W;bgCanvas.height=H;
+/* Build the whole city ONCE per district: a shared geometry object (streets,
+   buildings, windows, square) plus a prerendered static image on bgCanvas.
+   Seeded from the district so the same district is the same streets every time.
+   Windows are stored (not baked) so they can light with their occupant later. */
+const STREET_HALF=4;        /* half road width */
+const SIDEWALK=STREET_HALF+3;/* where people stand: just off the road */
+function buildCity(){
+  bgCanvas=document.createElement('canvas');bgCanvas.width=W;bgCanvas.height=H;
   const g=bgCanvas.getContext('2d');
   const rnd=mulberry32(7331+lvlIdx*104729);
   const R=(a,b)=>a+rnd()*(b-a);
-  g.fillStyle='#171a21';g.fillRect(0,0,W,H);
-  /* street grid — a few avenues carve the district into uneven blocks */
-  const vx=[],hy=[];
-  let gx=R(70,120); while(gx<W-50){vx.push(gx); gx+=R(120,190);}
-  let gy=R(70,110); while(gy<H-40){hy.push(gy); gy+=R(110,160);}
+  city={vx:[],hy:[],buildings:[],windows:[],square:null};
+  g.fillStyle='#14171c';g.fillRect(0,0,W,H);
+  /* --- streets: a few avenues carve the map into blocks --- */
+  const vx=city.vx,hy=city.hy;
+  let gx=R(74,120); while(gx<W-56){vx.push(gx); gx+=R(120,188);}
+  let gy=R(70,108); while(gy<H-44){hy.push(gy); gy+=R(104,150);}
   const xs=[0,...vx,W], ys=[0,...hy,H];
-  /* built-up ground: each block a slightly raised charcoal plate */
+  /* block plates (built-up ground) */
   for(let bi=0;bi<xs.length-1;bi++)for(let bj=0;bj<ys.length-1;bj++){
-    g.fillStyle='rgba(31,36,46,'+R(0.30,0.62)+')';
-    g.fillRect(xs[bi]+3,ys[bj]+3,xs[bi+1]-xs[bi]-6,ys[bj+1]-ys[bj]-6);
+    g.fillStyle='rgba(29,34,44,'+R(0.28,0.5)+')';
+    g.fillRect(xs[bi]+STREET_HALF,ys[bj]+STREET_HALF,xs[bi+1]-xs[bi]-STREET_HALF*2,ys[bj+1]-ys[bj]-STREET_HALF*2);
   }
-  /* the streets themselves: dark seams with a faint dashed centre line */
-  g.strokeStyle='rgba(9,11,15,0.55)';g.lineWidth=7;
-  vx.forEach(sx=>{g.beginPath();g.moveTo(sx,0);g.lineTo(sx,H);g.stroke();});
-  hy.forEach(sy=>{g.beginPath();g.moveTo(0,sy);g.lineTo(W,sy);g.stroke();});
-  g.strokeStyle='rgba(232,228,216,0.045)';g.lineWidth=1;g.setLineDash([5,10]);
-  vx.forEach(sx=>{g.beginPath();g.moveTo(sx,0);g.lineTo(sx,H);g.stroke();});
-  hy.forEach(sy=>{g.beginPath();g.moveTo(0,sy);g.lineTo(W,sy);g.stroke();});
+  /* the roads themselves — dark seams + a faint dashed centre line */
+  g.strokeStyle='rgba(9,11,15,0.6)';g.lineWidth=STREET_HALF*2;
+  vx.forEach(s=>{g.beginPath();g.moveTo(s,0);g.lineTo(s,H);g.stroke();});
+  hy.forEach(s=>{g.beginPath();g.moveTo(0,s);g.lineTo(W,s);g.stroke();});
+  g.strokeStyle='rgba(232,228,216,0.04)';g.lineWidth=1;g.setLineDash([5,11]);
+  vx.forEach(s=>{g.beginPath();g.moveTo(s,0);g.lineTo(s,H);g.stroke();});
+  hy.forEach(s=>{g.beginPath();g.moveTo(0,s);g.lineTo(W,s);g.stroke();});
   g.setLineDash([]);
-  /* skyline: building silhouettes along the top, most windows dark, a rare few lit */
-  let bx=0;
-  while(bx<W){
-    const bw=R(30,64),bh=R(24,70);
-    g.fillStyle='rgba(19,22,29,0.9)';g.fillRect(bx,0,bw,bh);
-    g.strokeStyle='rgba(42,48,60,0.55)';g.lineWidth=1;g.strokeRect(bx+0.5,0.5,bw,bh);
-    for(let wy=8;wy<bh-6;wy+=9)for(let wx=bx+6;wx<bx+bw-6;wx+=9){
-      const lit=rnd()<0.10;
-      g.fillStyle=lit?'rgba(224,164,88,'+R(0.16,0.30)+')':'rgba(9,11,15,0.65)';
-      g.fillRect(wx,wy,3.5,4.5);
-    }
-    bx+=bw+R(0,10);
-  }
-  /* a public square: one block opened up, paved, with a small monument */
+  /* --- a public square: one block opened up, paved --- */
+  let sqBlock=null;
   if(vx.length&&hy.length){
-    const qi=Math.floor(R(0,vx.length)),qj=Math.floor(R(0,hy.length));
-    const qx=(xs[qi]+xs[qi+1])/2,qy=(ys[qj]+ys[qj+1])/2,qrx=R(46,64),qry=R(30,42);
-    g.fillStyle='rgba(27,31,41,0.7)';
+    const qi=Math.floor(R(0,xs.length-1)),qj=Math.floor(R(0,ys.length-1));
+    sqBlock=[qi,qj];
+    const qx=(xs[qi]+xs[qi+1])/2,qy=(ys[qj]+ys[qj+1])/2,qrx=R(42,58),qry=R(28,40);
+    city.square={x:qx,y:qy,rx:qrx,ry:qry};
+    g.fillStyle='rgba(24,28,37,0.75)';
     g.beginPath();g.ellipse(qx,qy,qrx,qry,0,0,Math.PI*2);g.fill();
     g.strokeStyle='rgba(232,228,216,0.05)';g.lineWidth=1;
     g.beginPath();g.ellipse(qx,qy,qrx,qry,0,0,Math.PI*2);g.stroke();
-    g.fillStyle='rgba(232,228,216,0.09)';g.fillRect(qx-1.5,qy-8,3,16);
+    g.fillStyle='rgba(232,228,216,0.09)';g.fillRect(qx-1.5,qy-9,3,18); /* monument */
   }
-  /* alleys: a few thin darker cuts between the blocks */
-  g.strokeStyle='rgba(9,11,15,0.45)';g.lineWidth=2;
+  /* --- buildings fill each block; the square block is left open --- */
+  for(let bi=0;bi<xs.length-1;bi++)for(let bj=0;bj<ys.length-1;bj++){
+    if(sqBlock&&bi===sqBlock[0]&&bj===sqBlock[1])continue;
+    const bx0=xs[bi]+SIDEWALK, by0=ys[bj]+SIDEWALK, bx1=xs[bi+1]-SIDEWALK, by1=ys[bj+1]-SIDEWALK;
+    const bw=bx1-bx0, bh=by1-by0;
+    if(bw<16||bh<16)continue;
+    /* subdivide the block into a small grid of footprints with courtyard gaps */
+    const cols=Math.max(1,Math.round(bw/R(34,52))), rows=Math.max(1,Math.round(bh/R(30,46)));
+    const cw=bw/cols, ch=bh/rows;
+    for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){
+      if(rnd()<0.12)continue;                    /* a gap — courtyard/lot */
+      const pad=R(1.5,3.5);
+      const x=bx0+c*cw+pad, y=by0+r*ch+pad, w=cw-pad*2, h=ch-pad*2;
+      if(w<10||h<10)continue;
+      const hgt=R(3,7);                            /* fake height: roof offset up */
+      city.buildings.push({x,y,w,h,hgt});
+      /* body */
+      g.fillStyle='rgba(20,24,31,0.92)';
+      g.fillRect(x,y+hgt,w,h-hgt);
+      /* roof — a touch lighter, gives a 2.5D lip */
+      g.fillStyle='rgba(37,43,55,0.55)';
+      g.fillRect(x,y,w,hgt+1.5);
+      g.strokeStyle='rgba(46,52,66,0.5)';g.lineWidth=1;g.strokeRect(x+0.5,y+0.5,w-1,h-1);
+      /* windows: a grid on the face, stored dark here and lit dynamically later */
+      for(let wy=y+hgt+4;wy<y+h-5;wy+=7)for(let wx=x+4;wx<x+w-4;wx+=7){
+        if(city.windows.length>320)break;
+        g.fillStyle='rgba(9,11,15,0.7)';g.fillRect(wx,wy,3.2,4.2); /* dark frame, baked */
+        city.windows.push({x:wx,y:wy,w:3.2,h:4.2,owner:-1});
+      }
+    }
+  }
+  /* --- alleys: a few thin darker cuts --- */
+  g.strokeStyle='rgba(9,11,15,0.4)';g.lineWidth=2;
   for(let k=0;k<5;k++){
-    const ax=R(30,W-30),ay=R(40,H-30),len=R(20,60),ang=rnd()<0.5?0:Math.PI/2;
+    const ax=R(30,W-30),ay=R(40,H-30),len=R(18,54),ang=rnd()<0.5?0:Math.PI/2;
     g.beginPath();g.moveTo(ax,ay);g.lineTo(ax+Math.cos(ang)*len,ay+Math.sin(ang)*len);g.stroke();
   }
+}
+/* pull a point to the nearest sidewalk so people stand along streets, not in voids */
+function snapToStreet(x,y){
+  if(!city||(!city.vx.length&&!city.hy.length))return {x,y};
+  let nv=1e9,vs=null; city.vx.forEach(s=>{const d=Math.abs(x-s);if(d<nv){nv=d;vs=s;}});
+  let nh=1e9,hs=null; city.hy.forEach(s=>{const d=Math.abs(y-s);if(d<nh){nh=d;hs=s;}});
+  let rx=x,ry=y;
+  if(vs!==null&&(hs===null||nv<=nh)){const side=x>=vs?1:-1;rx=vs+side*SIDEWALK;}
+  else if(hs!==null){const side=y>=hs?1:-1;ry=hs+side*SIDEWALK;}
+  return {x:rx,y:ry};
+}
+/* assign each window to the nearest person, so it can light with their awareness */
+function assignWindows(){
+  if(!city)return;
+  for(const w of city.windows){
+    let best=-1,bd=44*44;
+    for(let i=0;i<NN;i++){
+      const dx=ag[i].x-(w.x+1.6),dy=ag[i].y-(w.y+2);
+      const d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best=i;}
+    }
+    w.owner=best;
+  }
+}
+/* Stage 5: prerender a fine paper grain ONCE and composite it each frame — the
+   samizdat/risograph texture. Not deterministic (texture, not layout). */
+function buildGrain(){
+  grainCanvas=document.createElement('canvas');grainCanvas.width=W;grainCanvas.height=H;
+  const g=grainCanvas.getContext('2d');
+  const img=g.createImageData(W,H),d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    const v=200+Math.random()*55;
+    d[i]=d[i+1]=d[i+2]=v;
+    d[i+3]=Math.random()<0.5?Math.random()*15:0;  /* sparse, low-alpha speckle */
+  }
+  g.putImageData(img,0,0);
 }
 /* ------------------------------------------------------------------- */
 
@@ -1498,7 +1566,7 @@ function setButtons(){
 
 function initGame(){
   NN=D.N;
-  buildBackdrop();
+  buildCity();
   const srand=mulberry32(1000+lvlIdx*7919);
   const sr=(a,b)=>a+srand()*(b-a);
   ag=[];links=[];built=[];weak=new Set();murals=[];turn=1;energy=3;rig=D.rig;
@@ -1543,6 +1611,23 @@ function initGame(){
     ag[i].inc=true;ag[i].aw=0;
     if(D.clusterCenter){ag[i].x=W/2;ag[i].y=H/2;}
   }
+  /* Stage 1: draw people onto the streets, then space them so tapping stays
+     reliable. Only the open campaign layout is nudged — the clusterCenter and
+     twoClusters lesson layouts keep their exact shape. Runs BEFORE links so the
+     distance-based connections follow the new street geometry. */
+  if(!D.clusterCenter&&!D.twoClusters){
+    for(let i=0;i<NN;i++){
+      const s=snapToStreet(ag[i].x,ag[i].y);
+      ag[i].x=ag[i].x*0.4+s.x*0.6; ag[i].y=ag[i].y*0.4+s.y*0.6;
+    }
+    const MINSEP=19;
+    for(let pass=0;pass<3;pass++)for(let i=0;i<NN;i++)for(let j=i+1;j<NN;j++){
+      let dx=ag[j].x-ag[i].x,dy=ag[j].y-ag[i].y,d=Math.hypot(dx,dy);
+      if(d>0.001&&d<MINSEP){const push=(MINSEP-d)/2;dx/=d;dy/=d;
+        ag[i].x-=dx*push;ag[i].y-=dy*push;ag[j].x+=dx*push;ag[j].y+=dy*push;}
+    }
+    for(let i=0;i<NN;i++){ag[i].x=Math.max(14,Math.min(W-14,ag[i].x));ag[i].y=Math.max(16,Math.min(H-12,ag[i].y));}
+  }
   for(let i=0;i<NN;i++){
     const d=[];
     for(let j=0;j<NN;j++)if(i!==j)d.push([j,Math.hypot(ag[i].x-ag[j].x,ag[i].y-ag[j].y)]);
@@ -1555,6 +1640,7 @@ function initGame(){
     }
   }
   rebuildNbr();
+  assignWindows();  /* bind each window to its nearest person (final positions) */
   let pi=Math.floor(sr(D.nInc||0,NN));
   while(ag[pi].inc||(D.twoClusters&&ag[pi].x>=360)){pi=(pi+1)%NN;if(pi<(D.nInc||0))pi=D.nInc||0;}
   player=pi;
@@ -2494,6 +2580,32 @@ function endTurn(){
   if(!over)maybeFireDilemma();
 }
 
+/* Stage 6: a mural is a small stencilled mark — fist / eye / word */
+function drawMuralMark(x,y,kind){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='#e0a458';
+  if(kind===0){            /* a raised fist */
+    ctx.fillRect(-3,-1,6,5); ctx.fillRect(-3,-5,6,3); ctx.fillRect(-1.4,-9,2.6,5);
+    ctx.strokeStyle='rgba(20,23,30,0.45)';ctx.lineWidth=0.7;
+    ctx.beginPath();ctx.moveTo(-1.4,-4.5);ctx.lineTo(-1.4,-1);ctx.moveTo(0.6,-4.5);ctx.lineTo(0.6,-1);ctx.stroke();
+  } else if(kind===1){     /* an open eye */
+    ctx.beginPath();ctx.moveTo(-6,0);ctx.quadraticCurveTo(0,-5,6,0);ctx.quadraticCurveTo(0,5,-6,0);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#14171c';ctx.beginPath();ctx.arc(0,0,1.9,0,Math.PI*2);ctx.fill();
+  } else {                 /* a stencilled word */
+    ctx.fillRect(-7,-3.5,14,1.7);
+    for(let k=-6;k<=5;k+=3)ctx.fillRect(k,-1,1.5,4);
+  }
+  ctx.restore();
+}
+/* which one-stroke accessory (if any) hints at a person's trade */
+function roleShape(role){
+  role=role||'';
+  if(/nurse|doctor|teacher|student|librar|pharmac/.test(role))return 1; /* a bag */
+  if(/baker|cook|waiter|shop|vendor|barber|fisher/.test(role))return 2; /* an apron */
+  if(/music|paint/.test(role))return 3;                                 /* a case */
+  if(/mechanic|electric|weld|carpenter|janitor|driver/.test(role))return 4; /* a tool */
+  return 0;
+}
 function drawFigure(x,y,t,pb,col,ts,i){
   /* a small person. t = awareness 0..1.
      Unaware: hunched, head down, arms tight. Aware: standing tall, arms open. */
@@ -2527,6 +2639,16 @@ function drawFigure(x,y,t,pb,col,ts,i){
   ctx.beginPath();
   ctx.arc(x+lean+sway,y-h-headR+1,headR,0,Math.PI*2);
   ctx.fill();
+  /* Stage 6: a faint one-stroke hint of trade — enough to recognize, never cartoonish */
+  const rs=(ag[i]&&!ag[i].inc)?roleShape(ag[i].role):0;
+  if(rs&&t>0.18){
+    ctx.lineWidth=1.2;ctx.strokeStyle=col;
+    const hx=x+spread*0.7+sway*0.5,hy2=ay+3-armLift;
+    if(rs===1){ctx.strokeRect(hx-0.4,hy2+0.5,2.4,3);}                                   /* bag */
+    else if(rs===2){ctx.beginPath();ctx.moveTo(x-2.4,y-1);ctx.lineTo(x+2.4,y-1);ctx.stroke();} /* apron waist */
+    else if(rs===3){ctx.strokeRect(hx-1,hy2+1,4,2.2);}                                  /* case */
+    else if(rs===4){ctx.beginPath();ctx.moveTo(hx,hy2+2);ctx.lineTo(hx+3,hy2-2);ctx.stroke();} /* tool */
+  }
   ctx.lineCap='butt';
 }
 
@@ -2541,6 +2663,41 @@ function draw(ts){
   }
   if(!D){ctx.restore();return;}
   if(bgCanvas)ctx.drawImage(bgCanvas,0,0);
+
+  /* Stage 2: windows wake. Each is tied to its nearest person; it glows warm as
+     their awareness rises and darkens when a crackdown suppresses the area
+     (awareness falls -> window dims, for free). Only lit windows draw. */
+  if(city&&city.windows.length){
+    for(let k=0;k<city.windows.length;k++){
+      const w=city.windows[k], o=w.owner>=0?ag[w.owner]:null;
+      if(!o||o.gone)continue;
+      const t=o.inc?(o.def?0.55:0):o.aw;
+      if(t<=0.28)continue;
+      const a=Math.min(0.5,(t-0.28)*0.72);
+      ctx.fillStyle='rgba(224,164,88,'+a+')';
+      ctx.fillRect(w.x,w.y,w.w,w.h);
+    }
+  }
+
+  /* Stage 4: a slow day-cycle tint — dusk → night → blue hour → dawn — as a
+     turn-driven wash UNDER people and signals, so gameplay contrast never drops. */
+  {
+    const p=Math.max(0,Math.min(1,(turn-1)/Math.max(1,D.maxT-1)));
+    const KF=[[40,34,52,0.05],[24,30,58,0.10],[30,46,68,0.11],[64,52,44,0.07]];
+    const seg=p*3,i=Math.min(2,Math.floor(seg)),f=seg-i,A=KF[i],B=KF[i+1];
+    ctx.fillStyle='rgba('+Math.round(A[0]+(B[0]-A[0])*f)+','+Math.round(A[1]+(B[1]-A[1])*f)+','+Math.round(A[2]+(B[2]-A[2])*f)+','+(A[3]+(B[3]-A[3])*f)+')';
+    ctx.fillRect(0,0,W,H);
+  }
+  /* Stage 3: light as the medium. The player carries a soft pool of lamplight;
+     murals cast fainter ones (drawn below). Warm, low, under the people. */
+  if(player>=0&&ag[player]&&!ag[player].gone){
+    const px=ag[player].x,py=ag[player].y-3,rad=72;
+    const lg=ctx.createRadialGradient(px,py,0,px,py,rad);
+    lg.addColorStop(0,'rgba(226,198,142,0.15)');
+    lg.addColorStop(0.5,'rgba(224,180,120,0.05)');
+    lg.addColorStop(1,'rgba(224,180,120,0)');
+    ctx.fillStyle=lg;ctx.fillRect(px-rad,py-rad,rad*2,rad*2);
+  }
 
   const zones=freeZones();
   zones.forEach(z=>{
@@ -2567,9 +2724,13 @@ function draw(ts){
     ctx.fillStyle='rgba(79,174,141,0.07)';ctx.fill();
   });
   murals.forEach((m,mi)=>{
-    const sh2=0.045+0.025*Math.sin(ts/450+mi*2);
-    ctx.beginPath();ctx.arc(m.x,m.y,90,0,Math.PI*2);
-    ctx.fillStyle='rgba(224,164,88,'+sh2+')';ctx.fill();
+    /* Stage 3: a mural casts a soft pool of light, not a flat disc */
+    const puls=reducedMotion()?0.5:(0.5+0.5*Math.sin(ts/450+mi*2));
+    const rad=84,mg=ctx.createRadialGradient(m.x,m.y,0,m.x,m.y,rad);
+    mg.addColorStop(0,'rgba(224,164,88,'+(0.05+0.03*puls)+')');
+    mg.addColorStop(0.55,'rgba(224,164,88,'+(0.02+0.012*puls)+')');
+    mg.addColorStop(1,'rgba(224,164,88,0)');
+    ctx.fillStyle=mg;ctx.fillRect(m.x-rad,m.y-rad,rad*2,rad*2);
   });
   if((linkMode||muralMode)&&player>=0){
     ctx.beginPath();ctx.arc(ag[player].x,ag[player].y,linkReach(),0,Math.PI*2);
@@ -2636,16 +2797,9 @@ function draw(ts){
     ctx.fillText('◇ almost',n.x,n.y-34);
     ctx.textAlign='start';ctx.globalAlpha=1;
   });
-  murals.forEach(m=>{
-    ctx.fillStyle='#e0a458';
-    ctx.beginPath();
-    for(let p=0;p<4;p++){
-      const ang=p*Math.PI/2+ts/4000;
-      ctx.lineTo(m.x+Math.cos(ang)*6,m.y+Math.sin(ang)*6);
-      ctx.lineTo(m.x+Math.cos(ang+Math.PI/4)*2.5,m.y+Math.sin(ang+Math.PI/4)*2.5);
-    }
-    ctx.closePath();ctx.fill();
-  });
+  /* Stage 6: murals as small stencilled marks — a fist, an eye, a word —
+     chosen deterministically per mural instead of a rotating diamond */
+  murals.forEach((m,mi)=>{drawMuralMark(m.x,m.y,(m.kind!==undefined?m.kind:(m.kind=mi%3)));});
   spies.forEach(spy=>{
     ctx.beginPath();ctx.arc(spy.x,spy.y,70,0,Math.PI*2);
     ctx.strokeStyle='rgba(232,228,216,0.25)';ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
@@ -2708,16 +2862,23 @@ function draw(ts){
       ctx.strokeStyle='rgba(141,123,219,'+(0.15*halo)+')';ctx.lineWidth=2;ctx.stroke();
     }
   });
-  /* fear made visible: a haze over the whole district that thins as fear falls */
+  /* fear as atmosphere over the streets: layered, denser at the edges, slowly
+     drifting. Thins visibly as rig falls — that legibility is a gameplay signal. */
   const fogA=rig*0.15;
-  if(fogA>0.015){
-    ctx.fillStyle='rgba(148,158,178,'+fogA+')';
-    ctx.fillRect(-10,-10,W+20,H+20);
+  if(fogA>0.012){
+    ctx.fillStyle='rgba(150,160,180,'+(fogA*0.7)+')';
+    ctx.fillRect(0,0,W,H);
+    const eg=ctx.createRadialGradient(W/2,H/2,H*0.28,W/2,H/2,W*0.62);
+    eg.addColorStop(0,'rgba(150,160,180,0)');
+    eg.addColorStop(1,'rgba(150,160,180,'+(fogA*0.9)+')');
+    ctx.fillStyle=eg;ctx.fillRect(0,0,W,H);
+    const drift=reducedMotion()?0:ts/90;
     for(let c=0;c<3;c++){
-      const cx=((ts/70+c*300)%(W+320))-160;
-      const cy=55+c*150;
-      ctx.beginPath();ctx.ellipse(cx,cy,150,42,0,0,Math.PI*2);
-      ctx.fillStyle='rgba(148,158,178,'+(rig*0.05)+')';ctx.fill();
+      const cx=((drift+c*300)%(W+340))-170,cy=48+c*150;
+      const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,150);
+      bg.addColorStop(0,'rgba(150,160,180,'+(rig*0.05)+')');
+      bg.addColorStop(1,'rgba(150,160,180,0)');
+      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(cx,cy,150,44,0,0,Math.PI*2);ctx.fill();
     }
   }
   /* structural-win blooms: painted OVER the fog so the haze visibly lifts,
@@ -2817,6 +2978,9 @@ function draw(ts){
       ctx.fillRect(-10,-10,W+20,H+20);
     } else vignette=null;
   }
+  /* Stage 5: paper grain, composited last as a whole-page texture (prerendered) */
+  if(!grainCanvas)buildGrain();
+  if(grainCanvas)ctx.drawImage(grainCanvas,0,0);
   ctx.restore();
 }
 
