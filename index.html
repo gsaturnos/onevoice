@@ -91,6 +91,17 @@ button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px sol
   .grow .gl{min-width:118px; font-size:11.5px;}
 }
 #opp{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid #7ea6d8; color:#a8c8e8; font-family:ui-monospace,monospace; background:rgba(126,166,216,.10);}
+/* ---------- FACTIONS (era 2) ---------- */
+#factions{padding:9px 13px; margin:0 0 10px; border:1px solid var(--line); background:var(--panel); font-family:ui-monospace,monospace;}
+#factions .fhead{font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin:0 0 6px; display:flex; justify-content:space-between; gap:8px;}
+#factions .frow{display:flex; align-items:center; gap:8px; margin:3px 0; font-size:12px;}
+#factions .fn{min-width:118px; color:#cfcabc;}
+#factions .fbar{flex:1; height:6px; background:rgba(232,228,216,0.07); border:1px solid var(--line); position:relative;}
+#factions .ffill{height:100%; transition:width .5s, background .5s;}
+#factions .fv{min-width:34px; text-align:right; color:var(--muted); font-size:11px;}
+#factions .rival{margin-top:7px; padding-top:6px; border-top:1px solid var(--line); font-size:12px; color:#c9a0a0;}
+#factions .rival .rbar{display:inline-block; width:60px; height:6px; border:1px solid rgba(201,79,79,0.4); vertical-align:middle; margin:0 6px; position:relative;}
+#factions .rival .rfill{position:absolute; left:0; top:0; bottom:0; background:rgba(201,79,79,0.6);}
 canvas{width:100%; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair;}
 .banner{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid; font-family:ui-monospace,monospace;}
 .banner.warn{color:var(--lamp); border-color:var(--lamp); background:rgba(224,164,88,.08);}
@@ -235,6 +246,9 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
   </details>
   <div class="chapter">The campaign — seven districts</div>
   <div id="levels-camp"></div>
+  <div class="chapter" id="camp2-head" style="display:none;">One Voice II — The morning after</div>
+  <div class="chapter-sub" id="camp2-sub" style="display:none;"></div>
+  <div id="levels-camp2"></div>
   <div class="foot">Born from a conversation. This model simplifies enormously — real change is slower, costlier,
   and braver than any game. Progress saves in this browser. Share the file freely.</div>
 </div>
@@ -259,6 +273,7 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
   </div>
   <div id="kpipop"></div>
   <div class="goal" id="goal"></div>
+  <div id="factions" style="display:none;"></div>
   <div id="opp"></div>
   <div id="coach"><span id="coach-text"></span><button id="coach-next">Got it →</button></div>
   <details id="howto-box">
@@ -311,6 +326,11 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
   <div class="group-label">Bold — 3 energy</div>
   <div class="actions">
     <button data-act="speak" title="A wide surge of awareness around you — and a huge spike in eyes on you. Timing is everything.">Speak publicly</button>
+  </div>
+  <div class="group-label" id="grp-govern">Govern</div>
+  <div class="actions">
+    <button data-act="delegate" title="Hand a trusted, awakened person real authority. They keep a bloc you cannot, their trait strengthens your hand, and it widens your mandate. Who you empower shapes the ending.">Delegate authority</button>
+    <button data-act="drawer" title="Open the old surveillance apparatus. It works: the rival claim recedes, order is bought. But it costs mandate, and it will follow you into the roster and the ending — permanently.">Open the drawer</button>
   </div>
   <button id="a-end">Next turn →</button>
   <details id="story-box" open>
@@ -585,10 +605,81 @@ const LEVELS=[
   allowed:CORE.concat(['mural','post','letter','expose','doc','reach','speak']), newActs:'NEW — Reach out to wavering (surround an incumbent with aware people until they turn amber, then ask them to walk away — success refunds energy, and doubt spreads to enforcers nearby) and Speak publicly (loud, wide, dangerous).'},
  {name:'5 · The regime', desc:'Win too fast and they send reinforcements.', N:74, rig:0.82, maxT:30, winP:0.05, thresh:0.67, floorGain:0.027, crackP:0.16, crackR:0.17, surv:105, linkMax:126, nInc:6, waverAt:0.54, spies:1, reinforce:2},
  {name:'6 · The apparatus', desc:'Two informants. The pillars must fall.', N:74, rig:0.85, maxT:30, winP:0.047, thresh:0.68, floorGain:0.026, crackP:0.17, crackR:0.18, surv:108, linkMax:122, nInc:7, waverAt:0.56, spies:2, reinforce:2},
- {name:'7 · The capital', desc:'Everything at once. Make losses stop mattering.', N:74, rig:0.88, maxT:28, winP:0.045, thresh:0.70, floorGain:0.025, crackP:0.19, crackR:0.19, surv:112, linkMax:118, nInc:8, waverAt:0.58, spies:2, reinforce:3}
+ {name:'7 · The capital', desc:'Everything at once. Make losses stop mattering.', N:74, rig:0.88, maxT:28, winP:0.045, thresh:0.70, floorGain:0.025, crackP:0.19, crackR:0.19, surv:112, linkMax:118, nInc:8, waverAt:0.58, spies:2, reinforce:3},
+ /* ===== ONE VOICE II — THE MORNING AFTER (era 2) =====
+    Sequel campaign. Same engine (diffusion, collective pressure, structural
+    wins), but the dials invert their meaning and holding a coalition together
+    replaces breaking a regime. Gated behind campProgress>=7. era:2 flag drives
+    every branch; finale:true marks the ending chapter. */
+ {era:2, name:'I · The morning after', desc:'The regime is gone. Now the coalition must agree what "won" means.',
+  N:46, maxT:18, thresh:0.60, winP:0.06, floorGain:0.03, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link'], drift0:0.20, mem0:0.44, mandate0:34, driftRate:0.022, rivalRate:0,
+  obj:{type:'deliver', count:3, text:'Deliver 3 concrete results while the coalition still holds'},
+  intro:'The last enforcer left the square before dawn. Now the people who toppled the old order have to build something — and they do not agree on what. Hear people out (Talk), hold assemblies (Organize), bind the coalition together (Build a tie). When a circle is ready, a result gets delivered — a clinic reopens, a pension is restored. But every delivery spends coalition capital: satisfying one bloc strains another. Keep the alliance together while you get things done.'},
+ {era:2, name:'II · What the files know', desc:'The surveillance apparatus still exists. Now it answers to you.',
+  N:48, maxT:20, thresh:0.61, winP:0.055, floorGain:0.028, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','drawer'], drift0:0.24, mem0:0.42, mandate0:36, driftRate:0.024, rivalRate:0.02,
+  obj:{type:'mandate', lvl:46, text:'Reach the end governing by consent — Mandate 46+, coalition intact'},
+  intro:'They left the drawers unlocked. Every file, every wiretap, every name — the machine is intact, and now it is yours. It works. It would make all of this so much easier. Governing by consent is slower, and it costs Mandate to act without asking. What you reach for now, you will be remembered for.'},
+ {era:2, name:'III · Four rooms', desc:'Amnesty. Tribunals. The warehouses. The street. All at once.',
+  N:52, maxT:22, thresh:0.62, winP:0.05, floorGain:0.026, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','delegate'], drift0:0.26, mem0:0.40, mandate0:38, driftRate:0.026, rivalRate:0.03,
+  obj:{type:'factions', lvl:0.35, text:'Hold all four blocs together at once — every faction above 35%'},
+  intro:'Four rooms, four answers. The enforcers who walked away want amnesty. The families who lost people want tribunals. The patron wants his warehouses left out of it. The street wants it all to have meant something. You cannot hold this alone — hand real authority to people you trust (Delegate), and let them keep a room you cannot.'},
+ {era:2, name:'IV · The other founder', desc:'Someone you know is building a coalition of their own.',
+  N:52, maxT:22, thresh:0.62, winP:0.05, floorGain:0.026, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','delegate','drawer'], drift0:0.28, mem0:0.38, mandate0:38, driftRate:0.028, rivalRate:0.055,
+  obj:{type:'rival', lvl:0.55, count:2, text:'Keep the other claim below 55% and deliver 2 results'},
+  intro:'They stood beside you in the worst of it. Now they have a different answer — and a growing base who believe it. Not a villain; a rival. You can out-deliver them, out-organize them, widen the mandate they are eating into — or you can open the drawer and make the problem quietly go away. Each has a price.'},
+ {era:2, finale:true, name:'V · The settlement', desc:'What the morning after finally becomes.',
+  N:56, maxT:24, thresh:0.62, winP:0.048, floorGain:0.025, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','delegate','drawer'], drift0:0.30, mem0:0.38, mandate0:40, driftRate:0.03, rivalRate:0.05,
+  obj:{type:'settle', text:'Hold the coalition to the settlement — what it becomes is up to you'},
+  intro:'No more first weeks. Whatever you build now is what people will live inside. Deliver what you can, hand power to those who should hold it, keep the blocs at the table — and decide, once and for all, whether the drawer stays shut. The morning after becomes an ordinary morning. Make it one worth waking to.'}
 ];
 const PRO_DEFAULTS={winP:0.10, thresh:0.55, floorGain:0.03, crackP:0, crackR:0.12, surv:85, linkMax:150, waverAt:0.5};
 const N_PRO=6;
+const N_CAMP=7;   /* era-1 campaign districts: LEVELS indices N_PRO .. N_PRO+N_CAMP-1 */
+
+/* ===== ONE VOICE II — sequel data & state (era 2) ===== */
+const CIVIC2=[
+ 'The first days after victory: agreeing on the enemy was the easy part.',
+ 'The apparatus in the drawer works exactly as designed. That is the whole problem.',
+ 'Four blocs, four legitimate answers. No settlement satisfies them all — and none may be crushed.',
+ 'A second claim rises from within the movement. Not a lie; a different, honest answer.',
+ 'The settlement: not the morning you dreamed of, but one you can defend.'
+];
+/* four blocs from the first campaign, now wanting different things. Opposed in pairs:
+   amnesty↔tribunal, market↔street. Satisfying one strains its rival. */
+const FACTIONS_DEF=[
+ {id:'amnesty', name:'The amnesty',    who:'enforcers who walked away', rival:'tribunal'},
+ {id:'tribunal',name:'The tribunals',  who:'families who lost people',  rival:'amnesty'},
+ {id:'market',  name:'The warehouses', who:'the patron and his trade',  rival:'street'},
+ {id:'street',  name:'The street',     who:'the base that made it',     rival:'market'}
+];
+/* era-2 structural wins are things DELIVERED by a new order, not a fear broken */
+const WIN_MAP2=[
+ ['clinic','The clinic reopens its doors, staffed and funded'],['hospital','The hospital is put back under public hands'],
+ ['rent','Rent control is written into the new charter'],['pension','Back pensions are paid, name by name'],
+ ['school','The schools reopen with books and paid teachers'],['fine','The old fines are cancelled and refunded'],
+ ['job','The blacklists are burned; people are rehired'],['flood','Public works clears the drains at last'],
+ ['harvest','The seized land is returned to those who worked it'],['savings','Savings wiped out by the old scrip are made good'],
+ ['venue','The concert hall reopens — legally, this time'],['read','A free press prints its first uncensored edition']
+];
+const WIN_GENERIC2=['A tribunal is seated, in the open','A new council is elected and sworn','A commission publishes what was hidden','A charter clause is ratified by show of hands','A land dispute is settled without troops'];
+let camp2Progress=0;
+try{camp2Progress=parseInt(localStorage.getItem('ov20_camp2')||'0');}catch(e){camp2Progress=0;}
+function saveCamp2(){try{localStorage.setItem('ov20_camp2',String(camp2Progress));}catch(e){}}
+let unlockSeen=false;
+try{unlockSeen=localStorage.getItem('ov20_unlock')==='1';}catch(e){}
+/* era-2 run state (reset in initGame) */
+let factions=[],rival=0,rivalName='',usedApparatus=false,apparatusUses=0,empowered=[],deliveredThisRun=0,deliverIdx=0,lastDeliverBloc='';
+let driftTold=false,factionTold=false,drawerTold=false,rivalTold=false,delegateTold=false;
+function era2(){return !!(D&&D.era===2);}
+function faction(id){return factions.find(f=>f.id===id);}
+function weakestFaction(){let m=null,mv=2;factions.forEach(f=>{if(f.coh<mv){mv=f.coh;m=f;}});return m?m.id:null;}
+function factionsIntact(){return factions.every(f=>f.coh>0.06);}
+function factionsCollapsed(){return factions.filter(f=>f.coh<=0.06).length;}
 /* Each campaign district carries its own civic conflict — not just harder numbers.
    Shown when the district opens, and echoed in its epilogue. */
 const CIVIC=[
@@ -968,6 +1059,156 @@ function rememberedLines(result){
 }
 /* ------------------------------ */
 
+/* ==================================================================
+   ONE VOICE II — sequel logic (era 2): deliveries, factions, rival,
+   delegation, the drawer, chapter resolution, endings, epilogue.
+   ================================================================== */
+/* a delivery pleases one bloc and strains its opposed pair — you cannot
+   satisfy all four. Rotates so every result forces a real trade-off. */
+function deliverFaction(){
+  if(!factions.length)return;
+  const f=factions[deliverIdx++%factions.length];
+  f.coh=Math.min(1,f.coh+0.10);
+  const riv=faction(f.rival);if(riv)riv.coh=Math.max(0,riv.coh-0.09);
+  lastDeliverBloc=f.name;
+}
+/* stat relabelling: the dials keep their storage, invert their meaning */
+const STAT_LABELS_1={'st-risk':'Eyes on you','st-inf':'Community trust','st-rig':'Fear in the air','st-floor':'What people remember','st-aw':'Neighborhood awareness'};
+const STAT_LABELS_2={'st-risk':'Legitimacy spent','st-inf':'Mandate','st-rig':'Coalition drift','st-floor':'Contested memory','st-aw':'Coalition support'};
+function applyStatLabels(){
+  const m=era2()?STAT_LABELS_2:STAT_LABELS_1;
+  Object.keys(m).forEach(id=>{const el=$(id);if(!el)return;const l=el.querySelector('.l');if(l)l.innerHTML=m[id]+' <span style="color:#7ea6d8;">ⓘ</span>';});
+}
+function renderFactions(){
+  const el=$('factions');if(!el)return;
+  el.style.display='';
+  const rows=factions.map(f=>{
+    const pct=Math.round(f.coh*100);
+    const col=f.coh<0.2?'201,79,79':(f.coh<0.4?'224,164,88':'79,174,141');
+    return '<div class="frow"><span class="fn">'+f.name+'</span><span class="fbar"><span class="ffill" style="width:'+pct+'%;background:rgba('+col+',0.6)"></span></span><span class="fv">'+pct+'%</span></div>';
+  }).join('');
+  const rivPct=Math.round(rival*100);
+  el.innerHTML='<div class="fhead"><span>The coalition — four blocs at the table</span><span>hold them all</span></div>'+rows+
+    (rivalName?'<div class="rival">'+rivalName+'’s claim <span class="rbar"><span class="rfill" style="width:'+rivPct+'%"></span></span> '+rivPct+'%'+(usedApparatus?' · <span style="color:#8d7bdb;">the drawer is open</span>':'')+'</div>':'');
+}
+/* per-chapter sub-goal (universal loss = fracture / rival eclipse / timeout) */
+function era2SubgoalMet(){
+  const o=D.obj;if(!o)return false;
+  if(o.type==='deliver')return wins>=o.count;
+  if(o.type==='mandate')return inf>=o.lvl&&factionsIntact();
+  if(o.type==='factions')return factions.every(f=>f.coh>=o.lvl);
+  if(o.type==='rival')return rival<=o.lvl&&wins>=(o.count||0);
+  return false; /* 'settle' is the finale, handled below */
+}
+function era2Resolve(){
+  const fractured=factionsCollapsed()>=2||rig>=0.94;
+  const rivalWon=rival>=0.9;
+  if(D.finale){
+    if(fractured){era2Finale('fracture');return;}
+    if(rivalWon){era2Finale('rival');return;}
+    if(turn>D.maxT){era2Finale(null);return;}
+    return; /* play on to the settlement */
+  }
+  if(fractured){era2Loss('The coalition came apart — two blocs walked from the table and did not come back. What replaces it will not be gentle.');return;}
+  if(rivalWon){era2Loss(rivalName+'’s claim eclipsed yours. The coalition chose another morning — not yours.');return;}
+  if(era2SubgoalMet()){era2ChapterWin();return;}
+  if(turn>D.maxT){era2Loss('The window for this chapter closed with the settlement unfinished.');return;}
+}
+function era2ChapterWin(){
+  over=true;sVictory();
+  const ci=lvlIdx-(N_PRO+N_CAMP);
+  if(ci===camp2Progress){camp2Progress=Math.min(5,camp2Progress+1);saveCamp2();}
+  const earned=awardEmbers(true);
+  const titles=['★ The first results are real','★ You governed by consent','★ All four rooms held','★ The other claim, held off','★ The settlement holds'];
+  const bodies=[
+    'Three things were delivered that people can point to — and the coalition is still, somehow, one thing. The morning after has a shape now.',
+    'You reached the table’s end with a mandate still worth the name'+(usedApparatus?', though you opened the drawer to do it — and that will not be forgotten':', and the drawer stayed shut')+'.',
+    'Amnesty, tribunals, warehouses, street — all four still in the room at once. No one got everything. Everyone got something. That is what holding looks like.',
+    rivalName+'’s claim did not carry the day. Not because you crushed it — because you out-delivered it, mostly.',
+    'The settlement holds.'
+  ];
+  showEnd(titles[ci]||'★ Chapter settled','<p>'+(bodies[ci]||'The chapter settles.')+'</p>'+(earned>0?'<p>🔥 <b>+'+earned+' embers</b> — nothing is wasted.</p>':'')+'<p><b>Next:</b> the next chapter of the morning after is unsealed.</p>');
+  showEpilogue2('win',null);
+}
+function era2Loss(reason){
+  over=true;sLoss();
+  const earned=awardEmbers(false);
+  showEnd('The morning after falters','<p>'+reason+'</p>'+era2FailDiag()+(earned>0?'<p>🔥 <b>+'+earned+' embers</b> — nothing is wasted.</p>':'')+'<p><b>Next:</b> return and try a different settlement. Who you empower, what you deliver, and whether the drawer stays shut all change how this holds.</p>');
+  showEpilogue2('loss',null);
+}
+function era2FailDiag(){
+  const L=[];
+  if(factionsCollapsed()>=2)L.push('Two blocs were let go at once — the alliance needs all four, and delivery alone strains them. Assemble and delegate to hold the weak room.');
+  else if(rig>=0.9)L.push('Drift ran away — silence and inaction pulled it apart. The morning after has to be actively held together, every turn.');
+  else if(rival>=0.85)L.push('The other claim grew faster than you answered it — out-deliver it, widen the mandate it feeds on, or (at a price) open the drawer.');
+  else L.push('The sub-goal came up short before the window closed. A tighter rhythm of delivery and consent gets there.');
+  return '<p><i>'+L[0]+'</i></p>';
+}
+/* the endings — chosen from faction/memory/rival/empowerment/apparatus state.
+   None is a pure fantasy; the settlement is a quiet, compromised success. */
+const ENDINGS={
+ settlement:{win:true,title:'Ending — the quiet settlement',
+   body:'No statue, no triumph. A council that argues and keeps meeting. Amnesty for most, a handful of tribunals that satisfy no one entirely, warehouses that pay a little more tax than they’d like. What people remember is written down where it can be checked. It is smaller than the dream in the square — and it is real, and it is yours to keep, together.'},
+ handover:{win:true,title:'Ending — the handover',
+   body:'You did the one thing founders almost never do: you gave it away. Real authority now sits with people you named, each holding a room you could not. The settlement is fragile — spread thin, argued over — but it does not depend on you, and that is the only kind that lasts. You go home an ordinary person. The morning is ordinary too. That was the point.'},
+ strongman:{win:false,title:'Ending — the bargain',
+   body:'Order held. The trains run, the blocs are quiet, the rival’s claim went quietly nowhere. And the drawer stayed open — the files current, the names kept, the machine humming under the new charter as it did under the old. People are careful how they say your name now. You told yourself it was temporary. The apparatus has heard that before.'},
+ fracture:{win:false,title:'Ending — the fracture',
+   body:'It came apart the way these things do — not in one blow, but two rooms emptying, then a third, until the table was a rumor. What made the revolution could not survive the morning after it. Something will fill the space. It usually wears a uniform. What people saw, they keep — and one day they will come back to it.'},
+ rival:{win:false,title:'Ending — the other’s morning',
+   body:rivalName?'':'',dyn:true}
+};
+function era2Finale(forced){
+  over=true;
+  const key=forced||pickEnding();
+  const E=ENDINGS[key];
+  let title=E.title,body=E.body;
+  if(key==='rival'){title='Ending — the other’s morning';
+    body='It was '+rivalName+' who inherited the morning — someone who stood beside you in the worst of it, and answered the after differently. Not a villain; a different, honest claim that grew while yours frayed. They will make their own compromises, their own mistakes. You are in the square again, one voice among many, where you started. Perhaps that was always the truer place.';}
+  if(E.win)sVictory();else sLoss();
+  const ci=lvlIdx-(N_PRO+N_CAMP);
+  if(ci===camp2Progress){camp2Progress=Math.min(5,camp2Progress+1);saveCamp2();} /* finale reached — sequel complete either way */
+  const earned=awardEmbers(E.win);
+  showEnd(title,'<p>'+body+'</p>'+(earned>0?'<p>🔥 <b>+'+earned+' embers</b>.</p>':'')+'<p><b>The morning after is complete.</b> Replay any chapter to reach a different settlement — the drawer, the delegates, and the deliveries all change how it ends.</p>');
+  showEpilogue2('end',key);
+}
+function pickEnding(){
+  if(rival>=0.7)return 'rival';
+  if(factionsCollapsed()>=2||rig>=0.9)return 'fracture';
+  if(usedApparatus)return 'strongman';
+  if(empowered.length>=3&&inf>=45)return 'handover';
+  return 'settlement';
+}
+/* sequel epilogue — reflects blocs, delegates, the drawer, the rival, memory */
+function showEpilogue2(result,endKey){
+  const parts=[];
+  parts.push('You began as '+startName+', '+startRole+', on the morning after — with a coalition, a mandate, and no enemy left to agree on.');
+  epiEvents.forEach(e=>parts.push(e));
+  const strong=factions.filter(f=>f.coh>=0.4).map(f=>f.name.toLowerCase());
+  const lost=factions.filter(f=>f.coh<=0.06).map(f=>f.name.toLowerCase());
+  if(strong.length)parts.push('Still at the table: '+strong.join(', ')+'.');
+  if(lost.length)parts.push('Walked out: '+lost.join(', ')+'. That absence has a shape.');
+  if(empowered.length)parts.push('You handed real authority to '+empowered.map(e=>e.nm).join(', ')+' — power you chose not to keep.');
+  else parts.push('You kept every decision in your own hands. No one learned to carry it but you.');
+  if(usedApparatus)parts.push('You opened the drawer '+(apparatusUses>1?apparatusUses+' times':'once')+'. The files are still current. The machine outlived the regime it served — because you let it.');
+  else parts.push('The drawer stayed shut. Slower, harder, and no one will ever have to wonder what you did with the files.');
+  if(rivalName)parts.push(rival>=0.5?rivalName+'’s claim grew loud beside yours; the movement learned it was never one voice after all.':rivalName+'’s rival claim never caught — answered, not silenced.');
+  parts.push('Remembered this morning —\n'+remembered2().join('\n'));
+  $('ep-title').textContent=(endKey&&ENDINGS[endKey])?ENDINGS[endKey].title:(result==='win'?'Epilogue — the coalition holds, for now':'Epilogue — the morning after');
+  $('epilogue-text').textContent=parts.join('\n\n');
+  $('epilogue-box').style.display='block';
+}
+function remembered2(){
+  const L=[];
+  L.push('· '+wins+' concrete thing'+(wins===1?'':'s')+' delivered — clinics, pensions, tribunals, charters people can point to.');
+  L.push('· Contested memory ended at '+Math.round(floor*100)+'%'+(floor>=0.35?' — defended, on the record.':' — the old version is winning that argument.'));
+  L.push('· Coalition drift '+Math.round(rig*100)+'%, mandate '+Math.round(inf)+'.');
+  if(empowered.length)L.push('· Power now held by '+empowered.length+' other'+(empowered.length===1?'':'s')+' — the settlement does not rest on you alone.');
+  const ps=playstyleLine();if(ps)L.push('· '+ps);
+  return L;
+}
+/* ------------------------------------------------------------------ */
+
 /* ---------- DILEMMAS ---------- */
 const DILEMMAS=[
  {id:'name', title:'The offer',
@@ -1073,13 +1314,60 @@ const DILEMMAS=[
           epiEvents.push('When the whisper came about '+v.a.nm+', you accused no one — and quietly built a second path for everything important.');
           log('You accuse no one. But that night you start building a second path for everything important — one that does not run through '+v.a.nm+'. Perhaps you are being unfair. Perhaps you are being wise. Your next connection will cost you nothing; caution has its own economy.');}}
     };
-  }}
+  }},
+ /* ===== ERA 2 DILEMMAS — governing is choosing who to disappoint ===== */
+ {id:'e2_amnesty', era:2, title:'The list of names',
+  when:()=>turn>2,
+  build:()=>({
+    text:'The tribunal committee brings you a list. Forty-one names — mid-level people from the old apparatus, the ones who signed the orders but did not write them. "Try them," say the families. "Let them go," say the ones who walked away, "or no one will ever cross over again." Both are in your coalition. Both are right.',
+    a:{label:'Seat the tribunals', hint:'The families get their day. The turncoats hear a door closing.',
+      fx2:'The tribunals +18% · The amnesty −16% · Contested memory +3 · Mandate +4',
+      fx:()=>{const t=faction('tribunal'),am=faction('amnesty');if(t)t.coh=Math.min(1,t.coh+0.18);if(am)am.coh=Math.max(0,am.coh-0.16);floor=Math.min(0.6,floor+0.03);inf=Math.min(100,inf+4);
+        epiEvents.push('You seated the tribunals. The families wept in the gallery; three of your defected allies did not come back the next morning.');
+        log('The tribunals are seated in the open. The families finally hear the names read aloud. And somewhere, the enforcers who were deciding whether to trust you make their decision.');}},
+    b:{label:'Grant the amnesty', hint:'The crossing-over stays open. The bereaved learn what "settlement" costs.',
+      fx2:'The amnesty +18% · The tribunals −16% · Contested memory −3 · a name is remembered anyway',
+      fx:()=>{const t=faction('tribunal'),am=faction('amnesty');if(am)am.coh=Math.min(1,am.coh+0.18);if(t)t.coh=Math.max(0,t.coh-0.16);floor=Math.max(0.05,floor-0.03);
+        epiEvents.push('You granted the amnesty. More of the old apparatus came over — and a mother stopped coming to the meetings.');
+        log('You grant the amnesty. More of the old machine crosses to your side, useful and quiet. In the third row, a woman who lost her son folds the list, puts it in her coat, and leaves without a word.');}}
+  })},
+ {id:'e2_patron', era:2, title:'The warehouses',
+  when:()=>turn>4,
+  build:()=>({
+    text:'The patron who bankrolled the last hard winter asks for five minutes. "I kept the lights on when it was dangerous to. I only ask that my warehouses stay out of the land question." The street wants those warehouses opened. His money is already funding three of your clinics.',
+    a:{label:'Protect the warehouses', hint:'The clinics stay funded. The street learns whose morning this is.',
+      fx2:'The warehouses +16% · The street −15% · Mandate −6 · Legitimacy spent +8',
+      fx:()=>{const m=faction('market'),st=faction('street');if(m)m.coh=Math.min(1,m.coh+0.16);if(st)st.coh=Math.max(0,st.coh-0.15);inf=Math.max(0,inf-6);risk=Math.min(1,risk+0.08);
+        epiEvents.push('You kept the patron’s warehouses out of the land question. The clinics stayed open; the street noticed who they stayed open for.');
+        log('You keep his name out of the land question. The clinics stay funded, which matters. And the street reads the exemption exactly for what it is.');}},
+    b:{label:'Open them to the land question', hint:'The base is vindicated. The money — and the clinics — may follow it out the door.',
+      fx2:'The street +16% · The warehouses −17% · deliveries harder next while funding wobbles',
+      fx:()=>{const m=faction('market'),st=faction('street');if(st)st.coh=Math.min(1,st.coh+0.16);if(m)m.coh=Math.max(0,m.coh-0.17);rig=Math.min(1,rig+0.05);
+        epiEvents.push('You put the warehouses into the land question. The street cheered; the patron’s money began, quietly, to look for the door.');
+        log('You put the warehouses on the table with everything else. The street cheers in the square. That evening the patron is warm, and vague, and you understand that some of the lights are about to get harder to keep on.');}}
+  })},
+ {id:'e2_drawer', era:2, title:'A name in the files',
+  when:()=>rival>0.4,
+  build:()=>({
+    text:'A folder finds its way to your desk. Inside: everything the old regime had on '+ (rivalName||'your rival') +' — enough, if it were published, to end their competing claim in a week. No one made you open it. It is simply, quietly, there.',
+    a:{label:'Use what the files hold', hint:'The rival problem ends this week. So does something else.',
+      fx2:'Rival claim collapses · Mandate −14 · the drawer is open now, for good',
+      fx:()=>{usedApparatus=true;apparatusUses++;rival=Math.max(0,rival*0.3);inf=Math.max(0,inf-14);
+        epiEvents.push('You used what the files held on '+(rivalName||'your rival')+'. Their claim collapsed within the week. You told yourself it was the last time.');
+        log('You use it. Within a week '+(rivalName||'the rival')+'’s claim is finished — not argued down, just... finished. The method worked as well for you as it did for them. The drawer is open now, and you already know it will not close.');}},
+    b:{label:'Burn the folder unread', hint:'You keep your hands clean. The rival keeps their claim.',
+      fx2:'Rival unchanged · Mandate +8 · Contested memory +2 · nothing owed to the machine',
+      fx:()=>{inf=Math.min(100,inf+8);floor=Math.min(0.6,floor+0.02);
+        epiEvents.push('A folder on '+(rivalName||'your rival')+' reached your desk. You burned it unread, and answered the claim in the open instead.');
+        log('You burn it in the sink and watch the names curl. If you are going to beat '+(rivalName||'this')+', it will be in the open, or not at all. Your hands are empty, which is the point.');}}
+  })}
 ];
 let pendingDilemma=null;
 function maybeFireDilemma(){
   if(D.pro||over||pendingDilemma)return;
   if(Math.random()>0.30)return;
-  const pool=DILEMMAS.filter(d=>!firedDilemmas.includes(d.id)&&d.when());
+  /* era-1 and era-2 dilemmas are mutually exclusive: era-2 ones carry era:2 */
+  const pool=DILEMMAS.filter(d=>(era2()?d.era===2:!d.era)&&!firedDilemmas.includes(d.id)&&d.when());
   if(!pool.length)return;
   const d=pool[Math.floor(rand(0,pool.length))];
   const b=d.build();
@@ -1107,29 +1395,53 @@ $('dl-b').addEventListener('click',()=>resolveDilemma('b'));
 
 function renderCampaign(){
   renderLegacy();
-  const pro=$('levels-pro'),camp=$('levels-camp');
-  pro.innerHTML='';camp.innerHTML='';
-  /* recommended next: first unfinished lesson, else first open district */
+  const pro=$('levels-pro'),camp=$('levels-camp'),camp2=$('levels-camp2');
+  pro.innerHTML='';camp.innerHTML='';camp2.innerHTML='';
+  const sequelOpen=campProgress>=N_CAMP;
+  /* recommended next: first unfinished lesson, else first open era-1 district,
+     else first unfinished sequel chapter once the sequel is unlocked */
   let recIdx=-1;
   for(let i=0;i<N_PRO;i++){if(!proDone[i]){recIdx=i;break;}}
-  if(recIdx<0&&N_PRO+campProgress<LEVELS.length)recIdx=N_PRO+campProgress;
+  if(recIdx<0&&campProgress<N_CAMP)recIdx=N_PRO+campProgress;
+  if(recIdx<0&&sequelOpen&&camp2Progress<5)recIdx=N_PRO+N_CAMP+camp2Progress;
   LEVELS.forEach((L,i)=>{
     const div=document.createElement('div');
-    let open,won,stampTxt,stampCls;
+    let open,won,stampTxt,stampCls,host;
     if(L.pro){
-      won=!!proDone[i];open=true;
+      won=!!proDone[i];open=true;host=pro;
       stampTxt=won?'LEARNED':'OPTIONAL';stampCls=won?'won':'opt';
+    } else if(L.era===2){
+      const ci=i-(N_PRO+N_CAMP);host=camp2;
+      won=ci<camp2Progress;open=sequelOpen&&ci<=camp2Progress;
+      stampTxt=won?'SETTLED':(open?'OPEN':(sequelOpen?'SEALED':'LOCKED'));
+      stampCls=won?'won':(open?'open':'sealed');
     } else {
-      const ci=i-N_PRO;
+      const ci=i-N_PRO;host=camp;
       won=ci<campProgress;open=ci<=campProgress;
       stampTxt=won?'LIBERATED':(open?'OPEN':'SEALED');stampCls=won?'won':(open?'open':'sealed');
     }
+    /* while the whole sequel is still locked, hide individual chapters and show a single teaser (below) */
+    if(L.era===2&&!sequelOpen)return;
     div.className='file'+(open?'':' locked')+(won?' done':'');
     div.innerHTML='<div><div class="name">'+L.name+'</div><div class="desc">'+L.desc+'</div></div>'+
       '<span>'+(i===recIdx?'<span class="stamp next">RECOMMENDED</span>':'')+'<span class="stamp '+stampCls+'">'+stampTxt+'</span></span>';
     if(open)div.addEventListener('click',()=>startLevel(i));
-    (L.pro?pro:camp).appendChild(div);
+    host.appendChild(div);
   });
+  /* the sequel section: always visible so players know more exists */
+  $('camp2-head').style.display='';
+  $('camp2-sub').style.display='';
+  if(sequelOpen){
+    $('camp2-sub').textContent='The regime has fallen. Now the coalition has to hold — a harder, less heroic problem. The dials you knew mean something new here.';
+  } else {
+    $('camp2-sub').textContent='What happens after you win?';
+    const teaser=document.createElement('div');
+    teaser.className='file locked';
+    teaser.innerHTML='<div><div class="name">One Voice II — The morning after</div>'+
+      '<div class="desc">Sealed until the regime falls. The fight does not end when you win — it changes shape. Liberate all seven districts to open it.</div></div>'+
+      '<span><span class="stamp sealed">'+(N_CAMP-campProgress)+' districts to go</span></span>';
+    camp2.appendChild(teaser);
+  }
 }
 
 function startLevel(i){
@@ -1174,6 +1486,14 @@ function setButtons(){
   $('st-inf').style.display=D.pro&&!D.allowed.includes('reach')?'none':'';
   $('st-risk').style.display=showRisk?'':'none';
   $('howto-box').style.display=D.pro?'none':'';
+  if(era2()){ /* era 2 shows all four inverted dials, the factions panel, and the govern group */
+    ['st-risk','st-inf','st-rig','st-floor'].forEach(id=>$(id).style.display='');
+    $('factions').style.display='';
+    $('howto-box').style.display='none'; /* the era-1 reference does not describe the morning after */
+  } else {
+    $('factions').style.display='none';
+  }
+  applyStatLabels();
 }
 
 function initGame(){
@@ -1242,7 +1562,7 @@ function initGame(){
   startName=ag[player].nm;startRole=ag[player].role;
 
   let legacyLine='';
-  if(!D.pro&&has('friends')){
+  if(!D.pro&&!era2()&&has('friends')){
     inf=10;
     let bestJ=-1,bd=1e9;
     for(let j=0;j<NN;j++){
@@ -1255,11 +1575,24 @@ function initGame(){
   }
 
   let memoryLine='';
-  if(prevFallen.length&&attempts>0){
+  if(!era2()&&prevFallen.length&&attempts>0){
     ag.forEach(a=>{if(!a.inc&&!a.gone)a.aw=Math.min(1,a.aw+0.05);});
     const rememberer=ag.find(a=>!a.inc&&a!==ag[player]);
     memoryLine=' People here remember last time — they remember '+prevFallen.slice(0,2).join(' and ')+'. '+(rememberer?('"You came back," says '+rememberer.nm+'.'):'')+' No one starts from zero.';
     epiEvents.push('You returned to a neighborhood that remembered '+prevFallen.slice(0,2).join(' and ')+'.');
+  }
+  /* ---- era 2: invert the dials, seat the coalition, name the rival ---- */
+  factions=[];rival=0;rivalName='';usedApparatus=false;apparatusUses=0;empowered=[];deliveredThisRun=0;
+  driftTold=false;factionTold=false;drawerTold=false;rivalTold=false;delegateTold=false;
+  if(era2()){
+    rig=D.drift0;    /* coalition drift — rises passively toward fracture */
+    floor=D.mem0;    /* contested memory — can now be pushed down */
+    risk=0;          /* legitimacy spent — bold public acts burn it */
+    inf=D.mandate0;  /* mandate — what lets you act on others' behalf */
+    FACTIONS_DEF.forEach(f=>factions.push({id:f.id,name:f.name,who:f.who,rival:f.rival,coh:0.55}));
+    const pk=ag.map((a,i)=>({a,i})).filter(o=>!o.a.inc&&o.i!==player);
+    if(pk.length){const r=pk[Math.floor(srand()*pk.length)];rivalName=r.a.nm;r.a.isRival=true;}
+    else rivalName='Beltrán';
   }
   setButtons();
   coachIdx=0;
@@ -1270,10 +1603,15 @@ function initGame(){
   actionCounts={};oppExpired=0;pulses=[];
   $('report').style.display='none';
   renderRoster();
-  const newLine=(!D.pro&&D.newActs)?' — '+D.newActs:'';
-  const ci0=lvlIdx-N_PRO;
-  const civicLine=(!D.pro&&CIVIC[ci0])?' '+CIVIC[ci0]:'';
-  log((D.pro?D.intro:'You are '+ag[player].nm+', '+ag[player].role+'. These are your neighbors — the same faces every time you return. Click someone to learn who they are.'+newLine+civicLine)+legacyLine+memoryLine);
+  if(era2()){
+    const ci2=lvlIdx-(N_PRO+N_CAMP);
+    log(D.intro+(CIVIC2[ci2]?' '+CIVIC2[ci2]:''));
+  } else {
+    const newLine=(!D.pro&&D.newActs)?' — '+D.newActs:'';
+    const ci0=lvlIdx-N_PRO;
+    const civicLine=(!D.pro&&CIVIC[ci0])?' '+CIVIC[ci0]:'';
+    log((D.pro?D.intro:'You are '+ag[player].nm+', '+ag[player].role+'. These are your neighbors — the same faces every time you return. Click someone to learn who they are.'+newLine+civicLine)+legacyLine+memoryLine);
+  }
   ui();
   coachShow();
 }
@@ -1294,6 +1632,16 @@ function tint(el,frac,color){
 }
 
 function updateGoal(){
+  if(era2()){
+    const o=D.obj;let line='';
+    if(o.type==='deliver')line=o.text+' — '+Math.min(wins,o.count)+'/'+o.count+' delivered';
+    else if(o.type==='mandate')line=o.text+' — mandate '+Math.round(inf)+'/'+o.lvl+(factionsIntact()?'':' · a bloc is walking out');
+    else if(o.type==='factions'){const lo=Math.round(Math.min.apply(null,factions.map(f=>f.coh))*100);line=o.text+' — weakest bloc '+lo+'% / '+Math.round(o.lvl*100)+'%';}
+    else if(o.type==='rival')line=o.text+' — the claim '+Math.round(rival*100)+'% (hold under '+Math.round(o.lvl*100)+'%), delivered '+Math.min(wins,o.count)+'/'+o.count;
+    else line=o.text;
+    $('goal').innerHTML='Goal: '+line+' · turn '+turn+'/'+D.maxT+'<div class="gnote">Coalition drift '+Math.round(rig*100)+'% — if two blocs walk out, or drift maxes, the morning after fractures.</div>';
+    return;
+  }
   if(D.pro){
     const o=D.obj;
     if(o.type==='aware'){
@@ -1349,6 +1697,7 @@ function ui(){
   tint($('st-rig'),rig,'201,79,79');
   tint($('st-floor'),floor/0.5,'79,174,141');
   $('a-end').classList.toggle('pulse',energy===0&&!over);
+  if(era2())renderFactions();
   updateGoal();
   updateOppUI();
   updateActionLabels();
@@ -1395,7 +1744,7 @@ function updateActionLabels(){
   if(!D)return;
   const tb=document.querySelector('[data-act="talk"] .bl');
   if(tb)tb.textContent=(target>=0&&ag[target]&&!ag[target].inc)?'Talk with '+ag[target].nm:'Talk with someone';
-  const COSTS={talk:(opp&&opp.id==='gathering')?0:1,post:1,low:1,link:2,letter:2,org:2,mural:muralCost(),doc:2,reach:2,expose:2,speak:3};
+  const COSTS={talk:(opp&&opp.id==='gathering')?0:1,post:1,low:1,link:2,letter:2,org:2,mural:muralCost(),doc:2,reach:2,expose:2,speak:3,delegate:2,drawer:3};
   document.querySelectorAll('[data-act]').forEach(b2=>{
     const c=COSTS[b2.getAttribute('data-act')];
     const off=c!==undefined&&energy<c&&!over;
@@ -1418,6 +1767,13 @@ function updateActionLabels(){
   fxSet('reach','<i class="fx-mem">success: fear −5, memory +2</i>'+sep+'<i class="fx-tr">trust +10</i>'+sep+'<i class="fx-en">+1⚡, chains possible</i>'+sep+'<i class="fx-eye">fail: eyes +22</i>');
   fxSet('expose','<i class="fx-mem">memory +2.5</i>'+sep+'<i class="fx-aw">nearby +10 awareness</i>'+sep+'<i class="fx-tr">trust +8 (needs 30+)</i>');
   fxSet('speak','<i class="fx-aw">wide burst, up to +25 awareness</i>'+sep+'<i class="fx-tr">trust +8</i>'+sep+'<i class="fx-eye">eyes +32</i>');
+  if(era2()){ /* relabel the shared actions for governing, and describe the new two */
+    fxSet('talk','<i class="fx-aw">one person +'+awT+' support</i>'+sep+'<i class="fx-tr">mandate +2</i>');
+    fxSet('org','<i class="fx-aw">whole circle +'+awO+' support</i>'+sep+'<i class="fx-tr">mandate +4</i>'+sep+'<i class="fx-mem">holds the weakest bloc, −drift</i>');
+    fxSet('link','<i class="fx-aw">a lasting coalition tie</i>'+sep+'<i class="fx-tr">mandate +3</i>');
+    fxSet('delegate','<i class="fx-en">empower a trusted, awakened person</i>'+sep+'<i class="fx-tr">mandate +8, −drift</i>'+sep+'<i class="fx-mem">they hold a bloc &amp; lend their gift</i>');
+    fxSet('drawer','<i class="fx-mem">the rival claim collapses, order bought</i>'+sep+'<i class="fx-eye">mandate −15</i>'+sep+'<i class="fx-en">permanent — it follows you</i>');
+  }
 }
 /* -------------------------------------------------- */
 
@@ -1571,6 +1927,7 @@ function act(type){
     inf=Math.min(100,inf+4);
     addFloat(ag[player].x,ag[player].y-16,ring.size+' listened'+(market?' (market day)':''),'#4fae8d');
     log('Chairs in a circle, coffee, low voices.'+(star?' '+star.nm+' speaks up — meetings are where they come alive.':'')+(market?' The market crowd doubles everything.':'')+' The whole block leaves thinking.'+(sp?' (Someone may have seen you.)':''));
+    if(era2()){rig=Math.max(0,rig-0.03);const wf=faction(weakestFaction());if(wf)wf.coh=Math.min(1,wf.coh+0.03);}
     checkTrustMilestones();
   } else if(type==='post'){
     if(energy<1){log('Not enough energy — press Next turn.');return;}
@@ -1663,6 +2020,49 @@ function act(type){
     addFloat(ag[player].x,ag[player].y-14,'−'+Math.round((before-risk)*100)+' eyes','#7ea6d8');
     nbr[player].forEach(j=>{if(!ag[j].inc&&!ag[j].gone)ag[j].aw=Math.max(floor,ag[j].aw-0.05);});
     log('You go quiet for a while. The eyes move on — but your neighbors, hearing nothing, begin to drift.');
+  } else if(type==='delegate'){
+    /* SUCCESSION AS SPINE: hand real authority to a named, awakened person.
+       Reuses setHeirBoon/heirMul — their trait now shapes your hand. */
+    if(!era2())return;
+    if(energy<2){log('Not enough energy — press Next turn.');return;}
+    if(target<0){log('Choose someone first — click a person you would trust with real authority.');return;}
+    const p=ag[target];
+    if(p.inc||p.gone){log('Choose one of the coalition.');return;}
+    if(p.isRival){log(p.nm+' has their own claim now. Empowering them would just be handing them the table.');return;}
+    if(p.empowered){log(p.nm+' already holds a portfolio.');return;}
+    if(p.aw<0.45){log(p.nm+' is not ready to carry this — spend time with them first, until they see clearly.');return;}
+    energy-=2;
+    p.empowered=true;p.successor=true;
+    setHeirBoon(p.trait);
+    const fid=weakestFaction();
+    empowered.push({nm:p.nm,role:p.role,trait:p.trait.id,fid:fid});
+    inf=Math.min(100,inf+8);
+    rig=Math.max(0,rig-0.06);
+    if(fid){const f=faction(fid);if(f)f.coh=Math.min(1,f.coh+0.14);}
+    addRipple(p.x,p.y,'#8d7bdb');addFloat(p.x,p.y-16,'given a portfolio','#8d7bdb');
+    rosterNote(target,'T'+turn+': given real authority'+(fid?' — '+faction(fid).name.toLowerCase()+' is theirs to hold':''));
+    epiEvents.push(p.nm+', '+p.role+', was handed authority you could not keep alone'+(fid?' — '+faction(fid).name.toLowerCase()+' is theirs now':'')+'.');
+    log('You hand '+p.nm+' something real — not a title, a responsibility. '+(boonText(p.trait)?boonText(p.trait).charAt(0).toUpperCase()+boonText(p.trait).slice(1)+'. ':'')+'You cannot hold all of this alone. That was never the plan.');
+    hintOnce('delegate','You cannot hold the morning after by yourself. Who you empower shapes how it ends — each keeps a bloc you cannot, and lends their gift to your hand.');
+  } else if(type==='drawer'){
+    /* THE APPARATUS IN THE DRAWER: effective, and permanent. No moralizing —
+       the consequence does the work (mandate falls; roster & epilogue change). */
+    if(!era2())return;
+    if(energy<3){log('Not enough energy — press Next turn.');return;}
+    energy-=3;
+    usedApparatus=true;apparatusUses++;
+    risk=Math.min(1,risk+0.06);
+    inf=Math.max(0,inf-15);
+    rival=Math.max(0,rival*0.45-0.05);
+    rig=Math.max(0,rig-0.08);
+    let sf=null,sv=2;factions.forEach(f=>{if(f.coh<sv){sv=f.coh;sf=f;}});
+    if(sf)sf.coh=Math.min(1,sf.coh+0.05);
+    doVignette('141,123,219');doShake(4);
+    addFloat(ag[player].x,ag[player].y-14,'the drawer opens','#8d7bdb');
+    rosterNote(player,'T'+turn+': opened the drawer'+(apparatusUses>1?' again':''));
+    epiEvents.push('When it got hard, you opened the drawer'+(apparatusUses>1?' — not for the first time':'')+'. It worked. It always works.');
+    log('You open the drawer. The files are exactly where they were left. By morning the problem has quietly receded — no announcement, no vote. It worked. It always works. Something in how people say your name has changed, and it will not change back.');
+    hintOnce('drawer','The apparatus works — and using it is permanent. It follows you into the roster and the ending. Effective is not the same as free.');
   }
   coachEvent(type);
   actionCounts[type]=(actionCounts[type]||0)+1;
@@ -1797,13 +2197,21 @@ function endTurn(){
     const nb=nbr[i].filter(j=>!ag[j].gone&&!ag[j].inc);
     if(!nb.length){a.press=Math.max(0,a.press*0.8);continue;}
     const loc=(a.aw+nb.reduce((s,j)=>s+ag[j].aw,0))/(nb.length+1);
-    if(loc>D.thresh&&rig>0.12){
+    if(loc>D.thresh&&(era2()||rig>0.12)){
       const wasPress=a.press;
       a.press=Math.min(1,a.press+0.20+D.winP*1.6+rand(0,0.06));
       if(a.press>=1&&winsFiredThisTurn===0){
         /* THE WIN — concrete, local, attributed */
         a.press=0;winsFiredThisTurn++;
-        rig=Math.max(0.1,rig-0.065);floor=Math.min(0.5,floor+D.floorGain);wins++;
+        if(era2()){
+          floor=Math.min(0.6,floor+D.floorGain);  /* memory, actively defended by delivery */
+          rig=Math.max(0,rig-0.05);               /* a delivery holds the coalition, briefly */
+          risk=Math.max(0,risk-0.08);             /* results restore standing */
+          inf=Math.min(100,inf+2);wins++;deliveredThisRun++;
+          deliverFaction();                        /* satisfies one bloc, strains its rival */
+        } else {
+          rig=Math.max(0.1,rig-0.065);floor=Math.min(0.5,floor+D.floorGain);wins++;
+        }
         addRipple(a.x,a.y,'#7ea6d8',true);
         addFloat(a.x,a.y-18,'✦ something gave way','#7ea6d8');
         winGlows.push({x:a.x,y:a.y,t0:nowMs()});  /* the fog lifts here; lights come on */
@@ -1814,7 +2222,11 @@ function endTurn(){
         const helpers=nb.map(j=>ag[j]).filter(p=>p.aw>0.4).sort((x,y)=>y.aw-x.aw).slice(0,3);
         const CREDIT=[' brought their whole household',' spoke where everyone could hear',' kept copies of everything, just in case'];
         let attrib=helpers.map((p,k)=>p.nm+CREDIT[k%CREDIT.length]).join('; ');
-        winStory='★ '+outcome+' — because '+a.nm+', '+a.role+', would not let it pass.'+(attrib?' '+attrib+'.':'')+' Fear falls. What people remember rises. This cannot be fully erased now.';
+        if(era2()){
+          winStory='★ '+outcome+' — '+a.nm+', '+a.role+', pushed it through the coalition.'+(attrib?' '+attrib+'.':'')+' Delivered'+(lastDeliverBloc?', to the relief of '+lastDeliverBloc.toLowerCase()+' — and the irritation of their rivals':'')+'. Governing is trading.';
+        } else {
+          winStory='★ '+outcome+' — because '+a.nm+', '+a.role+', would not let it pass.'+(attrib?' '+attrib+'.':'')+' Fear falls. What people remember rises. This cannot be fully erased now.';
+        }
         epiEvents.push(outcome+' — '+a.nm+(helpers[0]?', with '+helpers.map(p=>p.nm).join(' and '):'')+'.');
         a.organizer=true;
         rosterNote(i,'T'+turn+': '+outcome);
@@ -1835,6 +2247,31 @@ function endTurn(){
   }
   if(winThis)sWin();
   if(winNear)hopeBonus=1;
+
+  /* ---- ERA 2: the dials, inverted. Holding, not winning. ---- */
+  if(era2()){
+    const deliveredThisTurn=winsFiredThisTurn>0;
+    const acted=leftoverEnergy<(boostTurns>0?4:3);
+    /* coalition drift rises on its own — silence and inaction fracture the alliance */
+    rig=Math.min(1,rig+D.driftRate*(acted?0.55:1.35)-(deliveredThisTurn?0.02:0));
+    rig=Math.max(0,rig);
+    /* faction cohesion decays; a bloc held by a delegate erodes far more slowly */
+    factions.forEach(f=>{
+      const held=empowered.some(e=>e.fid===f.id);
+      f.coh=Math.max(0,f.coh-(held?0.006:0.014));
+    });
+    /* contested memory erodes: the old apparatus publishes its own version */
+    floor=Math.max(0.05,floor-(0.006+rival*0.02));
+    /* legitimacy recovers with delivered results, not with hiding */
+    risk=Math.max(0,risk-(deliveredThisTurn?0.03:0.008));
+    /* the rival claim grows, faster on low mandate, high drift, or an alienated bloc */
+    const weakBloc=factions.some(f=>f.coh<0.3);
+    rival=Math.min(1,Math.max(0,rival+D.rivalRate*(1+(inf<35?0.6:0)+(rig>0.5?0.5:0)+(weakBloc?0.5:0))-(deliveredThisTurn?0.05:0)));
+    /* progressive reveal via the existing hint system */
+    if(rig>0.4&&!driftTold){driftTold=true;hintOnce('drift','Coalition drift is the old Fear dial, inverted — now it climbs on its own. Silence pulls the alliance apart. Deliver, assemble, and delegate to hold it down.');}
+    if(!factionTold&&turn>=2){factionTold=true;hintOnce('factions','Four blocs, four answers. Every delivery pleases one and strains its opposite. Keep them all at the table — if two walk out, the coalition falls.');}
+    if(rival>0.34&&!rivalTold){rivalTold=true;hintOnce('rival',rivalName+' is building a claim of their own — not a villain, a different answer. Out-deliver them and widen your mandate, or open the drawer and pay for it.');}
+  }
 
   let msg='';
   if(winThis&&!firstWinSeen){
@@ -1996,19 +2433,23 @@ function endTurn(){
     ];
     msg='★ '+lessons[lvlIdx]+' Lesson learned — return to the map.';
     showEnd('★ Lesson learned','<p>'+lessons[lvlIdx]+'</p><p><b>Next:</b> back at the map, take the next lesson — or jump straight into District 1 of the campaign, where everything comes together.</p>');
+  } else if(!over&&era2()){
+    era2Resolve();
   } else if(!over&&!D.pro&&(floor>=0.35||rig<=0.15)){
     over=true;
     sVictory();
     const ci=lvlIdx-N_PRO;
     const firstCampWin=(ci===0&&campProgress===0);
-    if(ci===campProgress){campProgress=Math.min(LEVELS.length-N_PRO,campProgress+1);saveProgress();}
+    if(ci===campProgress){campProgress=Math.min(N_CAMP,campProgress+1);saveProgress();}
     setFallen(lvlIdx,[]);
-    const last=lvlIdx===LEVELS.length-1;
+    const last=lvlIdx===N_PRO+N_CAMP-1;
+    const justUnlocked=last&&!unlockSeen;
+    if(justUnlocked){unlockSeen=true;try{localStorage.setItem('ov20_unlock','1');}catch(e){}}
     const earned=awardEmbers(true);
     msg='★ District liberated in '+turn+' turns. 🔥 +'+earned+' embers. '+(last?'The campaign is complete. What people have seen cannot be unseen.':'The next district is unsealed.');
-    showEnd('★ District liberated — in '+turn+' turns','<p>🔥 <b>+'+earned+' embers</b> earned from your wins and defections.</p>'+
+    showEnd(justUnlocked?'★ The regime has fallen':'★ District liberated — in '+turn+' turns','<p>🔥 <b>+'+earned+' embers</b> earned from your wins and defections.</p>'+
       (firstCampWin?'<p><b>New — Legacies unlocked.</b> A 🔥 section has appeared on the map screen, below the lessons. Embers buy Legacies: permanent gifts — cheaper murals, a wider press, old friends waiting — that every future story begins with. Win or lose, embers always carry over. Nothing is wasted.</p>':'')+
-      '<p><b>Next:</b> '+(last?'the campaign is complete. Replay any district — for higher ember counts, faster liberations, and the stories you haven\'t seen yet.':'the next district is unsealed. Check the Legacy shop first if your embers can afford something.')+'</p>');
+      (justUnlocked?'<p><b>The seventh district is free. The old order is over.</b></p><p>And now the fight changes shape. The coalition that toppled the regime has to decide what comes next — who is forgiven, who is tried, what is remembered, who holds power. A harder, less heroic problem than taking it down.</p><p><b>New — <span style="color:#e0a458;">One Voice II: The Morning After</span> is unsealed</b>, below the campaign on the map. Winning is behind you. Holding it together is what comes now.</p>':'<p><b>Next:</b> '+(last?'the campaign is complete. Replay any district — for higher ember counts, faster liberations, and the stories you haven\'t seen yet.':'the next district is unsealed. Check the Legacy shop first if your embers can afford something.')+'</p>'));
     showEpilogue('win',earned);
   } else if(!over&&turn>D.maxT){
     over=true;
@@ -2476,8 +2917,10 @@ const WIN_MAP=[
 const WIN_GENERIC=['The checkpoint stands empty on market day','The new rule quietly stops being enforced','The notice comes down from the board and stays down','The petition is read aloud, and no one is arrested','The landlord blinks first'];
 let winGenIdx=0;
 function winOutcome(a){
-  for(const w of WIN_MAP){if(a.stake.indexOf(w[0])>=0)return w[1];}
-  return WIN_GENERIC[(winGenIdx++)%WIN_GENERIC.length];
+  const map=era2()?WIN_MAP2:WIN_MAP;
+  for(const w of map){if(a.stake.indexOf(w[0])>=0)return w[1];}
+  const gen=era2()?WIN_GENERIC2:WIN_GENERIC;
+  return gen[(winGenIdx++)%gen.length];
 }
 /* ------------------------------------------------------------------ */
 
@@ -2597,13 +3040,21 @@ const KPI_INFO={
  'st-rig':'Fear slows how quickly awareness travels — the gray fog. Structural wins weaken it. At 15%, the district is free.',
  'st-floor':'The part of awareness made irreversible by concrete victories — the chalk on the wall. Crackdowns cannot erase it. At 35%, the district is free.'
 };
+/* era-2: the same dials mean something new after victory */
+const KPI_INFO2={
+ 'st-aw':'How much of the coalition actively backs the settlement. Volatile — only what is delivered and written down endures.',
+ 'st-risk':'Legitimacy spent. Bold, unilateral acts (the drawer, loud moves) burn your standing. It recovers slowly through delivered results — not through hiding.',
+ 'st-inf':'Your mandate — what lets you act on others\' behalf. It grows when you share power (delegate) and consent; it falls when you act without asking (the drawer).',
+ 'st-rig':'Coalition drift. Unlike Fear, this rises on its own: silence and inaction pull the alliance apart. Deliver, assemble, and delegate to hold it down. If it maxes, the coalition fractures.',
+ 'st-floor':'Contested memory. No longer a floor that only rises — the old apparatus is publishing its own version, and rival pressure pushes it down. Defend it by delivering results.'
+};
 Object.keys(KPI_INFO).forEach(id=>{
   const el=$(id);if(!el)return;
   el.querySelector('.l').innerHTML+=' <span style="color:#7ea6d8;">ⓘ</span>';
   el.addEventListener('click',()=>{
     const pop=$('kpipop');
     if(pop.dataset.for===id&&pop.style.display==='block'){pop.style.display='none';pop.dataset.for='';return;}
-    pop.dataset.for=id;pop.style.display='block';pop.textContent=KPI_INFO[id];
+    pop.dataset.for=id;pop.style.display='block';pop.textContent=(era2()&&KPI_INFO2[id])?KPI_INFO2[id]:KPI_INFO[id];
   });
 });
 /* ----------------------------------------- */
