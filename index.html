@@ -2,12 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#14171c">
-<meta name="description" content="One Voice — a strategy game about awareness, courage, and how systems change.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>One Voice — a game about awareness and change</title>
-<!-- Favicon: the mark, inlined so the file stays standalone and works offline -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Crect width='240' height='240' rx='30' fill='%2314171c'/%3E%3Cg fill='none' stroke='%237ea6d8'%3E%3Ccircle cx='120' cy='120' r='52' stroke-opacity='0.55' stroke-width='2.4'/%3E%3Ccircle cx='120' cy='120' r='82' stroke-opacity='0.3' stroke-width='1.8' stroke-dasharray='3 8'/%3E%3C/g%3E%3Cg stroke='%234fae8d' stroke-width='4' fill='none' stroke-linecap='round'%3E%3Cg transform='translate(58,132)'%3E%3Cpath d='M-5,12 L0,0 L5,12'/%3E%3Cpath d='M0,0 L0,-14'/%3E%3Cpath d='M-8,-9 L0,-11 L8,-9'/%3E%3C/g%3E%3Cg transform='translate(182,132)'%3E%3Cpath d='M-5,12 L0,0 L5,12'/%3E%3Cpath d='M0,0 L0,-14'/%3E%3Cpath d='M-8,-9 L0,-11 L8,-9'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%234fae8d'%3E%3Ccircle cx='58' cy='111' r='5'/%3E%3Ccircle cx='182' cy='111' r='5'/%3E%3C/g%3E%3Cg transform='translate(120,150)'%3E%3Ccircle cx='0' cy='-58' r='3.6' fill='%23e0a458'/%3E%3Ccircle cx='0' cy='-58' r='10' fill='%23e0a458' opacity='0.3'/%3E%3Ccircle cx='0' cy='-13' r='27' fill='none' stroke='%238d7bdb' stroke-opacity='0.3' stroke-width='2.2'/%3E%3Cg stroke='%238d7bdb' stroke-width='4.6' fill='none' stroke-linecap='round'%3E%3Cpath d='M-6,16 L0,0 L6,16'/%3E%3Cpath d='M0,0 L0,-22'/%3E%3Cpath d='M-12,-19 L0,-23 L12,-19'/%3E%3C/g%3E%3Ccircle cx='0' cy='-30' r='6.2' fill='%238d7bdb'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#14171c; --panel:#1d2129; --panel2:#232834; --ink:#e8e4d8; --muted:#8b8e96;
@@ -82,78 +78,17 @@ button.nope{opacity:0.42;}
 #journal .j-gold{color:#e0c48a;}
 /* accessibility */
 button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px solid var(--lamp); outline-offset:2px;}
-/* ---------- LOGO & TITLE ---------- */
-#logo{display:block; width:100%; max-width:480px; height:auto; margin:0 auto 4px;}
-.titlebar{display:flex; align-items:center; gap:9px; min-width:0;}
-.markicon{width:26px; height:26px; flex:none;}
-#lvl-title{font-size:23px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.gamehead{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:0 0 12px;}
-.headbtns{display:flex; gap:8px; flex-wrap:wrap;}
-
-/* ---------- RESPONSIVE ---------- */
-/* Tablets & small laptops */
-@media (max-width:820px){
-  .wrap{padding:20px 14px 48px;}
-  #logo{max-width:400px;}
-  .stat{min-width:76px;}
-}
-/* Phones */
 @media (max-width:560px){
-  .wrap{padding:16px 12px 40px; padding-left:max(12px,env(safe-area-inset-left)); padding-right:max(12px,env(safe-area-inset-right));}
-  #logo{max-width:330px; margin-bottom:0;}
-  .sub{font-size:13.5px; margin:2px 0 16px;}
-  .story{font-size:14.5px; padding:13px 14px;}
-  .chapter{margin:16px 0 6px;}
-  .file{padding:11px 13px; gap:8px;}
-  .file .name{font-size:15.5px;}
-  .file .desc{font-size:11.5px;}
-  .stamp{font-size:9.5px; padding:2px 7px; letter-spacing:1.2px;}
-  #lvl-title{font-size:19px;}
-  .markicon{width:22px; height:22px;}
-  .headbtns button{font-size:11.5px; padding:7px 9px; min-height:38px;}
-  /* stats: 3 per row, never cramped */
-  .stat{flex:1 1 30%; min-width:0; padding:6px 8px;}
-  .stat.utility{flex:1 1 22%;}
-  .stat .l{font-size:9.5px; letter-spacing:0.3px;}
-  .stat .v{font-size:15px;}
-  .stat.primary .v{font-size:16px;}
-  .goal{font-size:13.5px; padding:9px 11px;}
-  .grow{font-size:11.5px;}
-  .grow .gl{min-width:0; flex:1 1 auto;}
-  .gbar{flex:0 0 62px;}
-  #coach{font-size:13px; padding:9px 11px; align-items:flex-start;}
-  #coach button{min-height:38px;}
-  #log{font-size:13.5px; padding-left:9px;}
-  #report{font-size:11.5px;}
-  #journal, #roster{font-size:13px; max-height:190px;}
-  .rp{font-size:13.5px;}
-  /* action buttons: two per row, thumb-sized */
-  .actions{gap:8px;}
-  .actions button{min-height:52px; flex:1 1 calc(50% - 4px); padding:8px 10px;}
-  .bs{max-width:none; font-size:9.5px;}
-  #a-end{min-height:54px; font-size:15px;}
-  .group-label{margin:10px 0 3px;}
-  .legend{gap:9px; font-size:11px;}
-  #embox, #dilemma{padding:20px 18px 16px;}
-  #dilemma .choice{padding:11px 12px;}
-  #pcard{font-size:13.5px; padding:8px 11px;}
-}
-/* Narrow phones */
-@media (max-width:380px){
-  #logo{max-width:280px;}
-  .stat{flex:1 1 46%;}
-  .stat.utility{flex:1 1 26%;}
-  .actions button{flex:1 1 100%;}
-}
-/* Landscape phones: keep the map visible, shrink chrome */
-@media (max-height:520px) and (orientation:landscape){
-  #logo{max-width:240px;}
-  .wrap{padding-top:10px;}
-  .stat .l{font-size:9px;}
-  #story-box, #roster-box{display:none;}
+  .actions button{min-height:44px; flex:1 1 46%;}
+  .bs{max-width:none;}
+  #a-end{min-height:52px;}
+  .stat{min-width:30%;}
+  .stat .l{font-size:10px;}
+  #journal, #log{font-size:13.5px;}
+  .grow .gl{min-width:118px; font-size:11.5px;}
 }
 #opp{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid #7ea6d8; color:#a8c8e8; font-family:ui-monospace,monospace; background:rgba(126,166,216,.10);}
-canvas{width:100%; aspect-ratio:720/440; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair; touch-action:manipulation;}
+canvas{width:100%; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair;}
 .banner{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid; font-family:ui-monospace,monospace;}
 .banner.warn{color:var(--lamp); border-color:var(--lamp); background:rgba(224,164,88,.08);}
 .banner.bad{color:var(--danger); border-color:var(--danger); background:rgba(201,79,79,.08);}
@@ -171,8 +106,15 @@ summary:hover{color:var(--lamp);}
 #howto{padding:6px 16px 14px; font-size:14px; color:#c2beb2; line-height:1.7;}
 #howto b{color:var(--lamp); font-weight:400;}
 #howto .aw{color:var(--aware);}
-button{background:var(--panel2); color:var(--ink); border:1px solid var(--line); padding:8px 13px; font-size:13px; font-family:ui-monospace,monospace; cursor:pointer; transition:border-color .12s;}
-button:hover{border-color:var(--lamp);}
+button{background:var(--panel2); color:var(--ink); border:1px solid var(--line); padding:8px 13px; font-size:13px; font-family:ui-monospace,monospace; cursor:pointer; transition:border-color .12s, background .12s, transform .06s, box-shadow .12s;}
+button:hover{border-color:var(--lamp); background:#282e3a;}
+button:active{transform:translateY(1px);}
+/* action hierarchy: light < committed < bold. Bold reads heaviest. */
+.actions button{position:relative;}
+.actions button:hover{box-shadow:0 1px 0 rgba(224,164,88,0.25) inset, 0 0 10px rgba(224,164,88,0.06);}
+/* disabled / not-enough-energy: clearly inert, not just faint */
+button.nope, button:disabled{opacity:0.4; cursor:not-allowed; filter:grayscale(0.5);}
+button.nope:hover, button:disabled:hover{border-color:var(--line); background:var(--panel2); box-shadow:none;}
 .group-label{font-family:ui-monospace,monospace; font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin:8px 0 4px;}
 .actions{display:flex; gap:7px; flex-wrap:wrap;}
 .actions button{text-align:left;}
@@ -221,57 +163,7 @@ button:hover{border-color:var(--lamp);}
 <div class="wrap">
 
 <div id="screen-campaign">
-  <svg id="logo" viewBox="0 0 640 300" role="img" aria-label="One Voice — one voice becomes many">
-    <defs>
-      <radialGradient id="lglow" cx="50%" cy="46%" r="60%">
-        <stop offset="0%" stop-color="#e0a458" stop-opacity="0.20"/>
-        <stop offset="45%" stop-color="#e0a458" stop-opacity="0.05"/>
-        <stop offset="100%" stop-color="#e0a458" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <ellipse cx="320" cy="150" rx="250" ry="150" fill="url(#lglow)"/>
-    <!-- ripples: the voice traveling -->
-    <g fill="none" stroke="#7ea6d8" stroke-linecap="round">
-      <circle cx="320" cy="150" r="58"  stroke-opacity="0.55" stroke-width="2"/>
-      <circle cx="320" cy="150" r="92"  stroke-opacity="0.32" stroke-width="1.6" stroke-dasharray="3 7"/>
-      <circle cx="320" cy="150" r="126" stroke-opacity="0.16" stroke-width="1.3" stroke-dasharray="2 9"/>
-    </g>
-    <!-- the crowd: hunched and gray at the edges, standing and green toward the center -->
-    <g stroke-linecap="round" fill="none">
-      <g stroke="#565a63" stroke-width="3">
-        <g transform="translate(150,190)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
-        <g transform="translate(490,190) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
-        <g transform="translate(122,138)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
-        <g transform="translate(518,138) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
-      </g>
-      <g fill="#565a63">
-        <circle cx="157" cy="175" r="4"/><circle cx="483" cy="175" r="4"/>
-        <circle cx="129" cy="123" r="4"/><circle cx="511" cy="123" r="4"/>
-      </g>
-      <g stroke="#6f8f80" stroke-width="3.2">
-        <g transform="translate(215,195)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
-        <g transform="translate(425,195) scale(-1,1)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
-      </g>
-      <g fill="#6f8f80"><circle cx="216" cy="178" r="4.3"/><circle cx="424" cy="178" r="4.3"/></g>
-      <g stroke="#4fae8d" stroke-width="3.4">
-        <g transform="translate(258,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
-        <g transform="translate(382,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
-      </g>
-      <g fill="#4fae8d"><circle cx="258" cy="176" r="4.6"/><circle cx="382" cy="176" r="4.6"/></g>
-    </g>
-    <!-- the one voice -->
-    <g transform="translate(320,198)">
-      <circle cx="0" cy="-64" r="3.4" fill="#e0a458"/>
-      <circle cx="0" cy="-64" r="9" fill="#e0a458" opacity="0.28"/>
-      <circle cx="0" cy="-11" r="26" fill="none" stroke="#8d7bdb" stroke-opacity="0.28" stroke-width="2"/>
-      <g stroke="#8d7bdb" stroke-width="4" fill="none" stroke-linecap="round">
-        <path d="M-6,15 L0,0 L6,15"/><path d="M0,0 L0,-20"/><path d="M-11,-18 L0,-21 L11,-18"/>
-      </g>
-      <circle cx="0" cy="-27" r="5.6" fill="#8d7bdb"/>
-    </g>
-    <text x="320" y="262" text-anchor="middle" font-size="54" letter-spacing="1" fill="#e8e4d8" font-family="Georgia,'Times New Roman',serif">One <tspan fill="#e0a458">Voice</tspan></text>
-    <text x="320" y="288" text-anchor="middle" font-size="13" letter-spacing="4.5" fill="#8b8e96" font-family="ui-monospace,monospace">ONE VOICE BECOMES MANY</text>
-  </svg>
+  <h1>One <span class="accent">Voice</span></h1>
   <p class="sub">A strategy game about awareness, courage, and how systems change.</p>
   <div class="story">
     This is your neighborhood. Something is wrong, and everyone feels it,
@@ -295,21 +187,9 @@ button:hover{border-color:var(--lamp);}
 </div>
 
 <div id="screen-game" class="hidden">
-  <div class="gamehead">
-    <div class="titlebar">
-      <svg class="markicon" viewBox="0 0 240 240" aria-hidden="true">
-        <g fill="none" stroke="#7ea6d8"><circle cx="120" cy="120" r="52" stroke-opacity="0.5" stroke-width="5"/><circle cx="120" cy="120" r="86" stroke-opacity="0.25" stroke-width="4" stroke-dasharray="4 10"/></g>
-        <g transform="translate(120,150)">
-          <circle cx="0" cy="-58" r="5" fill="#e0a458"/>
-          <g stroke="#8d7bdb" stroke-width="9" fill="none" stroke-linecap="round">
-            <path d="M-7,16 L0,0 L7,16"/><path d="M0,0 L0,-22"/><path d="M-13,-19 L0,-23 L13,-19"/>
-          </g>
-          <circle cx="0" cy="-31" r="7" fill="#8d7bdb"/>
-        </g>
-      </svg>
-      <h1 id="lvl-title">District</h1>
-    </div>
-    <div class="headbtns">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin:0 0 12px;">
+    <h1 style="font-size:23px;" id="lvl-title">District</h1>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button id="btn-music" aria-label="Toggle background music">♫ music: on</button>
       <button id="btn-sound" aria-label="Toggle sound effects">♪ sound: on</button>
       <button id="btn-back">← Back to the map</button>
@@ -656,6 +536,17 @@ const LEVELS=[
 ];
 const PRO_DEFAULTS={winP:0.10, thresh:0.55, floorGain:0.03, crackP:0, crackR:0.12, surv:85, linkMax:150, waverAt:0.5};
 const N_PRO=6;
+/* Each campaign district carries its own civic conflict — not just harder numbers.
+   Shown when the district opens, and echoed in its epilogue. */
+const CIVIC=[
+ 'The village learns the oldest lesson: neighbours who act together cannot all be silenced at once.',
+ 'A town of walls and letters — what is said in the open and what is passed hand to hand are two different weapons.',
+ 'Someone here reports to the station. Trust becomes the most dangerous, and most necessary, thing you carry.',
+ 'The district turns inward: the way through runs through the people inside the system.',
+ 'The regime escalates. Win too fast, too loud, and it sends more of its own.',
+ 'An apparatus of watchers — no single pillar holds it up, so no single push will bring it down.',
+ 'The capital, where fear is total and memory is the one thing they cannot confiscate.'
+];
 
 /* ---------- LEGACY (meta-progression) ---------- */
 const LEGACIES=[
@@ -732,6 +623,8 @@ let firedDilemmas=[],shelterTurns=0,shelterIdx=-1,boostTurns=0,freeLink=false,la
 let epiEvents=[],startName='',startRole='',firstWinSeen=false,inf30Told=false,inf40Told=false,witnessedOnce=false,hopeBonus=0;
 let opp=null,nearMissTold=false,freeZoneTold=false,embersAwarded=false;
 const cv=$('game'),ctx=cv.getContext('2d');
+let bgCanvas=null;   /* pre-rendered district backdrop (streets, buildings, square) */
+let winGlows=[];     /* structural-win light blooms: fog lifts, lights come on */
 
 /* ---------- JUICE ---------- */
 let floaters=[],rippleAnims=[],nearMisses=[],pops={},shake={mag:0,t0:0},vignette=null,pulses=[];
@@ -743,6 +636,68 @@ function addPop(i){pops[i]=nowMs();}
 function doShake(m){shake.mag=m;shake.t0=nowMs();}
 function doVignette(color){vignette={color:color||'201,79,79',t0:nowMs()};}
 /* ---------------------------- */
+
+/* ---------- DISTRICT BACKDROP (the living resistance map) ----------
+   A pre-rendered, per-district charcoal cityscape: an irregular street grid,
+   building silhouettes with a few dim-lit windows, a public square, alleys.
+   Seeded by level so every district wears its own face — kept deliberately
+   faint so people, threads and fog always stay the loudest thing on screen. */
+function buildBackdrop(){
+  bgCanvas=document.createElement('canvas');
+  bgCanvas.width=W;bgCanvas.height=H;
+  const g=bgCanvas.getContext('2d');
+  const rnd=mulberry32(7331+lvlIdx*104729);
+  const R=(a,b)=>a+rnd()*(b-a);
+  g.fillStyle='#171a21';g.fillRect(0,0,W,H);
+  /* street grid — a few avenues carve the district into uneven blocks */
+  const vx=[],hy=[];
+  let gx=R(70,120); while(gx<W-50){vx.push(gx); gx+=R(120,190);}
+  let gy=R(70,110); while(gy<H-40){hy.push(gy); gy+=R(110,160);}
+  const xs=[0,...vx,W], ys=[0,...hy,H];
+  /* built-up ground: each block a slightly raised charcoal plate */
+  for(let bi=0;bi<xs.length-1;bi++)for(let bj=0;bj<ys.length-1;bj++){
+    g.fillStyle='rgba(31,36,46,'+R(0.30,0.62)+')';
+    g.fillRect(xs[bi]+3,ys[bj]+3,xs[bi+1]-xs[bi]-6,ys[bj+1]-ys[bj]-6);
+  }
+  /* the streets themselves: dark seams with a faint dashed centre line */
+  g.strokeStyle='rgba(9,11,15,0.55)';g.lineWidth=7;
+  vx.forEach(sx=>{g.beginPath();g.moveTo(sx,0);g.lineTo(sx,H);g.stroke();});
+  hy.forEach(sy=>{g.beginPath();g.moveTo(0,sy);g.lineTo(W,sy);g.stroke();});
+  g.strokeStyle='rgba(232,228,216,0.045)';g.lineWidth=1;g.setLineDash([5,10]);
+  vx.forEach(sx=>{g.beginPath();g.moveTo(sx,0);g.lineTo(sx,H);g.stroke();});
+  hy.forEach(sy=>{g.beginPath();g.moveTo(0,sy);g.lineTo(W,sy);g.stroke();});
+  g.setLineDash([]);
+  /* skyline: building silhouettes along the top, most windows dark, a rare few lit */
+  let bx=0;
+  while(bx<W){
+    const bw=R(30,64),bh=R(24,70);
+    g.fillStyle='rgba(19,22,29,0.9)';g.fillRect(bx,0,bw,bh);
+    g.strokeStyle='rgba(42,48,60,0.55)';g.lineWidth=1;g.strokeRect(bx+0.5,0.5,bw,bh);
+    for(let wy=8;wy<bh-6;wy+=9)for(let wx=bx+6;wx<bx+bw-6;wx+=9){
+      const lit=rnd()<0.10;
+      g.fillStyle=lit?'rgba(224,164,88,'+R(0.16,0.30)+')':'rgba(9,11,15,0.65)';
+      g.fillRect(wx,wy,3.5,4.5);
+    }
+    bx+=bw+R(0,10);
+  }
+  /* a public square: one block opened up, paved, with a small monument */
+  if(vx.length&&hy.length){
+    const qi=Math.floor(R(0,vx.length)),qj=Math.floor(R(0,hy.length));
+    const qx=(xs[qi]+xs[qi+1])/2,qy=(ys[qj]+ys[qj+1])/2,qrx=R(46,64),qry=R(30,42);
+    g.fillStyle='rgba(27,31,41,0.7)';
+    g.beginPath();g.ellipse(qx,qy,qrx,qry,0,0,Math.PI*2);g.fill();
+    g.strokeStyle='rgba(232,228,216,0.05)';g.lineWidth=1;
+    g.beginPath();g.ellipse(qx,qy,qrx,qry,0,0,Math.PI*2);g.stroke();
+    g.fillStyle='rgba(232,228,216,0.09)';g.fillRect(qx-1.5,qy-8,3,16);
+  }
+  /* alleys: a few thin darker cuts between the blocks */
+  g.strokeStyle='rgba(9,11,15,0.45)';g.lineWidth=2;
+  for(let k=0;k<5;k++){
+    const ax=R(30,W-30),ay=R(40,H-30),len=R(20,60),ang=rnd()<0.5?0:Math.PI/2;
+    g.beginPath();g.moveTo(ax,ay);g.lineTo(ax+Math.cos(ang)*len,ay+Math.sin(ang)*len);g.stroke();
+  }
+}
+/* ------------------------------------------------------------------- */
 
 function rand(a,b){return a+Math.random()*(b-a);}
 function log(m){
@@ -886,6 +841,9 @@ function showEpilogue(result,embersEarned){
     parts.push('The window closed with the work unfinished. Windows open again. They always have.');
     $('ep-title').textContent='Epilogue — the window closed';
   }
+  const ciE=lvlIdx-N_PRO;
+  if(!D.pro&&CIVIC[ciE])parts.push(CIVIC[ciE]);
+  parts.push('Remembered this run —\n'+rememberedLines(result).join('\n'));
   if(embersEarned)parts.push('🔥 '+embersEarned+' ember'+(embersEarned>1?'s':'')+' gathered from this story — carried to the next.');
   $('epilogue-text').textContent=parts.join('\n\n');
   $('epilogue-box').style.display='block';
@@ -904,6 +862,56 @@ function awardEmbers(won){
   const earned=wins+defected*2+(won?5:0);
   if(earned>0){legacy.embers+=earned;saveLegacy();}
   return earned;
+}
+
+/* ---------- REFLECTION: the run recognizes how you played it ----------
+   No classes, no labels the player picks — the game reads the shape of the
+   actions taken and names it back. Feeds the epilogue's "Remembered this run". */
+function playstyleLine(){
+  let best=null,bn=0;
+  Object.keys(actionCounts).forEach(k=>{if(actionCounts[k]>bn){bn=actionCounts[k];best=k;}});
+  if(!best)return '';
+  const map={
+    talk:'You worked person to person, at kitchen tables — the quiet organizer\'s way.',
+    org:'You gathered people into rooms; the meeting was your instrument.',
+    mural:'You let the walls carry the work — paint spoke while you rested.',
+    letter:'You wove a web of distant threads; distance meant nothing to your letters.',
+    post:'You cast your words wide and thin across the whole district.',
+    speak:'You chose the open square and the raised voice — loud, and dangerous.',
+    reach:'You turned the system against itself, one uniform at a time.',
+    doc:'You made their own violence testify against them.',
+    low:'You survived by knowing exactly when to disappear.',
+    link:'You built the connective tissue first — a district that could carry a word.'
+  };
+  return map[best]||'';
+}
+function rememberedLines(result){
+  const civ=ag.map((a,i)=>({a,i})).filter(o=>!o.a.inc);
+  const awakened=civ.filter(o=>!o.a.gone&&o.a.aw>=0.5).length;
+  const harmed=civ.filter(o=>o.a.gone||o.a.harmed||o.a.betrayed).length;
+  const protN=ag.filter(a=>a.sheltered).length;
+  let hero=null,hs=-1;
+  civ.forEach(o=>{if(o.i===player||o.a.gone||o.a.inc)return;
+    const s=o.a.aw+(o.a.events?o.a.events.length*0.12:0)+(o.a.organizer?0.35:0);
+    if(s>hs){hs=s;hero=o.a;}});
+  const L=[];
+  L.push('· '+awakened+' neighbour'+(awakened===1?'':'s')+' came to see clearly, and '+wins+' concrete thing'+(wins===1?'':'s')+' changed in ways that cannot be undone.');
+  if(harmed)L.push('· '+harmed+' paid a price — taken, scarred, or turned away. Their names stay in the story.');
+  if(protN)L.push('· '+protN+' were sheltered when the knock came at midnight.');
+  if(defected)L.push('· '+defected+' put down the uniform and carried the work forward.');
+  if(hero)L.push('· If one name is remembered above the rest, it is '+hero.nm+', '+hero.role+'.');
+  const fearBroke=rig<=0.15, memHardened=floor>=0.35;
+  if(result==='win'){
+    L.push(memHardened&&!fearBroke?'· Won on memory: too much was made permanent to erase.':
+      fearBroke&&!memHardened?'· Won by breaking fear\'s hold: words move freely here now.':
+      '· Won on both fronts at once — fear broke as memory hardened.');
+  } else {
+    L.push(floor>=rig?'· Memory outran fear this time; only the clock beat you. Closer than it felt.':
+      '· Fear kept the upper hand this run — next time, protect the work as fast as you spread it.');
+  }
+  const ps=playstyleLine();
+  if(ps)L.push('· '+ps);
+  return L;
 }
 /* ------------------------------ */
 
@@ -1117,6 +1125,7 @@ function setButtons(){
 
 function initGame(){
   NN=D.N;
+  buildBackdrop();
   const srand=mulberry32(1000+lvlIdx*7919);
   const sr=(a,b)=>a+srand()*(b-a);
   ag=[];links=[];built=[];weak=new Set();murals=[];turn=1;energy=3;rig=D.rig;
@@ -1126,7 +1135,7 @@ function initGame(){
   journal=[];$('journal').innerHTML='';fallenThisRun=[];epiEvents=[];
   firstWinSeen=false;inf30Told=false;inf40Told=false;witnessedOnce=false;hopeBonus=0;
   opp=null;nearMissTold=false;freeZoneTold=false;embersAwarded=false;lastWinTurn=-99;
-  floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;
+  floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;winGlows=[];
   $('epilogue-box').style.display='none';
   $('pcard').style.display='none';
   firedDilemmas=[];shelterTurns=0;shelterIdx=-1;boostTurns=0;freeLink=false;lastCrackTurn=-99;pendingDilemma=null;$('overlay').style.display='none';
@@ -1142,7 +1151,7 @@ function initGame(){
     const role=ROLES[(lvlIdx*7+idx*5)%ROLES.length];
     const stake=STAKES[(lvlIdx*11+idx*13)%STAKES.length];
     const trait=TRAITS[Math.floor(srand()*TRAITS.length)];
-    return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,met:false,betrayed:false,sheltered:false,press:0,events:[]};
+    return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,met:false,betrayed:false,sheltered:false,harmed:false,organizer:false,successor:false,press:0,events:[]};
   }
   if(D.clusterCenter){
     for(let i=0;i<NN;i++){
@@ -1209,7 +1218,9 @@ function initGame(){
   $('report').style.display='none';
   renderRoster();
   const newLine=(!D.pro&&D.newActs)?' — '+D.newActs:'';
-  log((D.pro?D.intro:'You are '+ag[player].nm+', '+ag[player].role+'. These are your neighbors — the same faces every time you return. Click someone to learn who they are.'+newLine)+legacyLine+memoryLine);
+  const ci0=lvlIdx-N_PRO;
+  const civicLine=(!D.pro&&CIVIC[ci0])?' '+CIVIC[ci0]:'';
+  log((D.pro?D.intro:'You are '+ag[player].nm+', '+ag[player].role+'. These are your neighbors — the same faces every time you return. Click someone to learn who they are.'+newLine+civicLine)+legacyLine+memoryLine);
   ui();
   coachShow();
 }
@@ -1361,9 +1372,6 @@ cv.addEventListener('click',e=>{
   if(over||pendingDilemma)return;
   const r=cv.getBoundingClientRect();
   const mx=(e.clientX-r.left)*(W/r.width),my=(e.clientY-r.top)*(H/r.height);
-  /* touch-friendly hit radius: grows as the canvas is displayed smaller, so a
-     fingertip on a phone is as accurate as a mouse on a desktop */
-  const HIT=Math.max(26,26*(W/Math.max(r.width,1))*0.85);
   if(muralMode){
     const d=Math.hypot(mx-ag[player].x,my-ag[player].y);
     if(d<=linkReach()){
@@ -1384,7 +1392,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(letterMode){
-    let best=-1,bd=HIT;
+    let best=-1,bd=26;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
       if(nbr[player].includes(j))continue;
@@ -1402,7 +1410,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(linkMode){
-    let best=-1,bd=HIT;
+    let best=-1,bd=26;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
       if(nbr[player].includes(j))continue;
@@ -1423,7 +1431,7 @@ cv.addEventListener('click',e=>{
     } else log('No one there you can reach.');
     ui();return;
   }
-  let best=-1,bd=HIT;
+  let best=-1,bd=26;
   for(let j=0;j<NN;j++){
     if(ag[j].inc||ag[j].gone||j===player)continue;
     const d=Math.hypot(ag[j].x-mx,ag[j].y-my);
@@ -1745,6 +1753,8 @@ function endTurn(){
         rig=Math.max(0.1,rig-0.065);floor=Math.min(0.5,floor+D.floorGain);wins++;
         addRipple(a.x,a.y,'#7ea6d8',true);
         addFloat(a.x,a.y-18,'✦ something gave way','#7ea6d8');
+        winGlows.push({x:a.x,y:a.y,t0:nowMs()});  /* the fog lifts here; lights come on */
+        addPop(i);nb.forEach(j=>addPop(j));        /* the circle visibly straightens and gathers */
         winThis=true;lastWinTurn=turn;
         if(Math.hypot(a.x-ag[player].x,a.y-ag[player].y)<150)winNear=true;
         const outcome=winOutcome(a);
@@ -1753,8 +1763,9 @@ function endTurn(){
         let attrib=helpers.map((p,k)=>p.nm+CREDIT[k%CREDIT.length]).join('; ');
         winStory='★ '+outcome+' — because '+a.nm+', '+a.role+', would not let it pass.'+(attrib?' '+attrib+'.':'')+' Fear falls. What people remember rises. This cannot be fully erased now.';
         epiEvents.push(outcome+' — '+a.nm+(helpers[0]?', with '+helpers.map(p=>p.nm).join(' and '):'')+'.');
+        a.organizer=true;
         rosterNote(i,'T'+turn+': '+outcome);
-        helpers.forEach(p=>{const j=ag.indexOf(p);if(j>=0)rosterNote(j,'T'+turn+': part of it when '+outcome.toLowerCase());});
+        helpers.forEach(p=>{const j=ag.indexOf(p);if(j>=0){p.organizer=true;rosterNote(j,'T'+turn+': part of it when '+outcome.toLowerCase());}});
       } else if(a.press>=1){
         a.press=0.96; /* the district can only absorb so much change in one week */
       } else if(a.press>=0.55&&wasPress<0.55&&!nearMissTold){
@@ -1841,7 +1852,7 @@ function endTurn(){
         if(a.aw*sEff<floor){memHeld++;heldN++;if(shieldFloats<4){addFloat(a.x,a.y-14,'⛨ memory holds','#e0a458');shieldFloats++;}}
         a.aw=Math.max(floor,a.aw*sEff);
         if(before2-a.aw>0.05)harmedN++;
-        if(before2-a.aw>0.12&&a.met)rosterNote(j,'T'+turn+': caught in the crackdown');
+        if(before2-a.aw>0.12&&a.met){a.harmed=true;rosterNote(j,'T'+turn+': caught in the crackdown');}
         if(witnessed)a.aw=Math.min(1,a.aw+0.08);
       }
     });
@@ -1882,6 +1893,7 @@ function endTurn(){
           msg+='✖ They came for '+takenName+' at dawn. '+hp.nm+', '+hp.role+', picks up the work — '+why+'.';
           epiEvents.push('They came for '+takenName+' at dawn. '+hp.nm+' — '+hp.role+' — picked up the work, because '+why+'.');
           player=h;risk=0;target=-1;inf=Math.max(0,inf-25);
+          hp.successor=true;
           setHeirBoon(hp.trait);
           rosterNote(h,'T'+turn+': picked up the work when it mattered most');
           addFloat(hp.x,hp.y-16,'the work continues','#8d7bdb');
@@ -1973,7 +1985,7 @@ function endTurn(){
     if(shelterTurns>0)parts.push('hiding someone draws eyes');
     let hot=null,hp=0.3;
     ag.forEach(a=>{if(!a.inc&&!a.gone&&a.press>hp){hp=a.press;hot=a;}});
-    if(hot)parts.push('pressure builds at '+hot.nm+'\'s — '+Math.round(hp*100)+'% ready');
+    if(hot){const st=hp>0.75?'close to breaking through':(hp>0.5?'closing in':'stirring');parts.push(hot.nm+'\'s circle is '+st+' — '+Math.round(hp*100)+'% ready');}
     if(leftoverEnergy>0)parts.push('you ended the turn with '+leftoverEnergy+'⚡ unused');
     const rep=$('report');
     if(parts.length&&!over){rep.style.display='block';rep.textContent='↳ '+parts.join(' · ');}
@@ -2034,6 +2046,7 @@ function draw(ts){
     ctx.translate((Math.random()*2-1)*shake.mag*f,(Math.random()*2-1)*shake.mag*f);
   }
   if(!D){ctx.restore();return;}
+  if(bgCanvas)ctx.drawImage(bgCanvas,0,0);
 
   const zones=freeZones();
   zones.forEach(z=>{
@@ -2049,6 +2062,10 @@ function draw(ts){
     ctx.beginPath();ctx.arc(a.x,a.y,D.surv,0,Math.PI*2);
     ctx.fillStyle='rgba(201,79,79,0.06)';ctx.fill();
     ctx.strokeStyle='rgba(201,79,79,0.28)';ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+    /* a checkpoint barrier at the post — warning-tape stripes below the square */
+    ctx.save();ctx.translate(a.x,a.y+11);ctx.globalAlpha=a.waver?0.4:0.7;
+    for(let s=-8;s<8;s+=4){ctx.fillStyle=(Math.floor((s+8)/4)%2)?'rgba(224,164,88,0.6)':'rgba(20,23,30,0.75)';ctx.fillRect(s,-1.5,4,3);}
+    ctx.restore();ctx.globalAlpha=1;
   });
   ag.forEach(a=>{
     if(!a.def)return;
@@ -2209,6 +2226,23 @@ function draw(ts){
       ctx.fillStyle='rgba(148,158,178,'+(rig*0.05)+')';ctx.fill();
     }
   }
+  /* structural-win blooms: painted OVER the fog so the haze visibly lifts,
+     with small warm lights coming on around the place where something gave way */
+  winGlows=winGlows.filter(w=>ts-w.t0<2400);
+  winGlows.forEach(w=>{
+    const f=(ts-w.t0)/2400, rad=42+f*94;
+    const cg=ctx.createRadialGradient(w.x,w.y,0,w.x,w.y,rad);
+    cg.addColorStop(0,'rgba(224,164,88,'+(0.20*(1-f))+')');
+    cg.addColorStop(0.55,'rgba(224,164,88,'+(0.07*(1-f))+')');
+    cg.addColorStop(1,'rgba(224,164,88,0)');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(w.x,w.y,rad,0,Math.PI*2);ctx.fill();
+    for(let k=0;k<6;k++){
+      const ang=k*Math.PI/3+w.t0,dist=20+f*38;
+      const lx=w.x+Math.cos(ang)*dist,ly=w.y+Math.sin(ang)*dist;
+      ctx.fillStyle='rgba(224,164,88,'+(0.55*(1-f)*Math.min(1,f*3))+')';
+      ctx.fillRect(lx-1.5,ly-1.5,3,3);
+    }
+  });
   /* memory made visible: chalk tallies along the bottom wall — one for every 2% remembered */
   if(!D.pro){
     const marks=Math.round(floor*100/2);
@@ -2222,12 +2256,27 @@ function draw(ts){
       ctx.stroke();
     }
   }
-  /* readiness rings: collective pressure made visible */
+  /* readiness rings: collective pressure made visible, staged so a player can
+     read a block at a glance — stirring (dim) → closing in → ready (bright, pulsing) */
   ag.forEach(a=>{
     if(a.inc||a.gone||a.press<0.12)return;
+    const p=a.press, ready=p>0.75;
+    if(p>0.5){  /* a faint pressure glow gathers as a circle nears breakthrough */
+      const gl=ctx.createRadialGradient(a.x,a.y-5,0,a.x,a.y-5,34);
+      gl.addColorStop(0,'rgba(126,166,216,'+(0.11*p)+')');
+      gl.addColorStop(1,'rgba(126,166,216,0)');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(a.x,a.y-5,34,0,Math.PI*2);ctx.fill();
+    }
+    const puls=ready?(0.7+0.3*Math.sin(ts/200)):1;
     ctx.beginPath();
-    ctx.arc(a.x,a.y-5,16,-Math.PI/2,-Math.PI/2+a.press*Math.PI*2);
-    ctx.strokeStyle='#7ea6d8';ctx.globalAlpha=0.55;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;
+    ctx.arc(a.x,a.y-5,16,-Math.PI/2,-Math.PI/2+p*Math.PI*2);
+    ctx.strokeStyle=p<0.35?'rgba(126,166,216,0.4)':(p<0.75?'#7ea6d8':'#9fc6ea');
+    ctx.globalAlpha=(0.4+0.4*p)*puls;ctx.lineWidth=ready?2.6:2;ctx.stroke();ctx.globalAlpha=1;
+    if(ready){
+      ctx.fillStyle='#9fc6ea';ctx.globalAlpha=0.7+0.3*Math.sin(ts/200);
+      ctx.font='9px ui-monospace,monospace';ctx.textAlign='center';
+      ctx.fillText('◈ ready',a.x,a.y-24);ctx.textAlign='start';ctx.globalAlpha=1;
+    }
   });
   /* action previews: who would this touch? */
   if(previewAct==='org'&&player>=0&&!over){
@@ -2320,12 +2369,18 @@ function rosterNote(i,txt){
 }
 function chipsFor(a,i){
   const c=[];
-  if(i===player&&!a.gone)c.push(['carries the work','you']);
+  if(i===player&&!a.gone)c.push([a.successor?'successor — carries the work':'carries the work','you']);
   if(a.gone)c.push(['taken','bad']);
   if(a.def)c.push(['walked away from power','']);
   if(a.betrayed)c.push(['a closed door','bad']);
-  if(a.sheltered)c.push(['was sheltered','']);
-  if(!a.gone&&i!==player&&a.aw>=0.5&&!a.inc)c.push(['sees clearly','']);
+  if(a.sheltered)c.push(['sheltered','']);
+  if(a.organizer&&!a.gone&&i!==player)c.push(['organizer','']);
+  if(a.harmed&&!a.gone&&!a.betrayed)c.push(['bears a scar','bad']);
+  if(!a.gone&&i!==player&&!a.inc){
+    if(a.aw>=0.75)c.push(['wide awake','']);
+    else if(a.aw>=0.5)c.push(['sees clearly','']);
+    else if(a.aw>=0.3)c.push(['listening','']);
+  }
   return c;
 }
 function renderRoster(){
