@@ -78,7 +78,10 @@ button.nope{opacity:0.42;}
 #journal .j-gold{color:#e0c48a;}
 /* accessibility */
 button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px solid var(--lamp); outline-offset:2px;}
+/* ---------- HOME LOGO ---------- */
+#logo{display:block; width:100%; max-width:460px; height:auto; margin:2px auto 6px;}
 @media (max-width:560px){
+  #logo{max-width:300px; margin-bottom:2px;}
   .actions button{min-height:44px; flex:1 1 46%;}
   .bs{max-width:none;}
   #a-end{min-height:52px;}
@@ -163,7 +166,57 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
 <div class="wrap">
 
 <div id="screen-campaign">
-  <h1>One <span class="accent">Voice</span></h1>
+  <svg id="logo" viewBox="0 0 640 300" role="img" aria-label="One Voice — one voice becomes many">
+    <defs>
+      <radialGradient id="lglow" cx="50%" cy="46%" r="60%">
+        <stop offset="0%" stop-color="#e0a458" stop-opacity="0.20"/>
+        <stop offset="45%" stop-color="#e0a458" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#e0a458" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="320" cy="150" rx="250" ry="150" fill="url(#lglow)"/>
+    <!-- ripples: the voice traveling -->
+    <g fill="none" stroke="#7ea6d8" stroke-linecap="round">
+      <circle cx="320" cy="150" r="58"  stroke-opacity="0.55" stroke-width="2"/>
+      <circle cx="320" cy="150" r="92"  stroke-opacity="0.32" stroke-width="1.6" stroke-dasharray="3 7"/>
+      <circle cx="320" cy="150" r="126" stroke-opacity="0.16" stroke-width="1.3" stroke-dasharray="2 9"/>
+    </g>
+    <!-- the crowd: hunched and gray at the edges, standing and green toward the center -->
+    <g stroke-linecap="round" fill="none">
+      <g stroke="#565a63" stroke-width="3">
+        <g transform="translate(150,190)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(490,190) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(122,138)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(518,138) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+      </g>
+      <g fill="#565a63">
+        <circle cx="157" cy="175" r="4"/><circle cx="483" cy="175" r="4"/>
+        <circle cx="129" cy="123" r="4"/><circle cx="511" cy="123" r="4"/>
+      </g>
+      <g stroke="#6f8f80" stroke-width="3.2">
+        <g transform="translate(215,195)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
+        <g transform="translate(425,195) scale(-1,1)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
+      </g>
+      <g fill="#6f8f80"><circle cx="216" cy="178" r="4.3"/><circle cx="424" cy="178" r="4.3"/></g>
+      <g stroke="#4fae8d" stroke-width="3.4">
+        <g transform="translate(258,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
+        <g transform="translate(382,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
+      </g>
+      <g fill="#4fae8d"><circle cx="258" cy="176" r="4.6"/><circle cx="382" cy="176" r="4.6"/></g>
+    </g>
+    <!-- the one voice -->
+    <g transform="translate(320,198)">
+      <circle cx="0" cy="-64" r="3.4" fill="#e0a458"/>
+      <circle cx="0" cy="-64" r="9" fill="#e0a458" opacity="0.28"/>
+      <circle cx="0" cy="-11" r="26" fill="none" stroke="#8d7bdb" stroke-opacity="0.28" stroke-width="2"/>
+      <g stroke="#8d7bdb" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M-6,15 L0,0 L6,15"/><path d="M0,0 L0,-20"/><path d="M-11,-18 L0,-21 L11,-18"/>
+      </g>
+      <circle cx="0" cy="-27" r="5.6" fill="#8d7bdb"/>
+    </g>
+    <text x="320" y="262" text-anchor="middle" font-size="54" letter-spacing="1" fill="#e8e4d8" font-family="Georgia,'Times New Roman',serif">One <tspan fill="#e0a458">Voice</tspan></text>
+    <text x="320" y="288" text-anchor="middle" font-size="13" letter-spacing="4.5" fill="#8b8e96" font-family="ui-monospace,monospace">ONE VOICE BECOMES MANY</text>
+  </svg>
   <p class="sub">A strategy game about awareness, courage, and how systems change.</p>
   <div class="story">
     This is your neighborhood. Something is wrong, and everyone feels it,
