@@ -567,6 +567,14 @@ function setMusic(on){
 const NAMES=['Rosa','Tomás','Marta','Luis','Carmen','Diego','Ana','Pablo','Lucía','Miguel','Elena','Javier','Sofía','Andrés','Valeria','Hugo','Camila','Rafael','Inés','Óscar','Paula','Emilio','Clara','Bruno','Alma','Simón','Nadia','Félix','Irene','Mateo','Julia','Ciro','Delia','Ramón','Alba','Teo','Vera','Nico','Pilar','Iván','Sara','León','Mía','Aldo','Rita','Gael','Noa','Dario','Lena','Omar','Berta','Elio','Fina','Gustavo','Hilda','Ismael','Juana','Kiko','Lidia','Marcos','Nuria','Otto','Perla','Quique','Renata','Saúl','Tania','Ulises','Violeta','Wilmer','Ximena','Yara','Zoe','Abel'];
 const ROLES=['a nurse','a bus driver','a teacher','a baker','a student','a mechanic','a shopkeeper','a farmer','a musician','a carpenter','an electrician','a seamstress','a doctor','a waiter','a fisherman','a librarian','a barber','a street vendor','a welder','a cook','a painter','a pharmacist','a janitor','a taxi driver'];
 const STAKES=['the clinic lost its funding last winter','their brother was taken years ago','the pension stopped coming','their daughter wants to leave the country','the shop was fined for nothing','they lost their job for asking questions','their street floods and no one comes','the school has no books this year','their rent doubled overnight','they saw something they were not supposed to see','their father built this neighborhood','they keep a photo of how things used to be','the harvest was confiscated','their best friend stopped speaking to them out of fear','the hospital sent them home untreated','they teach children to read in secret','their husband waits in a line every dawn','the music venue was shuttered','they remember when the square had another name','their savings became paper'];
+/* ===== COMMON GROUND: 'strands' — where in the district a neighbour is from.
+   Fictional quarters, never real groups, never ranked good/bad. The whole point
+   is quiet: a circle that spans MORE distinct strands breaks through cheaper than
+   one that leans on many people of the same strand. Breadth is an incentive, never
+   a requirement — the narrow road always stays open, it just grinds. */
+const STRANDS=['Riverside','the Terraces','Old Market','the Hill','the Arches','Canal End','the Yards','Saltgate'];
+const CG_DISCOUNT=0.035;  /* each extra distinct strand lowers a circle's threshold by this */
+const CG_CAP=0.16;        /* ...up to this much (never trivial) */
 const TRAITS=[
   {id:'talker', hint:'listens best over coffee', talkMul:1.6, orgMul:1.0, muralMul:1.0, postMul:1.0},
   {id:'gatherer', hint:'comes alive in meetings', talkMul:1.0, orgMul:2.0, muralMul:1.0, postMul:1.0},
@@ -672,6 +680,20 @@ try{camp2Progress=parseInt(localStorage.getItem('ov20_camp2')||'0');}catch(e){ca
 function saveCamp2(){try{localStorage.setItem('ov20_camp2',String(camp2Progress));}catch(e){}}
 let unlockSeen=false;
 try{unlockSeen=localStorage.getItem('ov20_unlock')==='1';}catch(e){}
+/* Common Ground meta: which strands the player has leaned on, carried across runs.
+   Overused strands start subsequent runs thinner — attrition, not punishment. */
+let strandLean={};
+try{strandLean=JSON.parse(localStorage.getItem('ov21_lean')||'{}');}catch(e){strandLean={};}
+function saveLean(){try{localStorage.setItem('ov21_lean',JSON.stringify(strandLean));}catch(e){}}
+/* Common Ground run state */
+let cgActive=false,resolve=0,resolveTold=false,strandsThisRun={},cgBeatDone=false;
+function commitLean(){
+  if(!cgActive)return;
+  Object.keys(strandLean).forEach(k=>{strandLean[k]=Math.max(0,strandLean[k]*0.7);}); /* the tired recover */
+  Object.keys(strandsThisRun).forEach(k=>{strandLean[k]=(strandLean[k]||0)+strandsThisRun[k];});
+  saveLean();
+}
+function awareStrands(minAw){const s=new Set();ag.forEach(a=>{if(!a.inc&&!a.gone&&a.strand&&a.aw>=minAw)s.add(a.strand);});return s;}
 /* era-2 run state (reset in initGame) */
 let factions=[],rival=0,rivalName='',usedApparatus=false,apparatusUses=0,empowered=[],deliveredThisRun=0,deliverIdx=0,lastDeliverBloc='';
 let driftTold=false,factionTold=false,drawerTold=false,rivalTold=false,delegateTold=false;
@@ -736,6 +758,8 @@ function renderLegacy(){
    ov11_legacy / ov11_snd / ov11_mus             : embers, legacies, audio prefs (since v11)
    ov15_intro                                    : comic intro seen (since v15)
    ov17_hints                                    : once-ever contextual hints (since v17)
+   ov20_camp2 / ov20_unlock                      : sequel progress & unlock (since v20)
+   ov21_lean                                     : Common Ground strand attrition (since v21)
    New keys in future versions should use the ov<version>_ prefix of the version
    that introduces them; never repurpose an existing key. ---------- */
 let proDone=[],campProgress=0;
@@ -1071,6 +1095,7 @@ $('ep-map').addEventListener('click',()=>{$('epilogue-box').style.display='none'
 function awardEmbers(won){
   if(embersAwarded||D.pro)return 0;
   embersAwarded=true;
+  commitLean();  /* carry forward which strands were leaned on (attrition, not scoring) */
   const earned=wins+defected*2+(won?5:0);
   if(earned>0){legacy.embers+=earned;saveLegacy();}
   return earned;
@@ -1577,6 +1602,7 @@ function initGame(){
   firstWinSeen=false;inf30Told=false;inf40Told=false;witnessedOnce=false;hopeBonus=0;
   opp=null;nearMissTold=false;freeZoneTold=false;embersAwarded=false;lastWinTurn=-99;
   floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;winGlows=[];
+  cgActive=!D.pro&&!era2();resolve=0;resolveTold=false;strandsThisRun={};cgBeatDone=false;
   $('epilogue-box').style.display='none';
   $('pcard').style.display='none';
   firedDilemmas=[];shelterTurns=0;shelterIdx=-1;boostTurns=0;freeLink=false;lastCrackTurn=-99;pendingDilemma=null;$('overlay').style.display='none';
@@ -1592,7 +1618,7 @@ function initGame(){
     const role=ROLES[(lvlIdx*7+idx*5)%ROLES.length];
     const stake=STAKES[(lvlIdx*11+idx*13)%STAKES.length];
     const trait=TRAITS[Math.floor(srand()*TRAITS.length)];
-    return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,met:false,betrayed:false,sheltered:false,harmed:false,organizer:false,successor:false,press:0,events:[]};
+    return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,strand:'',met:false,betrayed:false,sheltered:false,harmed:false,organizer:false,successor:false,press:0,events:[]};
   }
   if(D.clusterCenter){
     for(let i=0;i<NN;i++){
@@ -1641,6 +1667,17 @@ function initGame(){
   }
   rebuildNbr();
   assignWindows();  /* bind each window to its nearest person (final positions) */
+  /* Common Ground: give everyone a strand. Overused strands are weighted down so
+     they turn up thinner this run — the people you leaned on hardest are tired. */
+  {
+    const w=STRANDS.map(s=>Math.max(0.2,1-(strandLean[s]||0)*0.1));
+    const tot=w.reduce((a,b)=>a+b,0);
+    for(let i=0;i<NN;i++){
+      let r=srand()*tot,k=0;
+      while(k<STRANDS.length-1&&r>w[k]){r-=w[k];k++;}
+      ag[i].strand=STRANDS[k];
+    }
+  }
   let pi=Math.floor(sr(D.nInc||0,NN));
   while(ag[pi].inc||(D.twoClusters&&ag[pi].x>=360)){pi=(pi+1)%NN;if(pi<(D.nInc||0))pi=D.nInc||0;}
   player=pi;
@@ -1947,7 +1984,7 @@ cv.addEventListener('click',e=>{
     }
     card.style.display='block';
     card.innerHTML='<span class="pn">'+p.nm+' — '+p.role+'</span> <span class="paw">'+Math.round(p.aw*100)+'% awake</span>'+
-      '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+' · '+p.trait.hint+(p.betrayed?' · they no longer meet your eyes':'')+'</div>';
+      '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+' · '+p.trait.hint+(p.strand?' · from '+p.strand:'')+(p.betrayed?' · they no longer meet your eyes':'')+'</div>';
     coachEvent('select');
   } else {
     card.style.display='none';
@@ -2283,12 +2320,23 @@ function endTurn(){
     const nb=nbr[i].filter(j=>!ag[j].gone&&!ag[j].inc);
     if(!nb.length){a.press=Math.max(0,a.press*0.8);continue;}
     const loc=(a.aw+nb.reduce((s,j)=>s+ag[j].aw,0))/(nb.length+1);
-    if(loc>D.thresh&&(era2()||rig>0.12)){
+    /* Common Ground: a circle spanning more distinct strands breaks through with
+       less awareness (and fills a touch faster). A narrow circle faces the full
+       bar — always passable, just harder. Breadth is incentive, never a gate. */
+    let distinct=1;
+    if(cgActive){
+      const cs=new Set(); if(a.strand)cs.add(a.strand);
+      nb.forEach(j=>{if(ag[j].aw>0.4&&ag[j].strand)cs.add(ag[j].strand);});
+      distinct=Math.max(1,cs.size);
+    }
+    const effThresh=cgActive?Math.max(D.thresh-CG_CAP,D.thresh-(distinct-1)*CG_DISCOUNT):D.thresh;
+    if(loc>effThresh&&(era2()||rig>0.12)){
       const wasPress=a.press;
-      a.press=Math.min(1,a.press+0.20+D.winP*1.6+rand(0,0.06));
+      a.press=Math.min(1,a.press+0.20+D.winP*1.6+rand(0,0.06)+(cgActive?(distinct-1)*0.015:0));
       if(a.press>=1&&winsFiredThisTurn===0){
         /* THE WIN — concrete, local, attributed */
         a.press=0;winsFiredThisTurn++;
+        if(cgActive){const cs=new Set();if(a.strand)cs.add(a.strand);nb.forEach(j=>{if(ag[j].aw>0.4&&ag[j].strand)cs.add(ag[j].strand);});cs.forEach(st=>{strandsThisRun[st]=(strandsThisRun[st]||0)+1;});}
         if(era2()){
           floor=Math.min(0.6,floor+D.floorGain);  /* memory, actively defended by delivery */
           rig=Math.max(0,rig-0.05);               /* a delivery holds the coalition, briefly */
@@ -2368,6 +2416,35 @@ function endTurn(){
     msg=(winStory?winStory+' ':'')||'✦ Something shifts — a small victory people can point to. Fear falls; memory rises. ';
   }
   if(winNear)msg+='It happened close enough to see — hope is fuel (+1 energy next turn). ';
+
+  /* ---- COMMON GROUND: the shared pool, and the beat where breadth lands ---- */
+  if(cgActive){
+    let nAw=0;ag.forEach(a=>{if(!a.inc&&!a.gone&&a.aw>=0.5)nAw++;});
+    resolve+=spreadCount+nAw+winsFiredThisTurn*6;   /* one pool — every strand adds to it */
+    if(!resolveTold&&(floor>=0.28||rig<=0.22)){     /* the reveal: one line, once, unexplained */
+      resolveTold=true;
+      log('— Resolve: '+Math.round(resolve)+'. One pool. All of them.');
+    }
+    /* the beat: the whole district is asked to hold one line at once. A broad
+       coalition clears it for almost nothing; a narrow one holds too, but pays
+       dearly. Both roads through — never gated. */
+    if(!cgBeatDone&&turn>=Math.ceil(D.maxT*0.5)){
+      cgBeatDone=true;
+      const distinctNow=awareStrands(0.5).size;
+      const target=Math.min(5,2+Math.floor((lvlIdx-N_PRO)/2));
+      if(distinctNow>=target){
+        rig=Math.max(0.1,rig-0.05);floor=Math.min(0.5,floor+0.02);
+        ag.forEach(a=>{if(!a.inc&&!a.gone)a.aw=Math.min(1,a.aw+0.03);});
+        addRipple(ag[player].x,ag[player].y,'#7ea6d8',true);
+        msg+='◆ The district was asked to hold one line at once — and it held easily, because the call came from every corner. ';
+      } else {
+        risk=Math.min(1,risk+0.26);rig=Math.min(0.94,rig+0.03);
+        ag.forEach(a=>{if(!a.inc&&!a.gone)a.aw=Math.max(floor,a.aw-0.05);});
+        doShake(4);
+        msg+='◆ The district was asked to hold one line at once. It held — but it leaned on so few that it cost everyone dearly. ';
+      }
+    }
+  }
 
   if(reinfThresholds.length&&rig<reinfThresholds[0]){
     reinfThresholds.shift();reinfPending=true;
@@ -3050,7 +3127,7 @@ function renderRoster(){
     const a=o.a;
     const chips=chipsFor(a,o.i).map(c=>'<span class="chip '+c[1]+'">'+c[0]+'</span>').join('');
     return '<div class="rp"><b>'+a.nm+'</b> — '+a.role+chips+
-      '<div class="rs">'+a.stake.charAt(0).toUpperCase()+a.stake.slice(1)+' · '+a.trait.hint+(a.gone?'':' · '+Math.round(a.aw*100)+'% awake')+'</div>'+
+      '<div class="rs">'+a.stake.charAt(0).toUpperCase()+a.stake.slice(1)+' · '+a.trait.hint+(a.strand?' · from '+a.strand:'')+(a.gone?'':' · '+Math.round(a.aw*100)+'% awake')+'</div>'+
       (a.events&&a.events.length?'<div class="re">'+a.events.join(' · ')+'</div>':'')+'</div>';
   }).join('');
 }
