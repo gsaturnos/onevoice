@@ -45,6 +45,16 @@ h1 .accent{color:var(--lamp);}
 #story-box summary{color:var(--lamp);}
 #journal div:last-child{color:#e8e4d8;}
 #report{display:none; font-family:ui-monospace,monospace; font-size:12px; color:#9db8d8; margin:4px 0 6px; padding:6px 11px; border-left:3px solid #3a4a66; background:rgba(126,166,216,0.05); line-height:1.5;}
+/* ---------- RUN TIMELINE (Feature 3): the shape of the run, a record not a score ---------- */
+#timeline{display:none; align-items:flex-end; gap:2px; overflow-x:auto; overflow-y:hidden; padding:5px 6px; margin:2px 0 8px; border:1px solid var(--line); background:var(--panel); scrollbar-width:thin;}
+#timeline .tk{flex:0 0 auto; width:13px; min-height:28px; background:transparent; border:none; border-bottom:2px solid rgba(232,228,216,0.12); padding:2px 0 3px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:1px; cursor:default; opacity:0.7;}
+#timeline .tk.cur{opacity:1; border-bottom-color:var(--lamp);}
+#timeline .tk:focus-visible{outline:2px solid var(--lamp); outline-offset:1px;}
+#timeline .tm{font-size:9px; line-height:1;}
+#timeline .tm.win{color:#7ea6d8;} #timeline .tm.crack{color:#c94f4f;} #timeline .tm.def{color:#4fae8d;}
+#timeline .tm.opp{color:#e8d48a;} #timeline .tm.bad{color:#c94f4f;} #timeline .tm.succ{color:#8d7bdb;}
+#timeline .tkdot{width:3px; height:3px; border-radius:50%; background:rgba(232,228,216,0.16);}
+@media (max-width:560px){#timeline{padding:4px;} #timeline .tk{width:10px; min-height:24px;}}
 #roster-box summary{color:#9db8d8;}
 #roster{max-height:260px; overflow-y:auto; padding:4px 14px 12px;}
 .rp{border-bottom:1px solid var(--line); padding:7px 0; font-size:14px;}
@@ -298,6 +308,7 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
   <div id="pcard"></div>
   <div id="log" role="log" aria-live="polite"></div>
   <div id="report" aria-live="polite"></div>
+  <div id="timeline" role="group" aria-label="Run timeline — one tick per turn"></div>
   <div id="epilogue-box">
     <h2 id="ep-title">Epilogue</h2>
     <div id="epilogue-text"></div>
@@ -794,7 +805,8 @@ const cv=$('game'),ctx=cv.getContext('2d');
 let bgCanvas=null;   /* pre-rendered district backdrop (streets, buildings, square) */
 let city=null;       /* shared city geometry: streets, buildings, windows, square */
 let grainCanvas=null;/* prerendered paper grain, built once, composited each frame */
-let winGlows=[];     /* structural-win light blooms: fog lifts, lights come on */
+let winScenes=[];    /* cinematic structural-win set pieces: windows light, figures rise, fog tears */
+let timeline=[];     /* Feature 3: one tick per turn — the shape of the run, in memory only */
 /* honour reduced-motion for the NEW drifting/day-cycle motion (canvas isn't covered by the CSS query) */
 const _rmq=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)'))||null;
 function reducedMotion(){return !!(_rmq&&_rmq.matches);}
@@ -804,7 +816,53 @@ let floaters=[],rippleAnims=[],nearMisses=[],pops={},shake={mag:0,t0:0},vignette
 function nowMs(){return performance.now();}
 function addFloat(x,y,txt,color){floaters.push({x,y,txt,color:color||'#4fae8d',t0:nowMs()});if(floaters.length>24)floaters.shift();}
 function addRipple(x,y,color,big){rippleAnims.push({x,y,color:color||'#7ea6d8',t0:nowMs(),big:!!big});}
-function addNearMiss(x,y){nearMisses.push({x,y,t0:nowMs()});}
+function addNearMiss(x,y){nearMisses.push({x,y,t0:nowMs(),turn:turn});}
+/* ---------- CINEMATIC STRUCTURAL WIN (a set piece, never a modal) ----------
+   When a win fires, the winning block exhales: the ripple leads, its windows
+   light one by one, its people straighten in sequence, and the fog tears open
+   before settling lower. Layered over a state change that already happened — it
+   never blocks input and never freezes the turn. Reduced-motion: a gentle fade. */
+function spawnWinScene(ci,nbIdx){
+  const cx=ag[ci].x, cy=ag[ci].y;
+  addRipple(cx,cy,'#7ea6d8',true);                     /* the leading edge */
+  addFloat(cx,cy-18,'✦ something gave way','#7ea6d8');
+  const people=[ci].concat(nbIdx).filter((v,k,arr)=>arr.indexOf(v)===k)
+    .map(idx=>({idx,d:Math.hypot(ag[idx].x-cx,ag[idx].y-cy)})).sort((p,q)=>p.d-q.d);
+  const wins=[];
+  if(city&&city.windows){
+    for(let k=0;k<city.windows.length;k++){
+      const w=city.windows[k], d=Math.hypot((w.x+1.6)-cx,(w.y+2)-cy);
+      if(d<98||(w.owner>=0&&people.some(o=>o.idx===w.owner)))wins.push({k,d});
+    }
+    wins.sort((p,q)=>p.d-q.d);
+  }
+  const rm=reducedMotion();
+  if(rm)people.forEach(o=>addPop(o.idx));              /* straighten, gently, all at once */
+  winScenes.push({cx,cy,t0:nowMs(),dur:rm?1300:2200,people,wins,rm,popped:{}});
+}
+/* ---------- RUN TIMELINE render (Feature 3): a record, never a scorecard ----------
+   One focusable cell per turn; quiet palette-matched glyphs (colour + shape) for
+   what actually happened; current cell highlighted; recap in title/aria for
+   hover and keyboard. Rebuilt once per turn, not per frame. */
+function renderTimeline(){
+  const el=$('timeline');if(!el)return;
+  if(!timeline.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='flex';
+  const cur=timeline.length-1;
+  el.innerHTML=timeline.map((t,i)=>{
+    const g=[];
+    if(t.ev.win)g.push('<span class="tm win">▍</span>');
+    if(t.ev.succeed)g.push('<span class="tm succ">✚</span>');
+    if(t.ev.defect)g.push('<span class="tm def">●</span>');
+    if(t.ev.crack)g.push('<span class="tm crack">▲</span>');
+    if(t.ev.interr)g.push('<span class="tm bad">◇</span>');
+    if(t.ev.opening)g.push('<span class="tm opp">◎</span>');
+    const body=g.length?g.slice(0,3).join(''):'<span class="tkdot"></span>';
+    const lab=('Turn '+t.turn+(t.recap?' — '+t.recap:'')).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    return '<button type="button" class="tk'+(i===cur?' cur':'')+'" title="'+lab+'" aria-label="'+lab+'">'+body+'</button>';
+  }).join('');
+  el.scrollLeft=el.scrollWidth;   /* keep the latest turn in view */
+}
 function addPop(i){pops[i]=nowMs();}
 function doShake(m){shake.mag=m;shake.t0=nowMs();}
 function doVignette(color){vignette={color:color||'201,79,79',t0:nowMs()};}
@@ -1601,8 +1659,9 @@ function initGame(){
   journal=[];$('journal').innerHTML='';fallenThisRun=[];epiEvents=[];
   firstWinSeen=false;inf30Told=false;inf40Told=false;witnessedOnce=false;hopeBonus=0;
   opp=null;nearMissTold=false;freeZoneTold=false;embersAwarded=false;lastWinTurn=-99;
-  floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;winGlows=[];
+  floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;winScenes=[];
   cgActive=!D.pro&&!era2();resolve=0;resolveTold=false;strandsThisRun={};cgBeatDone=false;
+  timeline=[];renderTimeline();
   $('epilogue-box').style.display='none';
   $('pcard').style.display='none';
   firedDilemmas=[];shelterTurns=0;shelterIdx=-1;boostTurns=0;freeLink=false;lastCrackTurn=-99;pendingDilemma=null;$('overlay').style.display='none';
@@ -2215,6 +2274,7 @@ function checkObjective(){
 function endTurn(){
   if(over||pendingDilemma)return;
   const leftoverEnergy=energy;
+  const _tlDef=defected,_tlOpp=opp,_tlPlayer=player;  /* Feature 3: snapshot for this turn's timeline tick */
   interrogated=false;linkMode=false;muralMode=false;letterMode=false;
   nearMissTold=false;
 
@@ -2330,8 +2390,8 @@ function endTurn(){
       distinct=Math.max(1,cs.size);
     }
     const effThresh=cgActive?Math.max(D.thresh-CG_CAP,D.thresh-(distinct-1)*CG_DISCOUNT):D.thresh;
+    const wasPress=a.press;
     if(loc>effThresh&&(era2()||rig>0.12)){
-      const wasPress=a.press;
       a.press=Math.min(1,a.press+0.20+D.winP*1.6+rand(0,0.06)+(cgActive?(distinct-1)*0.015:0));
       if(a.press>=1&&winsFiredThisTurn===0){
         /* THE WIN — concrete, local, attributed */
@@ -2346,10 +2406,7 @@ function endTurn(){
         } else {
           rig=Math.max(0.1,rig-0.065);floor=Math.min(0.5,floor+D.floorGain);wins++;
         }
-        addRipple(a.x,a.y,'#7ea6d8',true);
-        addFloat(a.x,a.y-18,'✦ something gave way','#7ea6d8');
-        winGlows.push({x:a.x,y:a.y,t0:nowMs()});  /* the fog lifts here; lights come on */
-        addPop(i);nb.forEach(j=>addPop(j));        /* the circle visibly straightens and gathers */
+        spawnWinScene(i,nb);                        /* the cinematic set piece (Feature 1) */
         winThis=true;lastWinTurn=turn;
         if(Math.hypot(a.x-ag[player].x,a.y-ag[player].y)<150)winNear=true;
         const outcome=winOutcome(a);
@@ -2378,6 +2435,7 @@ function endTurn(){
     } else {
       a.press=Math.max(0,a.press*0.85-0.01);
     }
+    a.pressWas=wasPress;   /* Feature 2: remember last turn's pressure so draw can read the trend */
   }
   if(winThis)sWin();
   if(winNear)hopeBonus=1;
@@ -2648,6 +2706,20 @@ function endTurn(){
     if(parts.length&&!over){rep.style.display='block';rep.textContent='↳ '+parts.join(' · ');}
     else rep.style.display='none';
   })();
+  /* Feature 3: append this turn's tick — marks drawn only from what actually happened,
+     recap pulled from the turn's own story line. No score, no judgment. */
+  {
+    const ev={};
+    if(winsFiredThisTurn>0)ev.win=1;
+    if(lastCrackTurn===turn-1)ev.crack=1;
+    if(defected>_tlDef)ev.defect=1;
+    if(!_tlOpp&&opp)ev.opening=1;
+    if(interrogated)ev.interr=1;
+    if(player!==_tlPlayer)ev.succeed=1;
+    const recap=(msg||'').replace(/<[^>]*>/g,'').replace(/^[★✦◆◇⚠✖⏱◎↳\s-]+/,'').trim().slice(0,120);
+    timeline.push({turn:turn-1,ev,recap});
+    renderTimeline();
+  }
   if(crackIn===1)hintOnce('warn','⚠ First warning: the amber circle is where they strike next turn. If eyes on you are high inside it, lay low.');
   coachEvent('turn');
   if(winThis)coachEvent('win');
@@ -2861,15 +2933,16 @@ function draw(ts){
     ctx.beginPath();ctx.arc(A.x+(B.x-A.x)*f,A.y+(B.y-A.y)*f-3,2.2,0,Math.PI*2);
     ctx.fillStyle='#4fae8d';ctx.globalAlpha=0.8*(1-f*0.4);ctx.fill();ctx.globalAlpha=1;
   });
-  nearMisses=nearMisses.filter(n=>ts-n.t0<3400);
+  /* near-misses persist through the NEXT turn (Feature 2) — the block that almost
+     gave way stays softly marked long enough to act on, not a one-frame flash */
+  nearMisses=nearMisses.filter(n=>turn-(n.turn||turn)<=1);
   nearMisses.forEach(n=>{
-    const age=(ts-n.t0)/3400;
-    const puls=0.5+0.5*Math.sin(ts/160);
-    ctx.beginPath();ctx.arc(n.x,n.y-5,24+5*puls,0,Math.PI*2);
-    ctx.strokeStyle='#7ea6d8';
-    ctx.globalAlpha=(1-age)*0.65*puls;
+    const rmN=reducedMotion(), puls=rmN?0.8:(0.5+0.5*Math.sin(ts/160));
+    const fade=(n.turn===turn)?0.85:0.5;   /* dimmer once it is the older, last-chance turn */
+    ctx.beginPath();ctx.arc(n.x,n.y-5,24+(rmN?3:5*puls),0,Math.PI*2);
+    ctx.strokeStyle='#7ea6d8';ctx.globalAlpha=fade*0.65*(rmN?1:puls);
     ctx.setLineDash([3,5]);ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
-    ctx.globalAlpha=(1-age)*0.85;
+    ctx.globalAlpha=fade;
     ctx.fillStyle='#7ea6d8';ctx.font='11px ui-monospace,monospace';ctx.textAlign='center';
     ctx.fillText('◇ almost',n.x,n.y-34);
     ctx.textAlign='start';ctx.globalAlpha=1;
@@ -2958,21 +3031,30 @@ function draw(ts){
       ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(cx,cy,150,44,0,0,Math.PI*2);ctx.fill();
     }
   }
-  /* structural-win blooms: painted OVER the fog so the haze visibly lifts,
-     with small warm lights coming on around the place where something gave way */
-  winGlows=winGlows.filter(w=>ts-w.t0<2400);
-  winGlows.forEach(w=>{
-    const f=(ts-w.t0)/2400, rad=42+f*94;
-    const cg=ctx.createRadialGradient(w.x,w.y,0,w.x,w.y,rad);
-    cg.addColorStop(0,'rgba(224,164,88,'+(0.20*(1-f))+')');
-    cg.addColorStop(0.55,'rgba(224,164,88,'+(0.07*(1-f))+')');
-    cg.addColorStop(1,'rgba(224,164,88,0)');
-    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(w.x,w.y,rad,0,Math.PI*2);ctx.fill();
-    for(let k=0;k<6;k++){
-      const ang=k*Math.PI/3+w.t0,dist=20+f*38;
-      const lx=w.x+Math.cos(ang)*dist,ly=w.y+Math.sin(ang)*dist;
-      ctx.fillStyle='rgba(224,164,88,'+(0.55*(1-f)*Math.min(1,f*3))+')';
-      ctx.fillRect(lx-1.5,ly-1.5,3,3);
+  /* the win set piece (Feature 1) — drawn OVER the fog so the haze visibly tears
+     open: a warm clearing grows then settles, windows light one by one across the
+     block, figures straighten in sequence. One win per turn, so never chaotic. */
+  winScenes=winScenes.filter(s=>ts-s.t0<s.dur+300);
+  winScenes.forEach(s=>{
+    const e=(ts-s.t0)/s.dur, fade=1-Math.max(0,(e-0.75)/0.25);
+    const tear=s.rm?Math.min(1,e):Math.min(1,e*1.7);
+    const rad=40+tear*82, a0=(s.rm?0.16:0.24)*Math.max(0,fade);
+    const cg=ctx.createRadialGradient(s.cx,s.cy,0,s.cx,s.cy,rad);
+    cg.addColorStop(0,'rgba(226,196,140,'+a0+')');
+    cg.addColorStop(0.5,'rgba(224,180,120,'+(a0*0.4)+')');
+    cg.addColorStop(1,'rgba(224,180,120,0)');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(s.cx,s.cy,rad,0,Math.PI*2);ctx.fill();
+    const nW=s.wins.length;
+    for(let k=0;k<nW;k++){                          /* windows light one by one */
+      const trig=s.rm?0:(k/Math.max(1,nW))*0.6, lit=e-trig;
+      if(lit<=0)continue;
+      const amp=Math.min(1,lit*4)*Math.max(0,fade), w=city.windows[s.wins[k].k];
+      ctx.fillStyle='rgba(228,198,142,'+(0.6*amp)+')';
+      ctx.fillRect(w.x-0.4,w.y-0.4,w.w+0.8,w.h+0.8);
+    }
+    if(!s.rm)for(let k=0;k<s.people.length;k++){    /* figures rise in sequence */
+      const po=s.people[k], trig=(k/Math.max(1,s.people.length))*0.55;
+      if(e>=trig&&!s.popped[po.idx]){s.popped[po.idx]=1;addPop(po.idx);}
     }
   });
   /* memory made visible: chalk tallies along the bottom wall — one for every 2% remembered */
@@ -2988,24 +3070,33 @@ function draw(ts){
       ctx.stroke();
     }
   }
-  /* readiness rings: collective pressure made visible, staged so a player can
-     read a block at a glance — stirring (dim) → closing in → ready (bright, pulsing) */
+  /* readiness rings (Feature 2): a block heating toward a win reads at a glance —
+     warm brightening under it + a bright climbing arc. A block that slipped back
+     below threshold COOLS distinctly — a grey, dashed, dimming arc with a small
+     down-chevron (shape AND colour, never colour alone) — so you can see a
+     neighbourhood drifting back to sleep as clearly as one waking. */
+  const rmR=reducedMotion();
   ag.forEach(a=>{
-    if(a.inc||a.gone||a.press<0.12)return;
-    const p=a.press, ready=p>0.75;
-    if(p>0.5){  /* a faint pressure glow gathers as a circle nears breakthrough */
-      const gl=ctx.createRadialGradient(a.x,a.y-5,0,a.x,a.y-5,34);
-      gl.addColorStop(0,'rgba(126,166,216,'+(0.11*p)+')');
-      gl.addColorStop(1,'rgba(126,166,216,0)');
-      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(a.x,a.y-5,34,0,Math.PI*2);ctx.fill();
+    if(a.inc||a.gone)return;
+    const p=a.press, trend=p-(a.pressWas||0), cooling=trend<-0.02&&p>0.12;
+    if(p<0.12&&!cooling)return;
+    if(p>0.5&&!cooling){                 /* warm brightening: this block is close and still climbing */
+      const warmth=(p-0.5)/0.5, r=30+p*16;
+      const gl=ctx.createRadialGradient(a.x,a.y-5,0,a.x,a.y-5,r);
+      gl.addColorStop(0,'rgba(226,188,132,'+(0.05+0.10*warmth)+')');
+      gl.addColorStop(1,'rgba(226,188,132,0)');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(a.x,a.y-5,r,0,Math.PI*2);ctx.fill();
     }
-    const puls=ready?(0.7+0.3*Math.sin(ts/200)):1;
-    ctx.beginPath();
-    ctx.arc(a.x,a.y-5,16,-Math.PI/2,-Math.PI/2+p*Math.PI*2);
-    ctx.strokeStyle=p<0.35?'rgba(126,166,216,0.4)':(p<0.75?'#7ea6d8':'#9fc6ea');
-    ctx.globalAlpha=(0.4+0.4*p)*puls;ctx.lineWidth=ready?2.6:2;ctx.stroke();ctx.globalAlpha=1;
-    if(ready){
-      ctx.fillStyle='#9fc6ea';ctx.globalAlpha=0.7+0.3*Math.sin(ts/200);
+    const ready=p>0.75&&!cooling, puls=(ready&&!rmR)?(0.7+0.3*Math.sin(ts/200)):1;
+    ctx.beginPath();ctx.arc(a.x,a.y-5,16,-Math.PI/2,-Math.PI/2+p*Math.PI*2);
+    if(cooling){ctx.strokeStyle='rgba(150,160,178,0.8)';ctx.setLineDash([2,4]);ctx.globalAlpha=0.35+0.3*p;ctx.lineWidth=1.6;}
+    else{ctx.strokeStyle=p<0.35?'rgba(126,166,216,0.4)':(p<0.75?'#7ea6d8':'#9fc6ea');ctx.globalAlpha=(0.4+0.4*p)*puls;ctx.lineWidth=ready?2.8:2;}
+    ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    if(cooling){                          /* a small down-tick: slipping away */
+      ctx.strokeStyle='rgba(150,160,178,0.75)';ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.moveTo(a.x,a.y-23);ctx.lineTo(a.x,a.y-16);ctx.moveTo(a.x-2.5,a.y-18.5);ctx.lineTo(a.x,a.y-16);ctx.lineTo(a.x+2.5,a.y-18.5);ctx.stroke();
+    } else if(ready){
+      ctx.fillStyle='#9fc6ea';ctx.globalAlpha=rmR?1:(0.7+0.3*Math.sin(ts/200));
       ctx.font='9px ui-monospace,monospace';ctx.textAlign='center';
       ctx.fillText('◈ ready',a.x,a.y-24);ctx.textAlign='start';ctx.globalAlpha=1;
     }
