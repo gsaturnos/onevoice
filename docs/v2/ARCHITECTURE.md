@@ -245,6 +245,17 @@ served through a **separate Vercel preview** while parity is established. The
 production entry point (`/index.html`) is **not** replaced or modified, and
 **no cutover happens without separate approval**.
 
+The preview is an **isolated Vercel project** (`onevoice-v2-preview`), distinct
+from the production `onevoice` project. It builds only the V2 app: install
+`npm ci` and build `npm run build` inside `v2/`, serving `v2/dist`. This is
+pinned by `v2/vercel.json` (read only by a project whose Root Directory is
+`v2/`) and can equivalently be configured from the repository root with
+`cd v2 && npm ci` / `cd v2 && npm run build` and output `v2/dist`. Because it is
+a separate project on its own `*.vercel.app` origin, it never touches the
+production project, the production root entry point, or production `localStorage`
+(the V2 save namespace stays `ov_v2dev_v1_*`, and a distinct origin has isolated
+storage regardless).
+
 ### 7.3 Parity oracle & tolerance
 **Stable `staging` is the reference implementation** — never experimental PR
 #10. Parity requires **exact equality** for integer, Boolean, enum,
