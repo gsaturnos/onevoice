@@ -5,7 +5,6 @@
 import { createGame } from '@core/state';
 import { applyAction } from '@core/simulation';
 import type { Action, GameState } from '@core/types';
-import { KITCHEN_TABLE } from '@content/levels';
 import { PixiStage } from '@render/PixiStage';
 import { Hud } from '@ui/Hud';
 
@@ -14,7 +13,8 @@ async function boot(): Promise<void> {
   const hudHost = document.getElementById('hud')!;
 
   // one source of truth: the current snapshot. Reducers return the next one.
-  let state: GameState = createGame(KITCHEN_TABLE, 0x51ee7 /* fixed seed */);
+  // Level 0 is the first guided story ("I · The kitchen table").
+  let state: GameState = createGame(0);
 
   const stage = new PixiStage();
   await stage.init(stageHost);
