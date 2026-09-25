@@ -118,6 +118,8 @@ export interface GameState {
   agents: Agent[];
   links: Link[];
   built: Array<[number, number]>;
+  weak: string[]; // keys (lkey) of half-strength links made by letters
+  murals: Array<{ x: number; y: number }>;
   neighbors: number[][]; // adjacency derived from links
 
   turn: number;
@@ -150,9 +152,9 @@ export interface GameState {
 }
 
 /**
- * Player-facing actions. Ported incrementally (Stage B: talk/org/low/post/doc/
- * speak). reach/expose/link/letter/mural land with Stage C. The demo app drives
- * only `talk` and `endTurn`.
+ * Player-facing actions, all ported (Stage B/B+). Two-step UI actions carry the
+ * resolved target/coordinate the UI picked. The demo app drives only `talk` and
+ * `endTurn`.
  */
 export type Action =
   | { kind: 'talk'; target: number }
@@ -161,6 +163,11 @@ export type Action =
   | { kind: 'post' }
   | { kind: 'doc' }
   | { kind: 'speak' }
+  | { kind: 'reach' }
+  | { kind: 'expose' }
+  | { kind: 'link'; target: number }
+  | { kind: 'letter'; target: number }
+  | { kind: 'mural'; x: number; y: number }
   | { kind: 'endTurn' };
 
 /** A read-only view handed to render/ui. They must never mutate it. */

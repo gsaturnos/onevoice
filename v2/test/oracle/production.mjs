@@ -67,6 +67,15 @@ export function extractFn(src, name) {
   return src.slice(m.index, braceClose + 1);
 }
 
+/** Extract the body of the `cv.addEventListener('click', e => { ... })` handler. */
+export function extractClickHandler(src) {
+  const anchor = src.indexOf("cv.addEventListener('click'");
+  if (anchor < 0) throw new Error('click handler not found');
+  const braceOpen = src.indexOf('{', src.indexOf('=>', anchor));
+  const braceClose = balancedFrom(src, braceOpen);
+  return src.slice(braceOpen + 1, braceClose); // inner body only
+}
+
 /** Extract the RHS text of `const <name> = <RHS>;`. */
 export function extractConstRHS(src, name) {
   const decl = new RegExp(`const\\s+${name}\\s*=`, 'g');
@@ -151,6 +160,9 @@ function sNear(){}
 function sWarn(){}
 function sKnock(){}
 function sLoss(){}
+function pname(i){ return ag[i].nm+', '+ag[i].role; }
+function updateActionLabels(){}
+const cv = _el;
 let __rng = Math.random;         // the injectable turn-level entropy stream
 function __ovrand(){ return __rng(); }
 `;
@@ -163,6 +175,10 @@ function __ovrand(){ return __rng(); }
 const seam = (s) => s.replace(/Math\.random\b/g, '__ovrand');
 const FNS = (n) => seam(FN(n));
 
+// The mural/link/letter completion logic lives in the canvas click handler.
+// Wrap its real body as a callable so the oracle exercises production code.
+const CLICK_FN = `function _click(e){${seam(extractClickHandler(src))}}`;
+
 const API = `
 function _snapshot(){
   return {
@@ -171,6 +187,9 @@ function _snapshot(){
     nbr: nbr.map(x=>[...x]),
     player, turn, energy, rig, floor, inf, risk, defected, over, wins,
     docActive, postTrail,
+    built: built.map(b=>[...b]),
+    weak: [...weak],
+    murals: murals.map(m=>({...m})),
     spies: spies.map(s=>({...s})),
     reinfThresholds: [...reinfThresholds],
   };
@@ -189,7 +208,18 @@ return {
   setRng(fn){ __rng = fn; },
   setTarget(i){ target = i; },
   setEnergy(n){ energy = n; },
+  setInf(n){ inf = n; },
   act(type){ act(type); return _snapshot(); },
+  // Two-step UI actions: act() toggles the mode, the canvas click completes it.
+  // getBoundingClientRect() returns {left:0,top:0,width:720,height:440}, so
+  // clientX/Y map straight to game coords (mx=x, my=y).
+  clickAt(mode, x, y){
+    muralMode = mode === 'mural';
+    linkMode = mode === 'link';
+    letterMode = mode === 'letter';
+    _click({ clientX: x, clientY: y });
+    return _snapshot();
+  },
   levelCount(){ return LEVELS.length; },
   levelIsPro(idx){ return !!LEVELS[idx].pro; },
 };
@@ -211,8 +241,12 @@ const body = [
   FNS('orgRingSet'),
   FNS('muralCost'),
   FNS('triggerDefection'),
+  FNS('freeZones'),
+  FNS('inTriangle'),
+  FNS('inAnyZone'),
   FNS('initGame'),
   FNS('act'),
+  CLICK_FN,
   API,
 ].join('\n');
 

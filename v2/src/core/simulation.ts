@@ -1,15 +1,16 @@
-// Pure reducers. applyAction ports the production act() field-for-field for the
-// self-contained player actions (talk, org, low, post, doc, speak); tick still
-// carries the Phase-1 demo diffusion until the full endTurn port (Stage C).
+// Pure reducers. applyAction ports the production act() (and the mural/link/
+// letter completion handlers) field-for-field; tick still carries the Phase-1
+// demo diffusion until the full endTurn port (Stage C).
 //
-// Parity: these mirror staging's act() exactly (same constants, same order, same
-// clamps). Stochastic actions (post) draw from a seeded stream carried in
+// Parity: these mirror staging exactly (same constants, order, clamps).
+// Stochastic actions (post, reach) draw from a seeded stream carried in
 // state.rngState — the same mulberry32 the golden oracle's RNG seam uses — so
 // oracle and V2 draw an identical sequence. No DOM, no Math.random, no rendering.
-// reach/expose/link/letter/mural need turn-loop or click-handler state and land
-// with Stage C. See docs/v2/ARCHITECTURE.md §7.3.
+// Two-step UI actions (mural/link/letter) take the resolved target/coordinate
+// the UI picked, since the coordinate→nearest resolution is a view concern.
+// See docs/v2/ARCHITECTURE.md §7.3.
 
-import { makeRng } from './rng';
+import { makeRng, type Rng } from './rng';
 import type { Action, Agent, GameState } from './types';
 import { objectiveMet } from './selectors';
 
@@ -17,10 +18,32 @@ function infBonus(s: GameState): number {
   return s.inf / 100;
 }
 
+function linkReach(s: GameState): number {
+  return s.level.linkMax * (1 + 0.6 * infBonus(s));
+}
+
+function lkey(a: number, b: number): string {
+  return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
+
 /** Is agent i inside any active (non-defected) incumbent's surveillance range? */
 function inSurv(s: GameState, i: number): boolean {
   const a = s.agents[i];
   return s.agents.some((k) => k.inc && !k.def && Math.hypot(a.x - k.x, a.y - k.y) < s.level.surv);
+}
+
+function localAwAround(s: GameState, k: number, radius: number): number {
+  let sum = 0;
+  let c = 0;
+  const ak = s.agents[k];
+  s.agents.forEach((a) => {
+    if (a.inc || a.gone) return;
+    if (Math.hypot(a.x - ak.x, a.y - ak.y) < radius) {
+      sum += a.aw;
+      c++;
+    }
+  });
+  return c ? sum / c : 0;
 }
 
 /** The set of people an Organize meeting reaches (port of orgRingSet). */
@@ -32,6 +55,43 @@ function orgRingSet(s: GameState): Set<number> {
     for (const j of [...ring]) for (const k of s.neighbors[j]) if (ok(k)) ring.add(k);
   }
   return ring;
+}
+
+function rebuildNeighbors(s: GameState): void {
+  const nbr: number[][] = Array.from({ length: s.agents.length }, () => []);
+  for (const [a, b] of s.links) {
+    nbr[a].push(b);
+    nbr[b].push(a);
+  }
+  s.neighbors = nbr;
+}
+
+/**
+ * Port of triggerDefection: an incumbent takes off the uniform, seeding doubt
+ * in nearby incumbents; wavering ones may chain (a seeded 0.4 draw each).
+ * Mutates s in place and returns the number of immediate chained defections.
+ */
+function triggerDefection(s: GameState, idx: number, chained: boolean, rng: Rng): number {
+  const a = s.agents[idx];
+  a.def = true;
+  a.waver = false;
+  s.defected++;
+  a.met = true;
+  s.rig = Math.max(0.1, s.rig - (chained ? 0.04 : 0.05));
+  s.floor = Math.min(0.5, s.floor + 0.02);
+  s.inf = Math.min(100, s.inf + (chained ? 5 : 10));
+  const chainNames: number[] = [];
+  s.agents.forEach((b, j) => {
+    if (!b.inc || b.def || j === idx) return;
+    if (Math.hypot(a.x - b.x, a.y - b.y) < 170) {
+      b.doubt = true;
+      if (b.waver && rng.next() < 0.4) chainNames.push(j);
+    }
+  });
+  chainNames.forEach((j) => {
+    if (!s.agents[j].def) triggerDefection(s, j, true, rng);
+  });
+  return chainNames.length;
 }
 
 /** Return a new state with one action applied. Never mutates the input. */
@@ -65,10 +125,9 @@ export function applyAction(prev: GameState, action: Action): GameState {
       s.energy -= 2;
       s.risk = Math.min(1, s.risk + (0.13 + sp) * 1);
       const ring = orgRingSet(s);
-      const mul2 = 1;
       ring.forEach((j) => {
         const a = s.agents[j];
-        a.aw = Math.min(1, a.aw + (0.12 + 0.04 * infBonus(s)) * a.trait.orgMul * mul2);
+        a.aw = Math.min(1, a.aw + (0.12 + 0.04 * infBonus(s)) * a.trait.orgMul * 1);
       });
       s.inf = Math.min(100, s.inf + 4);
       return s;
@@ -122,6 +181,95 @@ export function applyAction(prev: GameState, action: Action): GameState {
       s.inf = Math.min(100, s.inf + 8);
       return s;
     }
+    case 'link': {
+      // needs energy>=2 (unless a free-link legacy is active)
+      if (s.energy < 2 && !s.freeLink) return s;
+      const t = action.target;
+      const a = s.agents[t];
+      if (t === p || !a || a.inc || a.gone) return s;
+      if (s.neighbors[p].includes(t)) return s;
+      if (Math.hypot(a.x - s.agents[p].x, a.y - s.agents[p].y) > linkReach(s)) return s;
+      const cost = s.freeLink ? 0 : 2;
+      s.energy -= cost;
+      if (s.freeLink) s.freeLink = false;
+      s.risk = Math.min(1, s.risk + 0.06 + (inSurv(s, p) ? 0.05 : 0));
+      s.links.push([p, t, 1]);
+      s.built.push([p, t]);
+      rebuildNeighbors(s);
+      s.inf = Math.min(100, s.inf + 3);
+      return s;
+    }
+    case 'letter': {
+      if (s.energy < 2) return s;
+      const t = action.target;
+      const a = s.agents[t];
+      if (t === p || !a || a.inc || a.gone) return s;
+      if (s.neighbors[p].includes(t)) return s;
+      s.energy -= 2;
+      s.risk = Math.min(1, s.risk + 0.08);
+      s.links.push([p, t, 0.5]);
+      s.built.push([p, t]);
+      s.weak.push(lkey(p, t));
+      rebuildNeighbors(s);
+      s.inf = Math.min(100, s.inf + 3);
+      return s;
+    }
+    case 'mural': {
+      const cost = 2; // muralCost() with no 'artist' legacy
+      if (s.energy < cost) return s;
+      if (Math.hypot(action.x - s.agents[p].x, action.y - s.agents[p].y) > linkReach(s)) return s;
+      s.energy -= cost;
+      s.risk = Math.min(1, s.risk + 0.1 + (inSurv(s, p) ? 0.05 : 0));
+      s.murals.push({ x: action.x, y: action.y });
+      s.inf = Math.min(100, s.inf + 3);
+      return s;
+    }
+    case 'reach': {
+      if (s.energy < 2) return s;
+      const cand = s.agents
+        .map((a, i) => ({ a, i }))
+        .filter(
+          (o) =>
+            o.a.inc &&
+            !o.a.def &&
+            o.a.waver &&
+            Math.hypot(o.a.x - s.agents[p].x, o.a.y - s.agents[p].y) < linkReach(s) * 1.3,
+        );
+      if (!cand.length) return s;
+      s.energy -= 2;
+      const t = cand[0];
+      const chance = 0.25 + localAwAround(s, t.i, 110) * 0.5 + 0.3 * infBonus(s);
+      const rng = makeRng(s.rngState);
+      if (rng.next() < chance) {
+        triggerDefection(s, t.i, false, rng);
+        s.energy += 1;
+      } else {
+        s.risk = Math.min(1, s.risk + 0.22);
+      }
+      s.rngState = rng.state();
+      return s;
+    }
+    case 'expose': {
+      if (!s.spies.length) return s;
+      if (s.energy < 2) return s;
+      if (s.inf < 30) return s;
+      const idx = s.spies.findIndex(
+        (sp2) => Math.hypot(sp2.x - s.agents[p].x, sp2.y - s.agents[p].y) <= linkReach(s),
+      );
+      if (idx < 0) return s;
+      s.energy -= 2;
+      s.spies.splice(idx, 1);
+      s.floor = Math.min(0.5, s.floor + 0.025);
+      s.inf = Math.min(100, s.inf + 8);
+      const px = s.agents[p].x;
+      const py = s.agents[p].y;
+      s.agents.forEach((a) => {
+        if (!a.inc && !a.gone && Math.hypot(a.x - px, a.y - py) < 150) {
+          a.aw = Math.min(1, a.aw + 0.1);
+        }
+      });
+      return s;
+    }
   }
 }
 
@@ -166,6 +314,8 @@ function clone(s: GameState): GameState {
     agents: s.agents.map((a): Agent => ({ ...a, events: [...a.events] })),
     links: s.links.map((l) => [...l] as [number, number, number]),
     built: s.built.map((b) => [...b] as [number, number]),
+    weak: [...s.weak],
+    murals: s.murals.map((m) => ({ ...m })),
     neighbors: s.neighbors.map((n) => [...n]),
     spies: s.spies.map((sp) => ({ ...sp })),
     reinfThresholds: [...s.reinfThresholds],

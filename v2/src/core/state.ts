@@ -172,6 +172,8 @@ export function createGame(lvlIdx = 0, legacy: LegacyState = NO_LEGACY): GameSta
     agents,
     links,
     built,
+    weak: [],
+    murals: [],
     neighbors,
     turn: 1,
     energy: 3,
