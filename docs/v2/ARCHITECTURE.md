@@ -288,6 +288,12 @@ tolerates missing/malformed data, and ships with **rollback tests**. V2 does
 **not** write to or overwrite production keys until cutover is separately
 approved.
 
+Implemented in `v2/src/persistence/saveImport.ts` (recognised prefixes: `ov8_`,
+`ov11_`, `ov15_`, `ov17_`, `ov22_`, `ov23_`). A runtime write-guard refuses any
+write outside the `ov_v2dev_v1_*` namespace, so the importer cannot touch
+production data even by mistake; `rollbackImport` removes only the namespace.
+Verified in `v2/test/saveImport.test.ts`.
+
 ### 7.5 Content source (transitional)
 **Stable `staging` is the content source of truth during Phase 2** — never
 experimental PR #10. To avoid parallel manual editing of duplicate content, V2
