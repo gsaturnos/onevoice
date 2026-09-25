@@ -141,6 +141,30 @@ canvas{width:100%; border:1px solid var(--line); background:#171a21; display:blo
 #pcard .pn{color:var(--ink);}
 #pcard .ps{color:var(--muted); font-size:12.5px; font-family:ui-monospace,monospace; margin-top:2px;}
 #pcard .paw{color:var(--aware); font-family:ui-monospace,monospace; font-size:12.5px;}
+/* kitchen slice: portrait panel */
+#pcard .pcw{display:flex; gap:11px; align-items:flex-start;}
+#pcard .pbust{flex:0 0 auto; width:56px; height:56px; border:1px solid var(--line); background:#140f0d; border-radius:5px;}
+#pcard .pcbody{min-width:0; flex:1;}
+#pcard .pchead{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+#pcard .pchead .pn{font-weight:600; letter-spacing:.2px;}
+#pcard .prole{color:var(--muted); font-family:ui-monospace,monospace; font-size:12px;}
+#pcard .pcstate{display:flex; align-items:center; gap:6px; color:#d7cfbf; font-family:ui-monospace,monospace; font-size:12px; margin:3px 0 4px;}
+#pcard .pcstate .dot{width:8px; height:8px; border-radius:50%; display:inline-block; box-shadow:0 0 6px rgba(224,164,88,.4);}
+#pcard .pcmeta{color:var(--muted); font-family:ui-monospace,monospace; font-size:11.5px; margin-top:3px; line-height:1.5;}
+/* kitchen slice: keyboard-navigable table roster */
+#tablelist{display:none; flex-wrap:wrap; gap:6px; margin:8px 0 2px;}
+#tablelist .tchip{display:flex; flex-direction:column; align-items:flex-start; gap:1px; padding:5px 9px; min-height:44px; justify-content:center;
+  border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:5px; cursor:pointer; font-size:12.5px; line-height:1.2;}
+#tablelist .tchip .tcs{color:var(--muted); font-family:ui-monospace,monospace; font-size:10.5px;}
+#tablelist .tchip:hover{border-color:var(--lamp);}
+#tablelist .tchip.sel{border-color:var(--lamp); border-left:3px solid var(--lamp); background:rgba(224,164,88,0.10);}
+#tablelist .tchip.you{border-left:3px solid var(--you); cursor:default; opacity:.9;}
+#tablelist .tchip.far{opacity:.62;}
+#tablelist .tchip:focus-visible{outline:2px solid var(--lamp); outline-offset:2px;}
+/* kitchen slice: the Talk button reads as a designed Conversation card */
+[data-act="talk"].convcard{border-left:3px solid var(--lamp); background:linear-gradient(180deg,rgba(224,164,88,0.08),rgba(224,164,88,0.02));}
+[data-act="talk"].convcard .bl{position:relative; padding-left:19px;}
+[data-act="talk"].convcard .bl::before{content:"✎"; position:absolute; left:0; top:0; color:var(--lamp);}
 #log{font-family:ui-monospace,monospace; font-size:13.5px; color:#cfcabc; min-height:44px; margin:10px 0 6px; line-height:1.55; border-left:3px solid var(--lamp); padding-left:11px; background:rgba(224,164,88,0.05);}
 details{margin:0 0 10px; border:1px solid var(--line); background:var(--panel);}
 summary{cursor:pointer; padding:7px 14px; font-family:ui-monospace,monospace; font-size:12px; color:var(--muted); letter-spacing:1px; text-transform:uppercase;}
@@ -332,6 +356,7 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
     </div>
     <div id="gside">
       <div id="pcard" aria-live="polite"></div>
+      <div id="tablelist" role="group" aria-label="People at the table — select one to focus them"></div>
       <div id="tip" aria-live="polite"></div>
       <div class="group-label" id="grp-personal">Personal</div>
       <div class="actions">
@@ -629,9 +654,9 @@ const TRAITS=[
 
 const CORE=['talk','link','org','low'];
 const LEVELS=[
- {pro:true, name:'I · The kitchen table', desc:'Learn to talk. Watch what spreads.', N:12, rig:0.35, maxT:12, nInc:0, spies:0, reinforce:0, cracks:false,
+ {pro:true, scene:'kitchen', name:'I · The kitchen table', desc:'Learn to talk. Watch what spreads.', N:9, rig:0.35, maxT:12, nInc:0, spies:0, reinforce:0, cracks:false,
   allowed:['talk'], obj:{type:'aware',count:3,lvl:0.5,text:'Help 3 neighbors see clearly (awareness above 50%)'},
-  intro:'Around this table, it is safe to speak. Click a neighbor, then Talk. Press Next turn and watch what you said travel along the lines between people — awareness flows on its own between connected neighbors.'},
+  intro:'Tomorrow, the clinic must turn people away. Rosa knows why, but she is afraid to say it aloud. You have one evening and three energy. Click Rosa, then Talk — say the thing no one at this table will say. Press Next turn and watch it travel along the lines between neighbors.'},
  {pro:true, name:'II · The block', desc:'Some people are cut off. Reach them.', N:26, rig:0.5, maxT:16, nInc:0, spies:0, reinforce:0, cracks:false, twoClusters:true,
   allowed:['talk','org','link'], obj:{type:'wins',count:1,text:'Spark 1 structural win (a blue ripple)'},
   intro:'Across the street lives a whole cluster no one here knows. Build a connection to bridge the gap, then organize until a whole circle sees clearly together — when that happens, a structural win sparks (a blue ripple): something concrete changes, fear drops, and what people remember rises. That ripple is how districts are won.'},
@@ -918,9 +943,83 @@ function doVignette(color){vignette={color:color||'201,79,79',t0:nowMs()};}
    Windows are stored (not baked) so they can light with their occupant later. */
 const STREET_HALF=4;        /* half road width */
 const SIDEWALK=STREET_HALF+3;/* where people stand: just off the road */
+function isKitchen(){return !!(D&&D.scene==='kitchen');}
+/* --- The kitchen table: an intimate courtyard-at-night backdrop with a real
+   central table under a warm lamp. Deterministic; keeps city.windows so they
+   still wake with awareness. Warm amber = human presence. --- */
+function buildKitchenScene(g){
+  const rnd=mulberry32(4210+lvlIdx*131);
+  const R=(a,b)=>a+rnd()*(b-a);
+  city={vx:[],hy:[],buildings:[],windows:[],square:null,table:null};
+  /* warm night base */
+  g.fillStyle='#15100f';g.fillRect(0,0,W,H);
+  const wallH=Math.round(H*0.36);
+  /* --- flanking building silhouettes: we sit between two homes --- */
+  g.fillStyle='rgba(10,9,11,0.9)';
+  g.fillRect(0,0,58,wallH+40); g.fillRect(W-58,0,58,wallH+40);
+  /* --- back wall of the house --- */
+  g.fillStyle='#1d1a20';g.fillRect(46,0,W-92,wallH);
+  g.fillStyle='rgba(46,42,52,0.5)';g.fillRect(46,wallH-3,W-92,3); /* wall base lip */
+  /* baked-in warm windows on the back wall (wake dynamically in draw) */
+  const winY=Math.round(wallH*0.30);
+  for(let k=0;k<4;k++){
+    const wx=Math.round(120+k*128+R(-6,6)), ww=30, wh=42;
+    g.fillStyle='#0c0a0d';g.fillRect(wx,winY,ww,wh);                 /* dark frame, baked */
+    g.strokeStyle='rgba(40,36,44,0.8)';g.lineWidth=1;g.strokeRect(wx+0.5,winY+0.5,ww-1,wh-1);
+    g.strokeStyle='rgba(40,36,44,0.7)';
+    g.beginPath();g.moveTo(wx+ww/2,winY);g.lineTo(wx+ww/2,winY+wh);g.moveTo(wx,winY+wh/2);g.lineTo(wx+ww,winY+wh/2);g.stroke();
+    city.windows.push({x:wx+2,y:winY+2,w:ww-4,h:wh/2-3,owner:-1});
+    city.windows.push({x:wx+2,y:winY+wh/2+1,w:ww-4,h:wh/2-3,owner:-1});
+  }
+  /* --- the doorway: warm light spills out of the house onto the yard --- */
+  const dx=W/2-26, dwd=52, dh=Math.round(wallH*0.86);
+  const spill=g.createLinearGradient(0,wallH-6,0,wallH+150);
+  spill.addColorStop(0,'rgba(228,170,96,0.22)');spill.addColorStop(1,'rgba(228,170,96,0)');
+  g.fillStyle=spill;
+  g.beginPath();g.moveTo(dx+4,wallH-6);g.lineTo(dx+dwd-4,wallH-6);g.lineTo(dx+dwd+40,wallH+150);g.lineTo(dx-40,wallH+150);g.closePath();g.fill();
+  g.fillStyle='#2a2118';g.fillRect(dx,wallH-dh,dwd,dh);                /* the open doorway, warm-dark */
+  g.fillStyle='rgba(228,178,110,0.14)';g.fillRect(dx+3,wallH-dh+3,dwd-6,dh-3);
+  g.strokeStyle='rgba(58,50,42,0.9)';g.lineWidth=2;g.strokeRect(dx-1,wallH-dh,dwd+2,dh);
+  /* --- the yard floor: warm boards + edge vignette --- */
+  const floor=g.createLinearGradient(0,wallH,0,H);
+  floor.addColorStop(0,'#241b18');floor.addColorStop(1,'#171110');
+  g.fillStyle=floor;g.fillRect(0,wallH,W,H-wallH);
+  g.strokeStyle='rgba(0,0,0,0.22)';g.lineWidth=1;
+  for(let y=wallH+16;y<H;y+=17){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  /* --- the pool of lamplight over the table (baked ambient warmth) --- */
+  const cx=W/2, cy=Math.round(H*0.55);
+  const pool=g.createRadialGradient(cx,cy-6,10,cx,cy,300);
+  pool.addColorStop(0,'rgba(232,180,110,0.20)');
+  pool.addColorStop(0.4,'rgba(224,150,86,0.09)');
+  pool.addColorStop(1,'rgba(224,150,86,0)');
+  g.fillStyle=pool;g.fillRect(0,wallH-40,W,H-wallH+40);
+  /* --- the table itself --- */
+  const rx=182, ry=118;
+  city.table={x:cx,y:cy,rx,ry};
+  g.fillStyle='rgba(0,0,0,0.34)';                                     /* soft floor shadow */
+  g.beginPath();g.ellipse(cx,cy+ry*0.34,rx*0.94,ry*0.5,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#3b2a1e';                                              /* table rim/edge */
+  g.beginPath();g.ellipse(cx,cy+3,rx,ry,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#5a4230';                                              /* table top, warm wood */
+  g.beginPath();g.ellipse(cx,cy,rx-6,ry-6,0,0,Math.PI*2);g.fill();
+  const grain=g.createRadialGradient(cx,cy-8,6,cx,cy,rx);
+  grain.addColorStop(0,'rgba(122,90,60,0.55)');grain.addColorStop(1,'rgba(60,42,28,0)');
+  g.fillStyle=grain;g.beginPath();g.ellipse(cx,cy,rx-6,ry-6,0,0,Math.PI*2);g.fill();
+  g.strokeStyle='rgba(24,16,10,0.6)';g.lineWidth=1.5;
+  g.beginPath();g.ellipse(cx,cy,rx-6,ry-6,0,0,Math.PI*2);g.stroke();
+  /* a few things on the table — small silhouettes, hand-placed */
+  g.fillStyle='rgba(22,15,10,0.7)';
+  const props=[[-70,-8,7,4],[52,10,6,4],[10,-30,5,3],[-24,26,6,4],[92,-14,5,3]];
+  props.forEach(p=>{g.beginPath();g.ellipse(cx+p[0],cy+p[1],p[2],p[3],0,0,Math.PI*2);g.fill();});
+  /* the hanging lamp shade + its glow, centered above the table */
+  g.fillStyle='rgba(232,196,132,0.9)';
+  g.beginPath();g.moveTo(cx-14,cy-ry-30);g.lineTo(cx+14,cy-ry-30);g.lineTo(cx+9,cy-ry-18);g.lineTo(cx-9,cy-ry-18);g.closePath();g.fill();
+  g.strokeStyle='rgba(60,50,36,0.8)';g.lineWidth=1;g.beginPath();g.moveTo(cx,cy-ry-30);g.lineTo(cx,0);g.stroke();
+}
 function buildCity(){
   bgCanvas=document.createElement('canvas');bgCanvas.width=W;bgCanvas.height=H;
   const g=bgCanvas.getContext('2d');
+  if(isKitchen()){buildKitchenScene(g);return;}
   const rnd=mulberry32(7331+lvlIdx*104729);
   const R=(a,b)=>a+rnd()*(b-a);
   city={vx:[],hy:[],buildings:[],windows:[],square:null};
@@ -1743,7 +1842,15 @@ function initGame(){
     const trait=TRAITS[Math.floor(srand()*TRAITS.length)];
     return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,strand:'',met:false,betrayed:false,sheltered:false,harmed:false,organizer:false,successor:false,press:0,events:[]};
   }
-  if(D.clusterCenter){
+  if(isKitchen()){
+    /* seats around the table: index 0 (you) at the near edge, the rest ringed */
+    const tb=(city&&city.table)?city.table:{x:W/2,y:H*0.55,rx:182,ry:118};
+    const seatR=tb.rx+22, seatRY=tb.ry+20;
+    for(let i=0;i<NN;i++){
+      const ang=Math.PI/2+i*(Math.PI*2/NN);
+      ag.push(mkPerson(i,tb.x+Math.cos(ang)*seatR,tb.y+Math.sin(ang)*seatRY));
+    }
+  } else if(D.clusterCenter){
     for(let i=0;i<NN;i++){
       const ang=sr(0,Math.PI*2),rad=i===0?0:sr(55,185);
       ag.push(mkPerson(i,W/2+Math.cos(ang)*rad,H/2+Math.sin(ang)*rad*0.75));
@@ -1764,7 +1871,7 @@ function initGame(){
      reliable. Only the open campaign layout is nudged — the clusterCenter and
      twoClusters lesson layouts keep their exact shape. Runs BEFORE links so the
      distance-based connections follow the new street geometry. */
-  if(!D.clusterCenter&&!D.twoClusters){
+  if(!D.clusterCenter&&!D.twoClusters&&!isKitchen()){
     for(let i=0;i<NN;i++){
       const s=snapToStreet(ag[i].x,ag[i].y);
       ag[i].x=ag[i].x*0.4+s.x*0.6; ag[i].y=ag[i].y*0.4+s.y*0.6;
@@ -1806,6 +1913,34 @@ function initGame(){
   player=pi;
   ag[player].aw=0.75;
   startName=ag[player].nm;startRole=ag[player].role;
+
+  /* The kitchen table: a curated cast so the opening situation is concrete.
+     You host; Rosa (the nurse who knows about the clinic) sits beside you,
+     afraid to speak, and is the tutorial target. */
+  if(isKitchen()){
+    const KP=[
+      {nm:'You',    role:'the host',      stake:'this is your table, and these neighbors trust you', aw:0.75},
+      {nm:'Rosa',   role:'a nurse',       stake:'tomorrow the clinic must turn people away — and she knows why', aw:0.11, tut:true},
+      {nm:'Tomás',  role:'a baker',       stake:'the shop was fined for nothing', aw:0.14},
+      {nm:'Ana',    role:'a teacher',     stake:'the school has no books this year', aw:0.12},
+      {nm:'Luis',   role:'a bus driver',  stake:'his brother was taken years ago', aw:0.10},
+      {nm:'Carmen', role:'a shopkeeper',  stake:'her rent doubled overnight', aw:0.13},
+      {nm:'Diego',  role:'a student',     stake:'he saw something he was not supposed to see', aw:0.12},
+      {nm:'Marta',  role:'a seamstress',  stake:'the pension stopped coming', aw:0.11},
+      {nm:'Elena',  role:'a pharmacist',  stake:'the hospital sent her mother home untreated', aw:0.13},
+    ];
+    player=0;
+    for(let i=0;i<NN&&i<KP.length;i++){
+      ag[i].nm=KP[i].nm;ag[i].role=KP[i].role;ag[i].stake=KP[i].stake;ag[i].aw=KP[i].aw;
+      ag[i].tut=!!KP[i].tut;
+    }
+    ag[player].aw=0.75;startName=ag[player].nm;startRole=ag[player].role;
+    const rosa=ag.findIndex(a=>a.tut);
+    if(rosa>=0&&!links.some(l=>(l[0]===player&&l[1]===rosa)||(l[0]===rosa&&l[1]===player))){
+      links.push([player,rosa,1]);built.push([player,rosa]);
+    }
+    rebuildNbr();
+  }
 
   let legacyLine='';
   if(!D.pro&&!era2()&&has('friends')){
@@ -1950,6 +2085,17 @@ function ui(){
   stageStats();
   updateTip();
   updateUndo();
+  if(isKitchen()){
+    renderTable();
+    /* keep the selected-person panel live as awareness spreads */
+    if(target>=0&&ag[target]&&!ag[target].inc&&!ag[target].gone){
+      const card=$('pcard');
+      if(card&&card.style.display!=='none'){
+        card.innerHTML=kitchenCardHTML(ag[target],target);
+        drawBust(card.querySelector('.pbust'),ag[target],target);
+      }
+    }
+  }
   ['link','letter','mural'].forEach(a2=>{
     const b2=document.querySelector('[data-act="'+a2+'"]');
     if(!b2)return;
@@ -2035,6 +2181,24 @@ function updateActionLabels(){
     fxSet('delegate','<i class="fx-en">empower a trusted, awakened person</i>'+sep+'<i class="fx-tr">mandate +8, −drift</i>'+sep+'<i class="fx-mem">they hold a bloc &amp; lend their gift</i>');
     fxSet('drawer','<i class="fx-mem">the rival claim collapses, order bought</i>'+sep+'<i class="fx-eye">mandate −15</i>'+sep+'<i class="fx-en">permanent — it follows you</i>');
   }
+  /* kitchen slice: the Talk button becomes a designed Conversation card —
+     a symbol, the named target, and one human sentence of benefit + risk. */
+  const talkBtn=document.querySelector('[data-act="talk"]');
+  if(talkBtn){
+    talkBtn.classList.toggle('convcard',isKitchen());
+    if(isKitchen()){
+      const p=(target>=0&&ag[target]&&!ag[target].inc&&!ag[target].gone)?ag[target]:null;
+      if(!p){
+        fxSet('talk','Choose a neighbor at the table, then say the thing no one will say.');
+      } else if(p.betrayed){
+        fxSet('talk',p.nm+' will not meet your eyes now. Some doors do not reopen.');
+      } else if(!(nbr[player]&&nbr[player].includes(target))){
+        fxSet('talk',p.nm+' sits too far to hear you — words reach only the neighbors beside you.');
+      } else {
+        fxSet('talk','Lean in and say it plainly. '+p.nm+' listens — and by morning carries it to whoever they trust. <i class="fx-en">1⚡</i> · <i class="fx-eye">barely stirs the eyes on you</i>.');
+      }
+    }
+  }
 }
 /* -------------------------------------------------- */
 
@@ -2105,12 +2269,86 @@ cv.addEventListener('click',e=>{
     } else log('No one there you can reach.');
     ui();return;
   }
-  let best=-1,bd=26;
+  let best=-1,bd=isKitchen()?40:26;    /* larger touch target in the kitchen */
   for(let j=0;j<NN;j++){
     if(ag[j].inc||ag[j].gone||j===player)continue;
     const d=Math.hypot(ag[j].x-mx,ag[j].y-my);
     if(d<bd){bd=d;best=j;}
   }
+  selectPerson(best);
+});
+
+/* awareness → a short human state word (never colour-only) */
+function awState(a){
+  if(a.inc)return 'the apparatus';
+  if(a.aw>=0.75)return 'wide awake';
+  if(a.aw>=0.5)return 'sees clearly';
+  if(a.aw>=0.3)return 'listening';
+  return 'still afraid to speak';
+}
+/* named neighbors this person is connected to — the relationships line */
+function relNames(idx){
+  return (nbr[idx]||[]).filter(j=>j!==idx&&ag[j]&&!ag[j].inc&&!ag[j].gone)
+    .map(j=>j===player?'you':ag[j].nm).slice(0,4);
+}
+/* a small procedural bust for the selected-person panel (kitchen slice) */
+function drawBust(cv,p,idx){
+  if(!cv||!cv.getContext)return;
+  const c=cv.getContext('2d'),w=cv.width,h=cv.height;
+  c.clearRect(0,0,w,h);
+  const cx=w/2, t=p.aw;
+  /* warm vignette behind */
+  const bg=c.createRadialGradient(cx,h*0.42,3,cx,h*0.42,w*0.62);
+  bg.addColorStop(0,'rgba(232,178,110,'+(0.10+0.22*t)+')');bg.addColorStop(1,'rgba(232,178,110,0)');
+  c.fillStyle=bg;c.fillRect(0,0,w,h);
+  const skinV=[ '#c99a72','#b98a63','#d8ad82','#a97a55','#c18f68' ][idx%5];
+  const cloth=[ '#5b6b82','#6d5a74','#7a6248','#55705f','#7a5555' ][(idx*3)%5];
+  const lean=(1-t)*4;                    /* hunched forward when afraid */
+  const shoulderY=h-6, headCY=h*0.40+lean*0.5, headR=w*0.20;
+  /* shoulders / torso — opens up (wider) as they wake */
+  c.fillStyle=cloth;
+  const sw=w*0.24+w*0.12*t;
+  c.beginPath();
+  c.moveTo(cx-sw,shoulderY);
+  c.quadraticCurveTo(cx-sw,headCY+headR*0.6,cx,headCY+headR*0.7);
+  c.quadraticCurveTo(cx+sw,headCY+headR*0.6,cx+sw,shoulderY);
+  c.closePath();c.fill();
+  /* head */
+  c.fillStyle=skinV;
+  c.beginPath();c.arc(cx+lean*0.6,headCY,headR,0,Math.PI*2);c.fill();
+  /* hair — simple cap, varied */
+  c.fillStyle=['#2a2320','#3a2c22','#1f1b18','#4a3a2c','#241d1a'][(idx*2)%5];
+  c.beginPath();c.arc(cx+lean*0.6,headCY,headR,Math.PI*1.05,Math.PI*2.05);c.fill();
+  c.fillRect(cx+lean*0.6-headR,headCY-headR*0.3,headR*2,headR*0.5);
+  /* eyeline: downcast when afraid, level when awake (shape, not colour) */
+  c.strokeStyle='rgba(30,22,18,0.7)';c.lineWidth=1.4;c.lineCap='round';
+  const ey=headCY+ (t<0.5? headR*0.28 : headR*0.08);
+  c.beginPath();c.moveTo(cx+lean*0.6-headR*0.5,ey);c.lineTo(cx+lean*0.6-headR*0.15,ey+(t<0.5?1.5:0));
+  c.moveTo(cx+lean*0.6+headR*0.15,ey+(t<0.5?1.5:0));c.lineTo(cx+lean*0.6+headR*0.5,ey);c.stroke();
+  /* a role accessory hint */
+  const rs=roleShape(p.role);
+  c.strokeStyle='rgba(232,224,208,0.75)';c.fillStyle='rgba(232,224,208,0.75)';c.lineWidth=1.4;
+  if(rs===1){c.strokeRect(cx-sw-3,shoulderY-9,6,7);}                 /* bag on the shoulder */
+  else if(rs===2){c.fillRect(cx-sw*0.6,shoulderY-6,sw*1.2,2);}       /* apron string */
+  else if(rs===3){c.strokeRect(cx+sw-2,shoulderY-8,7,6);}            /* case */
+  else if(rs===4){c.beginPath();c.moveTo(cx+sw-1,shoulderY-9);c.lineTo(cx+sw+5,shoulderY-3);c.stroke();} /* tool */
+  c.lineCap='butt';
+}
+function kitchenCardHTML(p,idx){
+  const rel=relNames(idx);
+  const relLine=rel.length?('Sits with '+rel.join(', ')):'On the edge of the table — no one close yet';
+  const st=awState(p);
+  const aw=Math.round(p.aw*100);
+  return '<div class="pcw">'+
+    '<canvas class="pbust" width="56" height="56" aria-hidden="true"></canvas>'+
+    '<div class="pcbody">'+
+      '<div class="pchead"><span class="pn">'+p.nm+'</span><span class="prole">'+p.role+'</span></div>'+
+      '<div class="pcstate"><span class="dot" style="background:rgb('+Math.round(106+(79-106)*p.aw)+','+Math.round(109+(174-109)*p.aw)+','+Math.round(117+(141-117)*p.aw)+')"></span>'+st+' · '+aw+'% awake</div>'+
+      '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+'</div>'+
+      '<div class="pcmeta">'+p.trait.hint+' · '+relLine+(p.betrayed?' · a closed door now':'')+'</div>'+
+    '</div></div>';
+}
+function selectPerson(best){
   target=best;
   const card=$('pcard');
   if(best>=0){
@@ -2125,13 +2363,45 @@ cv.addEventListener('click',e=>{
       log(p.nm+' ('+p.trait.hint+')'+(p.betrayed?' — they no longer meet your eyes.':' — you will talk with them next.'));
     }
     card.style.display='block';
-    card.innerHTML='<span class="pn">'+p.nm+' — '+p.role+'</span> <span class="paw">'+Math.round(p.aw*100)+'% awake</span>'+
-      '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+' · '+p.trait.hint+(p.strand?' · from '+p.strand:'')+(p.betrayed?' · they no longer meet your eyes':'')+'</div>';
+    if(isKitchen()){
+      card.innerHTML=kitchenCardHTML(p,best);
+      drawBust(card.querySelector('.pbust'),p,best);
+    } else {
+      card.innerHTML='<span class="pn">'+p.nm+' — '+p.role+'</span> <span class="paw">'+Math.round(p.aw*100)+'% awake</span>'+
+        '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+' · '+p.trait.hint+(p.strand?' · from '+p.strand:'')+(p.betrayed?' · they no longer meet your eyes':'')+'</div>';
+    }
     coachEvent('select');
   } else {
     card.style.display='none';
   }
+  if(typeof renderTable==='function')renderTable();
   updateActionLabels();
+}
+/* keyboard-navigable roster of the table — the accessible layer for canvas
+   selection. Each neighbor is a real button with a full accessible name; Enter/
+   click/tap selects them exactly as clicking the figure does. Kitchen slice. */
+function renderTable(){
+  const box=$('tablelist');if(!box)return;
+  if(!isKitchen()||!ag.length||over){box.style.display='none';box.innerHTML='';return;}
+  if(box.contains(document.activeElement))return;   /* don't steal keyboard focus mid-navigation */
+  box.style.display='flex';
+  let html='';
+  for(let i=0;i<NN;i++){
+    const a=ag[i];if(a.inc||a.gone)continue;
+    const you=i===player, sel=i===target;
+    const near=you?true:(nbr[player]&&nbr[player].includes(i));
+    const label=(you?'You, the host':a.nm+', '+a.role+' — '+awState(a)+(near?', within reach':', not yet connected'));
+    html+='<button class="tchip'+(sel?' sel':'')+(you?' you':'')+(near?'':' far')+'" data-i="'+i+'"'+
+      (you?' aria-disabled="true"':'')+' aria-pressed="'+(sel?'true':'false')+'" title="'+label+'" aria-label="'+label+'">'+
+      '<span class="tcn">'+(you?'You':a.nm)+'</span><span class="tcs">'+(you?'host':awState(a))+'</span></button>';
+  }
+  box.innerHTML=html;
+}
+document.addEventListener('click',e=>{
+  const chip=e.target&&e.target.closest?e.target.closest('.tchip'):null;
+  if(!chip||!$('tablelist').contains(chip))return;
+  const i=parseInt(chip.getAttribute('data-i'),10);
+  if(!isNaN(i)&&ag[i]&&i!==player&&!ag[i].inc&&!ag[i].gone){selectPerson(i);$('game').focus();}
 });
 
 function act(type){
@@ -2844,48 +3114,70 @@ function roleShape(role){
 }
 function drawFigure(x,y,t,pb,col,ts,i){
   /* a small person. t = awareness 0..1.
-     Unaware: hunched, head down, arms tight. Aware: standing tall, arms open. */
+     Unaware: hunched, head down, arms tight. Aware: standing tall, arms open.
+     K scales the whole figure up in the kitchen slice — larger, readable, memorable. */
+  const K=isKitchen()?1.7:1;
   const sway=Math.sin(ts/900+i*1.7)*0.6*(0.3+t);   /* the aware sway gently, alive */
   const scale=1+pb*0.06;
-  const h=(5.5+4.5*t)*scale;                        /* body height grows as they stand up */
-  const lean=(1-t)*3.2;                             /* hunch: head drifts forward when unaware */
-  const headR=(2.1+0.9*t)*scale;
+  const h=(5.5+4.5*t)*scale*K;                      /* body height grows as they stand up */
+  const lean=(1-t)*3.2*K;                           /* hunch: head drifts forward when unaware */
+  const headR=(2.1+0.9*t)*scale*K;
   ctx.strokeStyle=col;ctx.fillStyle=col;
-  ctx.lineWidth=1.7;
+  ctx.lineWidth=1.7*(K>1?1.4:1);
   ctx.lineCap='round';
   /* legs */
   ctx.beginPath();
-  ctx.moveTo(x-2.2,y+4);ctx.lineTo(x+sway*0.3,y-1);ctx.lineTo(x+2.2,y+4);
+  ctx.moveTo(x-2.2*K,y+4*K);ctx.lineTo(x+sway*0.3,y-1*K);ctx.lineTo(x+2.2*K,y+4*K);
   ctx.stroke();
   /* body */
   ctx.beginPath();
-  ctx.moveTo(x+sway*0.3,y-1);
+  ctx.moveTo(x+sway*0.3,y-1*K);
   ctx.quadraticCurveTo(x+lean*0.5+sway*0.5,y-h*0.6,x+lean*0.8+sway,y-h);
   ctx.stroke();
   /* arms: tight when afraid, opening as they wake */
   const ay=y-h*0.62;
-  const spread=1.2+4.2*t;
-  const armLift=t*2.5;
+  const spread=(1.2+4.2*t)*K;
+  const armLift=t*2.5*K;
   ctx.beginPath();
-  ctx.moveTo(x-spread+sway*0.5,ay+3-armLift);
+  ctx.moveTo(x-spread+sway*0.5,ay+3*K-armLift);
   ctx.lineTo(x+lean*0.4+sway*0.6,y-h*0.72);
-  ctx.lineTo(x+spread+sway*0.5,ay+3-armLift);
+  ctx.lineTo(x+spread+sway*0.5,ay+3*K-armLift);
   ctx.stroke();
   /* head */
   ctx.beginPath();
-  ctx.arc(x+lean+sway,y-h-headR+1,headR,0,Math.PI*2);
+  ctx.arc(x+lean+sway,y-h-headR+1*K,headR,0,Math.PI*2);
   ctx.fill();
   /* Stage 6: a faint one-stroke hint of trade — enough to recognize, never cartoonish */
   const rs=(ag[i]&&!ag[i].inc)?roleShape(ag[i].role):0;
   if(rs&&t>0.18){
-    ctx.lineWidth=1.2;ctx.strokeStyle=col;
-    const hx=x+spread*0.7+sway*0.5,hy2=ay+3-armLift;
-    if(rs===1){ctx.strokeRect(hx-0.4,hy2+0.5,2.4,3);}                                   /* bag */
-    else if(rs===2){ctx.beginPath();ctx.moveTo(x-2.4,y-1);ctx.lineTo(x+2.4,y-1);ctx.stroke();} /* apron waist */
-    else if(rs===3){ctx.strokeRect(hx-1,hy2+1,4,2.2);}                                  /* case */
-    else if(rs===4){ctx.beginPath();ctx.moveTo(hx,hy2+2);ctx.lineTo(hx+3,hy2-2);ctx.stroke();} /* tool */
+    ctx.lineWidth=1.2*(K>1?1.4:1);ctx.strokeStyle=col;
+    const hx=x+spread*0.7+sway*0.5,hy2=ay+3*K-armLift;
+    if(rs===1){ctx.strokeRect(hx-0.4*K,hy2+0.5*K,2.4*K,3*K);}                            /* bag */
+    else if(rs===2){ctx.beginPath();ctx.moveTo(x-2.4*K,y-1*K);ctx.lineTo(x+2.4*K,y-1*K);ctx.stroke();} /* apron waist */
+    else if(rs===3){ctx.strokeRect(hx-1*K,hy2+1*K,4*K,2.2*K);}                           /* case */
+    else if(rs===4){ctx.beginPath();ctx.moveTo(hx,hy2+2*K);ctx.lineTo(hx+3*K,hy2-2*K);ctx.stroke();} /* tool */
   }
   ctx.lineCap='butt';
+}
+/* a short warm name label under a figure — kitchen slice legibility */
+function drawNameLabel(x,y,name,strong){
+  ctx.save();
+  ctx.font=(strong?'600 ':'')+'11px ui-monospace,SFMono-Regular,Menlo,monospace';
+  const w=ctx.measureText(name).width, pad=5;
+  ctx.globalAlpha=0.9;
+  ctx.fillStyle='rgba(18,13,11,0.82)';
+  roundRectPath(x-w/2-pad,y,w+pad*2,15,4);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle=strong?'#f0d9ab':'rgba(232,224,208,0.92)';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(name,x,y+8);
+  ctx.textAlign='start';ctx.textBaseline='alphabetic';
+  ctx.restore();
+}
+function roundRectPath(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 
 function draw(ts){
@@ -2916,13 +3208,30 @@ function draw(ts){
   }
 
   /* Stage 4: a slow day-cycle tint — dusk → night → blue hour → dawn — as a
-     turn-driven wash UNDER people and signals, so gameplay contrast never drops. */
-  {
+     turn-driven wash UNDER people and signals, so gameplay contrast never drops.
+     Skipped in the kitchen: it is an interior evening that instead WARMS as the
+     table wakes (below), so the cascade leaves a visible, lasting mark. */
+  if(!isKitchen()){
     const p=Math.max(0,Math.min(1,(turn-1)/Math.max(1,D.maxT-1)));
     const KF=[[40,34,52,0.05],[24,30,58,0.10],[30,46,68,0.11],[64,52,44,0.07]];
     const seg=p*3,i=Math.min(2,Math.floor(seg)),f=seg-i,A=KF[i],B=KF[i+1];
     ctx.fillStyle='rgba('+Math.round(A[0]+(B[0]-A[0])*f)+','+Math.round(A[1]+(B[1]-A[1])*f)+','+Math.round(A[2]+(B[2]-A[2])*f)+','+(A[3]+(B[3]-A[3])*f)+')';
     ctx.fillRect(0,0,W,H);
+  } else if(city&&city.table){
+    /* the table warms as awareness spreads: a live amber pool whose reach and
+       brightness climb with how many neighbors now see clearly. Persistent —
+       once the room is warm it stays warm, a standing sign of what changed. */
+    const civ=ag.filter(a=>!a.inc&&!a.gone);
+    const awake=civ.filter(a=>a.aw>=0.5).length;
+    const frac=civ.length?awake/civ.length:0;
+    const t=city.table, warmth=0.06+0.20*frac;
+    const puls=reducedMotion()?1:(0.94+0.06*Math.sin(ts/700));
+    const rad=(t.rx+30)+frac*90;
+    const wg=ctx.createRadialGradient(t.x,t.y-6,8,t.x,t.y,rad);
+    wg.addColorStop(0,'rgba(236,186,116,'+(warmth*puls)+')');
+    wg.addColorStop(0.5,'rgba(228,158,92,'+(warmth*0.4*puls)+')');
+    wg.addColorStop(1,'rgba(228,158,92,0)');
+    ctx.fillStyle=wg;ctx.fillRect(t.x-rad,t.y-rad,rad*2,rad*2);
   }
   /* Stage 3: light as the medium. The player carries a soft pool of lamplight;
      murals cast fainter ones (drawn below). Warm, low, under the people. */
@@ -3085,18 +3394,24 @@ function draw(ts){
       ctx.strokeStyle='rgba(232,228,216,0.35)';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(a.x-5,a.y-9);ctx.lineTo(a.x+5,a.y+1);ctx.stroke();
     }
+    const kitchen=isKitchen(), ringK=kitchen?1.7:1, ringCY=a.y-(kitchen?9:5);
     if(i===target){
-      ctx.beginPath();ctx.arc(a.x,a.y-5,12+t*3,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(a.x,ringCY,(12+t*3)*ringK,0,Math.PI*2);
       ctx.fillStyle='rgba(224,164,88,0.14)';ctx.fill();
       ctx.strokeStyle='#e0a458';ctx.lineWidth=2.2;
-      ctx.beginPath();ctx.arc(a.x,a.y-5,9+t*3,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(a.x,ringCY,(9+t*3)*ringK,0,Math.PI*2);ctx.stroke();
     }
     if(i===player){
       const halo=0.5+0.5*Math.sin(ts/600);
       ctx.strokeStyle='#8d7bdb';ctx.lineWidth=2.5;
-      ctx.beginPath();ctx.arc(a.x,a.y-5,11+t*3+pb,0,Math.PI*2);ctx.stroke();
-      ctx.beginPath();ctx.arc(a.x,a.y-5,15+t*3,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(a.x,ringCY,(11+t*3)*ringK+pb,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(a.x,ringCY,(15+t*3)*ringK,0,Math.PI*2);
       ctx.strokeStyle='rgba(141,123,219,'+(0.15*halo)+')';ctx.lineWidth=2;ctx.stroke();
+    }
+    /* kitchen slice: short name labels for you / the selected / the tutorial target */
+    if(kitchen&&(i===player||i===target||a.tut)){
+      const label=(i===player)?'You':a.nm;
+      drawNameLabel(a.x,a.y+11,label,i===player||i===target);
     }
   });
   /* fear as atmosphere over the streets: layered, denser at the edges, slowly
