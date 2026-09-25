@@ -117,6 +117,10 @@ canvas{width:100%; border:1px solid var(--line); background:#171a21; display:blo
 #gwrap{display:grid; gap:14px; margin:8px 0 0; align-items:start;}
 #gmap,#gside,#greadout{min-width:0;}
 #tip{display:none; font-family:ui-monospace,monospace; font-size:12.5px; color:#d8c9a0; margin:8px 0 0; padding:7px 11px; border:1px solid rgba(224,164,88,0.35); border-left:3px solid var(--lamp); background:rgba(224,164,88,0.06); line-height:1.5;}
+#seqskip{font-family:ui-monospace,monospace; font-size:11px; color:var(--muted); padding:2px 9px; margin:2px 0 4px; letter-spacing:1px;}
+#seqskip:hover{color:var(--lamp);}
+#a-undo{display:none; width:100%; margin:8px 0 0; font-family:ui-monospace,monospace; font-size:12px; letter-spacing:1px; color:#9db8d8; border-color:rgba(126,166,216,0.4);}
+#a-undo:hover{border-color:#7ea6d8; color:#c7d6ea;}
 #tip .tipx{float:right; color:var(--muted); cursor:pointer; margin-left:8px; border:none; background:none; font-size:12px; padding:0 2px;}
 .bcost{position:absolute; top:4px; right:6px; font-size:9.5px; color:var(--muted); font-family:ui-monospace,monospace; letter-spacing:0;}
 .actions button{padding-right:26px;}
@@ -286,6 +290,7 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
       <button id="btn-music" aria-label="Toggle background music">♫ music: on</button>
       <button id="btn-sound" aria-label="Toggle sound effects">♪ sound: on</button>
       <button id="btn-tips" aria-label="Toggle tactical suggestions">◈ tips: on</button>
+      <button id="btn-speed" aria-label="Animation speed">▷ speed: 1×</button>
       <button id="btn-back">← Back to the map</button>
     </div>
   </div>
@@ -353,10 +358,12 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
         <button data-act="delegate" title="Hand a trusted, awakened person real authority. They keep a bloc you cannot, their trait strengthens your hand, and it widens your mandate. Who you empower shapes the ending.">Delegate authority</button>
         <button data-act="drawer" title="Open the old surveillance apparatus. It works: the rival claim recedes, order is bought. But it costs mandate, and it will follow you into the roster and the ending — permanently.">Open the drawer</button>
       </div>
+      <button id="a-undo">↶ Undo last action</button>
       <button id="a-end">Next turn →</button>
     </div>
     <div id="greadout">
       <div id="log" role="log" aria-live="polite"></div>
+      <button id="seqskip" style="display:none;">▸▸ skip</button>
       <div id="report" aria-live="polite"></div>
       <div id="timeline" role="group" aria-label="Run timeline — one tick per turn"></div>
     </div>
@@ -837,10 +844,15 @@ let timeline=[];     /* Feature 3: one tick per turn — the shape of the run, i
 /* honour reduced-motion for the NEW drifting/day-cycle motion (canvas isn't covered by the CSS query) */
 const _rmq=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)'))||null;
 function reducedMotion(){return !!(_rmq&&_rmq.matches);}
+/* animation-speed control (Feature): a scaled clock. nowMs()/draw() read animClock,
+   which advances by realtime*animSpeed each frame — so 0.5x/1x/2x slows or hastens
+   every animation and the turn-resolution sequence together. Audio is unaffected. */
+let animSpeed=1, animClock=0, _lastRAF=null;
+try{const v=parseFloat(localStorage.getItem('ov23_speed'));if(v===0.5||v===1||v===2)animSpeed=v;}catch(e){}
 
 /* ---------- JUICE ---------- */
 let floaters=[],rippleAnims=[],nearMisses=[],pops={},shake={mag:0,t0:0},vignette=null,pulses=[];
-function nowMs(){return performance.now();}
+function nowMs(){return animClock;}   /* scaled animation clock — see loop(); lets one speed setting slow/hasten every animation uniformly */
 function addFloat(x,y,txt,color){floaters.push({x,y,txt,color:color||'#4fae8d',t0:nowMs()});if(floaters.length>24)floaters.shift();}
 function addRipple(x,y,color,big){rippleAnims.push({x,y,color:color||'#7ea6d8',t0:nowMs(),big:!!big});}
 function addNearMiss(x,y){nearMisses.push({x,y,t0:nowMs(),turn:turn});}
@@ -1712,6 +1724,7 @@ function initGame(){
   opp=null;nearMissTold=false;freeZoneTold=false;embersAwarded=false;lastWinTurn=-99;
   floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;winScenes=[];
   cgActive=!D.pro&&!era2();resolve=0;resolveTold=false;strandsThisRun={};cgBeatDone=false;
+  undoSnap=null;sequencing=false;clearTimeout(_seqTimer);if($('seqskip'))$('seqskip').style.display='none';
   timeline=[];renderTimeline();
   $('epilogue-box').style.display='none';
   $('pcard').style.display='none';
@@ -1936,6 +1949,7 @@ function ui(){
   updateActionLabels();
   stageStats();
   updateTip();
+  updateUndo();
   ['link','letter','mural'].forEach(a2=>{
     const b2=document.querySelector('[data-act="'+a2+'"]');
     if(!b2)return;
@@ -2025,14 +2039,16 @@ function updateActionLabels(){
 /* -------------------------------------------------- */
 
 cv.addEventListener('click',e=>{
+  if(sequencing){skipTurnSequence();return;}
   if(over||pendingDilemma)return;
   const r=cv.getBoundingClientRect();
   const mx=(e.clientX-r.left)*(W/r.width),my=(e.clientY-r.top)*(H/r.height);
   if(muralMode){
+    const _snap=snapState();
     const d=Math.hypot(mx-ag[player].x,my-ag[player].y);
     if(d<=linkReach()){
       energy-=muralCost();risk=Math.min(1,risk+0.10+(inSurv(player)?0.05:0));
-      murals.push({x:mx,y:my});inf=Math.min(100,inf+3);muralMode=false;
+      murals.push({x:mx,y:my});inf=Math.min(100,inf+3);muralMode=false;undoSnap=_snap;
       addRipple(mx,my,'#e0a458');addFloat(mx,my-14,'✦ the wall speaks','#e0a458');
       const zones=freeZones();
       if(zones.length&&!freeZoneTold){
@@ -2048,6 +2064,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(letterMode){
+    const _snap=snapState();
     let best=-1,bd=26;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
@@ -2058,7 +2075,7 @@ cv.addEventListener('click',e=>{
     if(best>=0){
       energy-=2;risk=Math.min(1,risk+0.08);
       links.push([player,best,0.5]);built.push([player,best]);weak.add(lkey(player,best));rebuildNbr();
-      inf=Math.min(100,inf+3);letterMode=false;
+      inf=Math.min(100,inf+3);letterMode=false;undoSnap=_snap;
       addPop(best);addFloat(ag[best].x,ag[best].y-14,'✉ a thread crosses the district','#8d7bdb');
       log('You write through the night, and trust the letter to hands you will never see. Days later, '+pname(best)+' writes back. A thin thread now crosses the whole district — words travel it at half strength, but distance means nothing to it.');
       checkTrustMilestones();
@@ -2066,6 +2083,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(linkMode){
+    const _snap=snapState();
     let best=-1,bd=26;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
@@ -2079,7 +2097,7 @@ cv.addEventListener('click',e=>{
       energy-=cost;if(freeLink)freeLink=false;
       risk=Math.min(1,risk+0.06+(inSurv(player)?0.05:0));
       links.push([player,best,1]);built.push([player,best]);rebuildNbr();
-      inf=Math.min(100,inf+3);linkMode=false;
+      inf=Math.min(100,inf+3);linkMode=false;undoSnap=_snap;
       addPop(best);addFloat(ag[best].x,ag[best].y-14,'∞ connected','#8d7bdb');
       log('You find a way to meet '+pname(best)+'. A lasting connection — words can travel it now.'+(cost===0?' (Caution\'s economy: it cost you nothing.)':''));
       coachEvent('link');
@@ -2117,12 +2135,14 @@ cv.addEventListener('click',e=>{
 });
 
 function act(type){
+  if(sequencing){skipTurnSequence();return;}
   if(over||interrogated||pendingDilemma)return;
   const sp=inSurv(player)?0.08:0;
   if(type==='link'){if(energy<2&&!freeLink){log('Not enough energy.');return;}muralMode=false;letterMode=false;linkMode=!linkMode;ui();return;}
   if(type==='letter'){if(energy<2){log('Not enough energy.');return;}muralMode=false;linkMode=false;letterMode=!letterMode;ui();return;}
   if(type==='mural'){if(energy<muralCost()){log('Not enough energy.');return;}linkMode=false;letterMode=false;muralMode=!muralMode;ui();return;}
   linkMode=false;muralMode=false;letterMode=false;
+  const _snap=snapState();   /* undo: captured before any committing action mutates state; installed at the tail */
   if(type==='talk'){
     const gathering=opp&&opp.id==='gathering';
     const cost=gathering?0:1;
@@ -2313,6 +2333,7 @@ function act(type){
   }
   coachEvent(type);
   actionCounts[type]=(actionCounts[type]||0)+1;
+  undoSnap=_snap;   /* an action committed — this snapshot is now undoable */
   ui();
 }
 
@@ -2337,7 +2358,9 @@ function checkObjective(){
 }
 
 function endTurn(){
+  if(sequencing){skipTurnSequence();return;}   /* a Next-turn click during the reveal just skips it */
   if(over||pendingDilemma)return;
+  undoSnap=null;                                 /* undo does not cross turns */
   const leftoverEnergy=energy;
   const _tlDef=defected,_tlOpp=opp,_tlPlayer=player;  /* Feature 3: snapshot for this turn's timeline tick */
   interrogated=false;linkMode=false;muralMode=false;letterMode=false;
@@ -2789,9 +2812,8 @@ function endTurn(){
   coachEvent('turn');
   if(winThis)coachEvent('win');
   if(over&&D.pro&&checkObjective())coachEvent('win');
-  log(msg||'The turn passes. Words keep moving quietly between neighbors.');
   ui();
-  if(!over)maybeFireDilemma();
+  playTurnSequence(msg||'The turn passes. Words keep moving quietly between neighbors.', function(){ if(!over)maybeFireDilemma(); });
 }
 
 /* Stage 6: a mural is a small stencilled mark — fist / eye / word */
@@ -3217,8 +3239,107 @@ function draw(ts){
   ctx.restore();
 }
 
+/* ---------- TURN-RESOLUTION SEQUENCE ----------
+   Paces the turn's narration into readable sentence-beats while the map
+   animations play alongside. The state is already final; this only reveals the
+   story a beat at a time, and is fully skippable. Reduced-motion → instant. */
+let sequencing=false,_seqBeats=[],_seqIdx=0,_seqFinal='',_seqAfter=null,_seqTimer=null;
+function splitBeats(s){
+  const out=[]; let cur='';
+  for(let i=0;i<s.length;i++){ cur+=s[i];
+    if((s[i]==='.'||s[i]==='!'||s[i]==='?')&&(i+1>=s.length||s[i+1]===' ')){ if(cur.trim())out.push(cur.trim()); cur=''; }
+  }
+  if(cur.trim())out.push(cur.trim());
+  return out;
+}
+function playTurnSequence(finalMsg,after){
+  clearTimeout(_seqTimer);
+  _seqFinal=finalMsg||''; _seqAfter=after||null;
+  const beats=splitBeats(_seqFinal);
+  if(reducedMotion()||over||beats.length<2){ _seqBeats=[]; finishTurnSequence(); return; }
+  _seqBeats=beats; _seqIdx=0; sequencing=true;
+  const sk=$('seqskip'); if(sk)sk.style.display='';
+  updateUndo();
+  seqStep();
+}
+function seqStep(){
+  if(!sequencing)return;
+  if(_seqIdx>=_seqBeats.length){ finishTurnSequence(); return; }
+  $('log').innerHTML=_seqBeats[_seqIdx++];
+  _seqTimer=setTimeout(seqStep, Math.max(280, 820/animSpeed));
+}
+function finishTurnSequence(){
+  clearTimeout(_seqTimer); sequencing=false;
+  const sk=$('seqskip'); if(sk)sk.style.display='none';
+  if(_seqFinal)log(_seqFinal);      /* the single journal entry + full "what changed" line */
+  const after=_seqAfter; _seqAfter=null; _seqBeats=[];
+  ui();
+  if(after)after();
+}
+function skipTurnSequence(){ if(sequencing)finishTurnSequence(); }
+
+/* ---------- ONE-ACTION UNDO ----------
+   Snapshot the full in-memory run-state before a committed action; restore it on
+   undo. It never writes any localStorage key, so it cannot corrupt saved
+   progress. Available only until the turn ends (cleared in endTurn/initGame). */
+function cloneDeep(x){
+  if(x===null||typeof x!=='object')return x;
+  if(x instanceof Set)return new Set(x);
+  if(Array.isArray(x)){const a=new Array(x.length);for(let i=0;i<x.length;i++)a[i]=cloneDeep(x[i]);return a;}
+  const o={}; for(const k in x)o[k]=cloneDeep(x[k]); return o;
+}
+let undoSnap=null;
+function snapState(){
+  return {
+    ag:cloneDeep(ag),links:cloneDeep(links),built:cloneDeep(built),weak:new Set(weak),nbr:cloneDeep(nbr),
+    murals:cloneDeep(murals),spies:cloneDeep(spies),reinfThresholds:cloneDeep(reinfThresholds),
+    journal:cloneDeep(journal),fallenThisRun:cloneDeep(fallenThisRun),firedDilemmas:cloneDeep(firedDilemmas),
+    epiEvents:cloneDeep(epiEvents),crackZone:cloneDeep(crackZone),opp:cloneDeep(opp),heirMul:cloneDeep(heirMul),
+    factions:cloneDeep(factions),empowered:cloneDeep(empowered),strandsThisRun:cloneDeep(strandsThisRun),
+    actionCounts:cloneDeep(actionCounts),
+    log:$('log').innerHTML,
+    s:{turn,energy,rig,floor,wins,inf,player,risk,lives,crackIn,target,interrogated,linkMode,muralMode,letterMode,defected,
+       reinfPending,postTrail,docActive,shelterTurns,shelterIdx,boostTurns,freeLink,lastCrackTurn,lastWinTurn,
+       firstWinSeen,inf30Told,inf40Told,witnessedOnce,hopeBonus,nearMissTold,freeZoneTold,embersAwarded,
+       resolve,resolveTold,cgBeatDone,rival,usedApparatus,apparatusUses,deliveredThisRun,deliverIdx,lastDeliverBloc,
+       driftTold,factionTold,drawerTold,rivalTold,delegateTold}
+  };
+}
+function doUndo(){
+  if(!undoSnap||over||sequencing)return;
+  const k=undoSnap,s=k.s;
+  ag=k.ag;links=k.links;built=k.built;weak=k.weak;nbr=k.nbr;murals=k.murals;spies=k.spies;
+  reinfThresholds=k.reinfThresholds;journal=k.journal;fallenThisRun=k.fallenThisRun;firedDilemmas=k.firedDilemmas;
+  epiEvents=k.epiEvents;crackZone=k.crackZone;opp=k.opp;heirMul=k.heirMul;factions=k.factions;empowered=k.empowered;
+  strandsThisRun=k.strandsThisRun;actionCounts=k.actionCounts;
+  turn=s.turn;energy=s.energy;rig=s.rig;floor=s.floor;wins=s.wins;inf=s.inf;player=s.player;risk=s.risk;lives=s.lives;
+  crackIn=s.crackIn;target=s.target;interrogated=s.interrogated;linkMode=s.linkMode;muralMode=s.muralMode;letterMode=s.letterMode;
+  defected=s.defected;reinfPending=s.reinfPending;postTrail=s.postTrail;docActive=s.docActive;shelterTurns=s.shelterTurns;
+  shelterIdx=s.shelterIdx;boostTurns=s.boostTurns;freeLink=s.freeLink;lastCrackTurn=s.lastCrackTurn;lastWinTurn=s.lastWinTurn;
+  firstWinSeen=s.firstWinSeen;inf30Told=s.inf30Told;inf40Told=s.inf40Told;witnessedOnce=s.witnessedOnce;hopeBonus=s.hopeBonus;
+  nearMissTold=s.nearMissTold;freeZoneTold=s.freeZoneTold;embersAwarded=s.embersAwarded;resolve=s.resolve;resolveTold=s.resolveTold;
+  cgBeatDone=s.cgBeatDone;rival=s.rival;usedApparatus=s.usedApparatus;apparatusUses=s.apparatusUses;deliveredThisRun=s.deliveredThisRun;
+  deliverIdx=s.deliverIdx;lastDeliverBloc=s.lastDeliverBloc;driftTold=s.driftTold;factionTold=s.factionTold;drawerTold=s.drawerTold;
+  rivalTold=s.rivalTold;delegateTold=s.delegateTold;
+  $('log').innerHTML=k.log;
+  $('journal').innerHTML=journal.map(e=>'<div'+(e.c||'')+'><span class="jt">T'+e.t+'</span>'+e.m+'</div>').join('');
+  floaters=[];rippleAnims=[];pulses=[];winScenes=[];pops={};   /* drop the undone action's transient effects */
+  undoSnap=null;$('pcard').style.display='none';
+  renderRoster();
+  if(era2())renderFactions();
+  ui();
+}
+function updateUndo(){
+  const b=$('a-undo'); if(!b)return;
+  b.style.display=(undoSnap&&!over&&!sequencing)?'block':'none';   /* explicit 'block' — CSS default is none */
+}
+
 function loop(ts){
-  draw(ts);
+  if(_lastRAF===null)_lastRAF=ts;
+  let dt=ts-_lastRAF; _lastRAF=ts;
+  if(dt<0)dt=0; else if(dt>200)dt=200;   /* clamp tab-switch gaps */
+  animClock+=dt*animSpeed;
+  draw(animClock);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -3234,6 +3355,8 @@ document.querySelectorAll('[data-act]').forEach(btn=>{
   btn.addEventListener('blur',()=>{if(previewAct===a2)previewAct=null;});
 });
 $('a-end').addEventListener('click',endTurn);
+$('a-undo').addEventListener('click',doUndo);
+$('seqskip').addEventListener('click',skipTurnSequence);
 /* Restart confirmation (Feature 9): two-step, non-modal, only mid-run when progress would be lost */
 let retryArmed=false,retryT=null;
 function disarmRetry(){retryArmed=false;clearTimeout(retryT);const b=$('a-retry');if(b){b.textContent='Restart this chapter';b.classList.remove('modeon');}}
@@ -3266,6 +3389,14 @@ let tipsOn=true; try{tipsOn=localStorage.getItem('ov22_tips')!=='off';}catch(e){
 function saveTips(){try{localStorage.setItem('ov22_tips',tipsOn?'on':'off');}catch(e){}}
 $('btn-tips').addEventListener('click',()=>{tipsOn=!tipsOn;saveTips();$('btn-tips').textContent='◈ tips: '+(tipsOn?'on':'off');if(D)ui();});
 $('btn-tips').textContent='◈ tips: '+(tipsOn?'on':'off');
+/* animation-speed cycle: 1× → 2× → ½× → 1× (persisted) */
+function speedLabel(v){return v===0.5?'½×':(v===2?'2×':'1×');}
+$('btn-speed').addEventListener('click',()=>{
+  animSpeed=animSpeed===1?2:(animSpeed===2?0.5:1);
+  try{localStorage.setItem('ov23_speed',String(animSpeed));}catch(e){}
+  $('btn-speed').textContent='▷ speed: '+speedLabel(animSpeed);
+});
+$('btn-speed').textContent='▷ speed: '+speedLabel(animSpeed);
 $('tip').addEventListener('click',e=>{if(e.target&&e.target.classList.contains('tipx')){tipsOn=false;saveTips();$('btn-tips').textContent='◈ tips: off';$('tip').style.display='none';}});
 /* Compute the single most relevant suggestion. It never names a "best move" — it
    points at a condition the player reads and decides on. Priority: imminent danger,
@@ -3407,6 +3538,7 @@ function orgRingSet(){
   return ring;
 }
 document.addEventListener('keydown',e=>{
+  if(sequencing&&(e.key==='Escape'||e.key==='Enter'||e.key===' ')){skipTurnSequence();e.preventDefault();return;}
   if(e.key==='Escape'){
     linkMode=false;muralMode=false;letterMode=false;previewAct=null;
     $('kpipop').style.display='none';
