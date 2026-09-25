@@ -14,14 +14,23 @@
 // seam — initGame is already fully seeded.
 
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
-const BASELINE = 'origin/staging:index.html';
+const HERE = dirname(fileURLToPath(import.meta.url));
+// The golden baseline is PINNED in version control (Decision 3: golden-master
+// source under version control) so parity runs hermetically in CI with no git
+// ref access. Refresh it with `npm run refresh-baseline`.
+const PINNED = resolve(HERE, '../golden/staging-index.html');
+const GIT_BASELINE = 'origin/staging:index.html';
 
 function loadSource() {
   const override = process.env.OV_BASELINE_FILE;
   if (override) return readFileSync(override, 'utf8');
-  return execSync(`git show ${BASELINE}`, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  if (existsSync(PINNED)) return readFileSync(PINNED, 'utf8');
+  // fallback for a fresh checkout without the pin: read the live baseline.
+  return execSync(`git show ${GIT_BASELINE}`, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
 }
 
 // Slice a balanced `{...}` (or `[...]`/`(...)`) region starting at `from`.

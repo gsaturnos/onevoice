@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "node tools/check-boundaries.mjs",
     "test": "vitest run",
-    "extract-content": "node tools/extract-content.mjs"
+    "extract-content": "node tools/extract-content.mjs",
+    "refresh-baseline": "git show origin/staging:index.html > test/golden/staging-index.html && node tools/extract-content.mjs"
   },
   "dependencies": {
     "pixi.js": "^8.0.0"
