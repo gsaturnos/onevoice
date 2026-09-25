@@ -45,6 +45,16 @@ h1 .accent{color:var(--lamp);}
 #story-box summary{color:var(--lamp);}
 #journal div:last-child{color:#e8e4d8;}
 #report{display:none; font-family:ui-monospace,monospace; font-size:12px; color:#9db8d8; margin:4px 0 6px; padding:6px 11px; border-left:3px solid #3a4a66; background:rgba(126,166,216,0.05); line-height:1.5;}
+/* ---------- RUN TIMELINE (Feature 3): the shape of the run, a record not a score ---------- */
+#timeline{display:none; align-items:flex-end; gap:2px; overflow-x:auto; overflow-y:hidden; padding:5px 6px; margin:2px 0 8px; border:1px solid var(--line); background:var(--panel); scrollbar-width:thin;}
+#timeline .tk{flex:0 0 auto; width:13px; min-height:28px; background:transparent; border:none; border-bottom:2px solid rgba(232,228,216,0.12); padding:2px 0 3px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:1px; cursor:default; opacity:0.7;}
+#timeline .tk.cur{opacity:1; border-bottom-color:var(--lamp);}
+#timeline .tk:focus-visible{outline:2px solid var(--lamp); outline-offset:1px;}
+#timeline .tm{font-size:9px; line-height:1;}
+#timeline .tm.win{color:#7ea6d8;} #timeline .tm.crack{color:#c94f4f;} #timeline .tm.def{color:#4fae8d;}
+#timeline .tm.opp{color:#e8d48a;} #timeline .tm.bad{color:#c94f4f;} #timeline .tm.succ{color:#8d7bdb;}
+#timeline .tkdot{width:3px; height:3px; border-radius:50%; background:rgba(232,228,216,0.16);}
+@media (max-width:560px){#timeline{padding:4px;} #timeline .tk{width:10px; min-height:24px;}}
 #roster-box summary{color:#9db8d8;}
 #roster{max-height:260px; overflow-y:auto; padding:4px 14px 12px;}
 .rp{border-bottom:1px solid var(--line); padding:7px 0; font-size:14px;}
@@ -78,7 +88,10 @@ button.nope{opacity:0.42;}
 #journal .j-gold{color:#e0c48a;}
 /* accessibility */
 button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px solid var(--lamp); outline-offset:2px;}
+/* ---------- HOME LOGO ---------- */
+#logo{display:block; width:100%; max-width:460px; height:auto; margin:2px auto 6px;}
 @media (max-width:560px){
+  #logo{max-width:300px; margin-bottom:2px;}
   .actions button{min-height:44px; flex:1 1 46%;}
   .bs{max-width:none;}
   #a-end{min-height:52px;}
@@ -88,7 +101,38 @@ button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px sol
   .grow .gl{min-width:118px; font-size:11.5px;}
 }
 #opp{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid #7ea6d8; color:#a8c8e8; font-family:ui-monospace,monospace; background:rgba(126,166,216,.10);}
+/* ---------- FACTIONS (era 2) ---------- */
+#factions{padding:9px 13px; margin:0 0 10px; border:1px solid var(--line); background:var(--panel); font-family:ui-monospace,monospace;}
+#factions .fhead{font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin:0 0 6px; display:flex; justify-content:space-between; gap:8px;}
+#factions .frow{display:flex; align-items:center; gap:8px; margin:3px 0; font-size:12px;}
+#factions .fn{min-width:118px; color:#cfcabc;}
+#factions .fbar{flex:1; height:6px; background:rgba(232,228,216,0.07); border:1px solid var(--line); position:relative;}
+#factions .ffill{height:100%; transition:width .5s, background .5s;}
+#factions .fv{min-width:34px; text-align:right; color:var(--muted); font-size:11px;}
+#factions .rival{margin-top:7px; padding-top:6px; border-top:1px solid var(--line); font-size:12px; color:#c9a0a0;}
+#factions .rival .rbar{display:inline-block; width:60px; height:6px; border:1px solid rgba(201,79,79,0.4); vertical-align:middle; margin:0 6px; position:relative;}
+#factions .rival .rfill{position:absolute; left:0; top:0; bottom:0; background:rgba(201,79,79,0.6);}
 canvas{width:100%; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair;}
+/* ---------- TWO-COLUMN GAMEPLAY LAYOUT (desktop) — map left, person+actions right ---------- */
+#gwrap{display:grid; gap:14px; margin:8px 0 0; align-items:start;}
+#gmap,#gside,#greadout{min-width:0;}
+#tip{display:none; font-family:ui-monospace,monospace; font-size:12.5px; color:#d8c9a0; margin:8px 0 0; padding:7px 11px; border:1px solid rgba(224,164,88,0.35); border-left:3px solid var(--lamp); background:rgba(224,164,88,0.06); line-height:1.5;}
+#seqskip{font-family:ui-monospace,monospace; font-size:11px; color:var(--muted); padding:2px 9px; margin:2px 0 4px; letter-spacing:1px;}
+#seqskip:hover{color:var(--lamp);}
+#a-undo{display:none; width:100%; margin:8px 0 0; font-family:ui-monospace,monospace; font-size:12px; letter-spacing:1px; color:#9db8d8; border-color:rgba(126,166,216,0.4);}
+#a-undo:hover{border-color:#7ea6d8; color:#c7d6ea;}
+#tip .tipx{float:right; color:var(--muted); cursor:pointer; margin-left:8px; border:none; background:none; font-size:12px; padding:0 2px;}
+.bcost{position:absolute; top:4px; right:6px; font-size:9.5px; color:var(--muted); font-family:ui-monospace,monospace; letter-spacing:0;}
+.actions button{padding-right:26px;}
+@media (min-width:900px){
+  .wrap.playing{max-width:1160px;}
+  #gwrap{grid-template-columns:minmax(0,1fr) 312px; grid-template-areas:"map side" "readout side";}
+  #gmap{grid-area:map;} #gside{grid-area:side;} #greadout{grid-area:readout;}
+  #gside .actions{flex-direction:column; gap:6px;}
+  #gside .actions button{width:100%; max-width:none; flex:1 1 auto;}
+  #gside #a-end{margin-top:12px;}
+  #greadout{margin-top:0;}
+}
 .banner{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid; font-family:ui-monospace,monospace;}
 .banner.warn{color:var(--lamp); border-color:var(--lamp); background:rgba(224,164,88,.08);}
 .banner.bad{color:var(--danger); border-color:var(--danger); background:rgba(201,79,79,.08);}
@@ -97,6 +141,30 @@ canvas{width:100%; border:1px solid var(--line); background:#171a21; display:blo
 #pcard .pn{color:var(--ink);}
 #pcard .ps{color:var(--muted); font-size:12.5px; font-family:ui-monospace,monospace; margin-top:2px;}
 #pcard .paw{color:var(--aware); font-family:ui-monospace,monospace; font-size:12.5px;}
+/* kitchen slice: portrait panel */
+#pcard .pcw{display:flex; gap:11px; align-items:flex-start;}
+#pcard .pbust{flex:0 0 auto; width:56px; height:56px; border:1px solid var(--line); background:#140f0d; border-radius:5px;}
+#pcard .pcbody{min-width:0; flex:1;}
+#pcard .pchead{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+#pcard .pchead .pn{font-weight:600; letter-spacing:.2px;}
+#pcard .prole{color:var(--muted); font-family:ui-monospace,monospace; font-size:12px;}
+#pcard .pcstate{display:flex; align-items:center; gap:6px; color:#d7cfbf; font-family:ui-monospace,monospace; font-size:12px; margin:3px 0 4px;}
+#pcard .pcstate .dot{width:8px; height:8px; border-radius:50%; display:inline-block; box-shadow:0 0 6px rgba(224,164,88,.4);}
+#pcard .pcmeta{color:var(--muted); font-family:ui-monospace,monospace; font-size:11.5px; margin-top:3px; line-height:1.5;}
+/* kitchen slice: keyboard-navigable table roster */
+#tablelist{display:none; flex-wrap:wrap; gap:6px; margin:8px 0 2px;}
+#tablelist .tchip{display:flex; flex-direction:column; align-items:flex-start; gap:1px; padding:5px 9px; min-height:44px; justify-content:center;
+  border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:5px; cursor:pointer; font-size:12.5px; line-height:1.2;}
+#tablelist .tchip .tcs{color:var(--muted); font-family:ui-monospace,monospace; font-size:10.5px;}
+#tablelist .tchip:hover{border-color:var(--lamp);}
+#tablelist .tchip.sel{border-color:var(--lamp); border-left:3px solid var(--lamp); background:rgba(224,164,88,0.10);}
+#tablelist .tchip.you{border-left:3px solid var(--you); cursor:default; opacity:.9;}
+#tablelist .tchip.far{opacity:.62;}
+#tablelist .tchip:focus-visible{outline:2px solid var(--lamp); outline-offset:2px;}
+/* kitchen slice: the Talk button reads as a designed Conversation card */
+[data-act="talk"].convcard{border-left:3px solid var(--lamp); background:linear-gradient(180deg,rgba(224,164,88,0.08),rgba(224,164,88,0.02));}
+[data-act="talk"].convcard .bl{position:relative; padding-left:19px;}
+[data-act="talk"].convcard .bl::before{content:"✎"; position:absolute; left:0; top:0; color:var(--lamp);}
 #log{font-family:ui-monospace,monospace; font-size:13.5px; color:#cfcabc; min-height:44px; margin:10px 0 6px; line-height:1.55; border-left:3px solid var(--lamp); padding-left:11px; background:rgba(224,164,88,0.05);}
 details{margin:0 0 10px; border:1px solid var(--line); background:var(--panel);}
 summary{cursor:pointer; padding:7px 14px; font-family:ui-monospace,monospace; font-size:12px; color:var(--muted); letter-spacing:1px; text-transform:uppercase;}
@@ -106,8 +174,15 @@ summary:hover{color:var(--lamp);}
 #howto{padding:6px 16px 14px; font-size:14px; color:#c2beb2; line-height:1.7;}
 #howto b{color:var(--lamp); font-weight:400;}
 #howto .aw{color:var(--aware);}
-button{background:var(--panel2); color:var(--ink); border:1px solid var(--line); padding:8px 13px; font-size:13px; font-family:ui-monospace,monospace; cursor:pointer; transition:border-color .12s;}
-button:hover{border-color:var(--lamp);}
+button{background:var(--panel2); color:var(--ink); border:1px solid var(--line); padding:8px 13px; font-size:13px; font-family:ui-monospace,monospace; cursor:pointer; transition:border-color .12s, background .12s, transform .06s, box-shadow .12s;}
+button:hover{border-color:var(--lamp); background:#282e3a;}
+button:active{transform:translateY(1px);}
+/* action hierarchy: light < committed < bold. Bold reads heaviest. */
+.actions button{position:relative;}
+.actions button:hover{box-shadow:0 1px 0 rgba(224,164,88,0.25) inset, 0 0 10px rgba(224,164,88,0.06);}
+/* disabled / not-enough-energy: clearly inert, not just faint */
+button.nope, button:disabled{opacity:0.4; cursor:not-allowed; filter:grayscale(0.5);}
+button.nope:hover, button:disabled:hover{border-color:var(--line); background:var(--panel2); box-shadow:none;}
 .group-label{font-family:ui-monospace,monospace; font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin:8px 0 4px;}
 .actions{display:flex; gap:7px; flex-wrap:wrap;}
 .actions button{text-align:left;}
@@ -156,7 +231,57 @@ button:hover{border-color:var(--lamp);}
 <div class="wrap">
 
 <div id="screen-campaign">
-  <h1>One <span class="accent">Voice</span></h1>
+  <svg id="logo" viewBox="0 0 640 300" role="img" aria-label="One Voice — one voice becomes many">
+    <defs>
+      <radialGradient id="lglow" cx="50%" cy="46%" r="60%">
+        <stop offset="0%" stop-color="#e0a458" stop-opacity="0.20"/>
+        <stop offset="45%" stop-color="#e0a458" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#e0a458" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="320" cy="150" rx="250" ry="150" fill="url(#lglow)"/>
+    <!-- ripples: the voice traveling -->
+    <g fill="none" stroke="#7ea6d8" stroke-linecap="round">
+      <circle cx="320" cy="150" r="58"  stroke-opacity="0.55" stroke-width="2"/>
+      <circle cx="320" cy="150" r="92"  stroke-opacity="0.32" stroke-width="1.6" stroke-dasharray="3 7"/>
+      <circle cx="320" cy="150" r="126" stroke-opacity="0.16" stroke-width="1.3" stroke-dasharray="2 9"/>
+    </g>
+    <!-- the crowd: hunched and gray at the edges, standing and green toward the center -->
+    <g stroke-linecap="round" fill="none">
+      <g stroke="#565a63" stroke-width="3">
+        <g transform="translate(150,190)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(490,190) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(122,138)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+        <g transform="translate(518,138) scale(-1,1)"><path d="M-5,11 L0,0 L5,11"/><path d="M0,0 Q4,-8 7,-12"/></g>
+      </g>
+      <g fill="#565a63">
+        <circle cx="157" cy="175" r="4"/><circle cx="483" cy="175" r="4"/>
+        <circle cx="129" cy="123" r="4"/><circle cx="511" cy="123" r="4"/>
+      </g>
+      <g stroke="#6f8f80" stroke-width="3.2">
+        <g transform="translate(215,195)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
+        <g transform="translate(425,195) scale(-1,1)"><path d="M-5,12 L0,0 L5,12"/><path d="M0,0 L1,-13"/><path d="M-5,-7 L1,-10 L7,-6"/></g>
+      </g>
+      <g fill="#6f8f80"><circle cx="216" cy="178" r="4.3"/><circle cx="424" cy="178" r="4.3"/></g>
+      <g stroke="#4fae8d" stroke-width="3.4">
+        <g transform="translate(258,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
+        <g transform="translate(382,198)"><path d="M-5,13 L0,0 L5,13"/><path d="M0,0 L0,-15"/><path d="M-8,-10 L0,-11 L8,-10"/></g>
+      </g>
+      <g fill="#4fae8d"><circle cx="258" cy="176" r="4.6"/><circle cx="382" cy="176" r="4.6"/></g>
+    </g>
+    <!-- the one voice -->
+    <g transform="translate(320,198)">
+      <circle cx="0" cy="-64" r="3.4" fill="#e0a458"/>
+      <circle cx="0" cy="-64" r="9" fill="#e0a458" opacity="0.28"/>
+      <circle cx="0" cy="-11" r="26" fill="none" stroke="#8d7bdb" stroke-opacity="0.28" stroke-width="2"/>
+      <g stroke="#8d7bdb" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M-6,15 L0,0 L6,15"/><path d="M0,0 L0,-20"/><path d="M-11,-18 L0,-21 L11,-18"/>
+      </g>
+      <circle cx="0" cy="-27" r="5.6" fill="#8d7bdb"/>
+    </g>
+    <text x="320" y="262" text-anchor="middle" font-size="54" letter-spacing="1" fill="#e8e4d8" font-family="Georgia,'Times New Roman',serif">One <tspan fill="#e0a458">Voice</tspan></text>
+    <text x="320" y="288" text-anchor="middle" font-size="13" letter-spacing="4.5" fill="#8b8e96" font-family="ui-monospace,monospace">ONE VOICE BECOMES MANY</text>
+  </svg>
   <p class="sub">A strategy game about awareness, courage, and how systems change.</p>
   <div class="story">
     This is your neighborhood. Something is wrong, and everyone feels it,
@@ -175,6 +300,9 @@ button:hover{border-color:var(--lamp);}
   </details>
   <div class="chapter">The campaign — seven districts</div>
   <div id="levels-camp"></div>
+  <div class="chapter" id="camp2-head" style="display:none;">One Voice II — The morning after</div>
+  <div class="chapter-sub" id="camp2-sub" style="display:none;"></div>
+  <div id="levels-camp2"></div>
   <div class="foot">Born from a conversation. This model simplifies enormously — real change is slower, costlier,
   and braver than any game. Progress saves in this browser. Share the file freely.</div>
 </div>
@@ -185,6 +313,8 @@ button:hover{border-color:var(--lamp);}
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button id="btn-music" aria-label="Toggle background music">♫ music: on</button>
       <button id="btn-sound" aria-label="Toggle sound effects">♪ sound: on</button>
+      <button id="btn-tips" aria-label="Toggle tactical suggestions">◈ tips: on</button>
+      <button id="btn-speed" aria-label="Animation speed">▷ speed: 1×</button>
       <button id="btn-back">← Back to the map</button>
     </div>
   </div>
@@ -199,6 +329,7 @@ button:hover{border-color:var(--lamp);}
   </div>
   <div id="kpipop"></div>
   <div class="goal" id="goal"></div>
+  <div id="factions" style="display:none;"></div>
   <div id="opp"></div>
   <div id="coach"><span id="coach-text"></span><button id="coach-next">Got it →</button></div>
   <details id="howto-box">
@@ -218,11 +349,50 @@ button:hover{border-color:var(--lamp);}
       <b>Embers</b> are earned at the end of every campaign run — win or lose — from your wins and defections. Spend them on Legacies at the map screen: permanent gifts that every future story begins with. Nothing is ever wasted.
     </div>
   </details>
-  <div class="banner" id="banner" role="status" aria-live="polite"></div>
-  <canvas id="game" width="720" height="440"></canvas>
-  <div id="pcard"></div>
-  <div id="log" role="log" aria-live="polite"></div>
-  <div id="report" aria-live="polite"></div>
+  <div id="gwrap">
+    <div id="gmap">
+      <div class="banner" id="banner" role="status" aria-live="polite"></div>
+      <canvas id="game" width="720" height="440" tabindex="0" aria-label="Neighborhood map. Click a neighbor to select them; their details and available actions appear in the panel beside the map."></canvas>
+    </div>
+    <div id="gside">
+      <div id="pcard" aria-live="polite"></div>
+      <div id="tablelist" role="group" aria-label="People at the table — select one to focus them"></div>
+      <div id="tip" aria-live="polite"></div>
+      <div class="group-label" id="grp-personal">Personal</div>
+      <div class="actions">
+        <button data-act="talk" title="Pick a neighbor by clicking them, then talk. Big awareness boost for one person. Barely raises eyes on you.">Talk with someone</button>
+        <button data-act="letter" title="Click ANYONE, anywhere on the map — no range limit. Creates a thinner permanent connection (half strength), and letters can be intercepted: small rise in eyes on you.">Send a letter</button>
+        <button data-act="low" title="Cools eyes on you by 18. But your neighbors, hearing nothing from you, drift back a little.">Lay low</button>
+        <button data-act="doc" title="Arms your camera. The next crackdown is witnessed: its suppression mostly fails and people gain awareness from seeing it.">Document injustice</button>
+      </div>
+      <div class="group-label" id="grp-organize">Organize</div>
+      <div class="actions">
+        <button data-act="link" title="Click anyone in your reach circle to create a permanent connection. Awareness flows through it forever — even without you.">Build a connection</button>
+        <button data-act="org" title="Raises awareness across your whole extended circle at once. At trust 40+, it reaches even further.">Organize a meeting</button>
+        <button data-act="mural" title="Click a spot in your reach to paint. It passively raises awareness around it every turn, forever — until a crackdown paints over it (which weakens the crackdown). Three murals close together create a free zone.">Paint a mural</button>
+        <button data-act="post" title="Reaches random people across the whole map, but thinly — and it is traceable: eyes on you keep rising for 3 turns.">Post online</button>
+      </div>
+      <div class="group-label" id="grp-resist">Resist</div>
+      <div class="actions">
+        <button data-act="speak" title="A wide surge of awareness around you — and a huge spike in eyes on you. Timing is everything.">Speak publicly</button>
+        <button data-act="reach" title="Ask a wavering (amber) incumbent to walk away. Odds improve with surrounding awareness and your trust. Success removes their surveillance, turns them into an amplifier, gives you +1 energy — and spreads doubt through every enforcer nearby.">Reach out to wavering</button>
+        <button data-act="expose" title="Needs trust 30+ and the informant inside your reach circle. Removes it and galvanizes everyone nearby.">Expose informant</button>
+      </div>
+      <div class="group-label" id="grp-govern">Govern</div>
+      <div class="actions">
+        <button data-act="delegate" title="Hand a trusted, awakened person real authority. They keep a bloc you cannot, their trait strengthens your hand, and it widens your mandate. Who you empower shapes the ending.">Delegate authority</button>
+        <button data-act="drawer" title="Open the old surveillance apparatus. It works: the rival claim recedes, order is bought. But it costs mandate, and it will follow you into the roster and the ending — permanently.">Open the drawer</button>
+      </div>
+      <button id="a-undo">↶ Undo last action</button>
+      <button id="a-end">Next turn →</button>
+    </div>
+    <div id="greadout">
+      <div id="log" role="log" aria-live="polite"></div>
+      <button id="seqskip" style="display:none;">▸▸ skip</button>
+      <div id="report" aria-live="polite"></div>
+      <div id="timeline" role="group" aria-label="Run timeline — one tick per turn"></div>
+    </div>
+  </div>
   <div id="epilogue-box">
     <h2 id="ep-title">Epilogue</h2>
     <div id="epilogue-text"></div>
@@ -232,27 +402,6 @@ button:hover{border-color:var(--lamp);}
       <button id="ep-map">Back to the map</button>
     </div>
   </div>
-  <div class="group-label">Light — 1 energy</div>
-  <div class="actions">
-    <button data-act="talk" title="Pick a neighbor by clicking them, then talk. Big awareness boost for one person. Barely raises eyes on you.">Talk with someone</button>
-    <button data-act="post" title="Reaches random people across the whole map, but thinly — and it is traceable: eyes on you keep rising for 3 turns.">Post online</button>
-    <button data-act="low" title="Cools eyes on you by 18. But your neighbors, hearing nothing from you, drift back a little.">Lay low</button>
-  </div>
-  <div class="group-label">Committed — 2 energy</div>
-  <div class="actions">
-    <button data-act="link" title="Click anyone in your reach circle to create a permanent connection. Awareness flows through it forever — even without you.">Build a connection</button>
-    <button data-act="letter" title="Click ANYONE, anywhere on the map — no range limit. Creates a thinner permanent connection (half strength), and letters can be intercepted: small rise in eyes on you.">Send a letter</button>
-    <button data-act="org" title="Raises awareness across your whole extended circle at once. At trust 40+, it reaches even further.">Organize a meeting</button>
-    <button data-act="mural" title="Click a spot in your reach to paint. It passively raises awareness around it every turn, forever — until a crackdown paints over it (which weakens the crackdown). Three murals close together create a free zone.">Paint a mural</button>
-    <button data-act="doc" title="Arms your camera. The next crackdown is witnessed: its suppression mostly fails and people gain awareness from seeing it.">Document injustice</button>
-    <button data-act="reach" title="Ask a wavering (amber) incumbent to walk away. Odds improve with surrounding awareness and your trust. Success removes their surveillance, turns them into an amplifier, gives you +1 energy — and spreads doubt through every enforcer nearby.">Reach out to wavering</button>
-    <button data-act="expose" title="Needs trust 30+ and the informant inside your reach circle. Removes it and galvanizes everyone nearby.">Expose informant</button>
-  </div>
-  <div class="group-label">Bold — 3 energy</div>
-  <div class="actions">
-    <button data-act="speak" title="A wide surge of awareness around you — and a huge spike in eyes on you. Timing is everything.">Speak publicly</button>
-  </div>
-  <button id="a-end">Next turn →</button>
   <details id="story-box" open>
     <summary>📖 The story so far — it grows with every choice</summary>
     <div id="journal"></div>
@@ -487,6 +636,14 @@ function setMusic(on){
 const NAMES=['Rosa','Tomás','Marta','Luis','Carmen','Diego','Ana','Pablo','Lucía','Miguel','Elena','Javier','Sofía','Andrés','Valeria','Hugo','Camila','Rafael','Inés','Óscar','Paula','Emilio','Clara','Bruno','Alma','Simón','Nadia','Félix','Irene','Mateo','Julia','Ciro','Delia','Ramón','Alba','Teo','Vera','Nico','Pilar','Iván','Sara','León','Mía','Aldo','Rita','Gael','Noa','Dario','Lena','Omar','Berta','Elio','Fina','Gustavo','Hilda','Ismael','Juana','Kiko','Lidia','Marcos','Nuria','Otto','Perla','Quique','Renata','Saúl','Tania','Ulises','Violeta','Wilmer','Ximena','Yara','Zoe','Abel'];
 const ROLES=['a nurse','a bus driver','a teacher','a baker','a student','a mechanic','a shopkeeper','a farmer','a musician','a carpenter','an electrician','a seamstress','a doctor','a waiter','a fisherman','a librarian','a barber','a street vendor','a welder','a cook','a painter','a pharmacist','a janitor','a taxi driver'];
 const STAKES=['the clinic lost its funding last winter','their brother was taken years ago','the pension stopped coming','their daughter wants to leave the country','the shop was fined for nothing','they lost their job for asking questions','their street floods and no one comes','the school has no books this year','their rent doubled overnight','they saw something they were not supposed to see','their father built this neighborhood','they keep a photo of how things used to be','the harvest was confiscated','their best friend stopped speaking to them out of fear','the hospital sent them home untreated','they teach children to read in secret','their husband waits in a line every dawn','the music venue was shuttered','they remember when the square had another name','their savings became paper'];
+/* ===== COMMON GROUND: 'strands' — where in the district a neighbour is from.
+   Fictional quarters, never real groups, never ranked good/bad. The whole point
+   is quiet: a circle that spans MORE distinct strands breaks through cheaper than
+   one that leans on many people of the same strand. Breadth is an incentive, never
+   a requirement — the narrow road always stays open, it just grinds. */
+const STRANDS=['Riverside','the Terraces','Old Market','the Hill','the Arches','Canal End','the Yards','Saltgate'];
+const CG_DISCOUNT=0.035;  /* each extra distinct strand lowers a circle's threshold by this */
+const CG_CAP=0.16;        /* ...up to this much (never trivial) */
 const TRAITS=[
   {id:'talker', hint:'listens best over coffee', talkMul:1.6, orgMul:1.0, muralMul:1.0, postMul:1.0},
   {id:'gatherer', hint:'comes alive in meetings', talkMul:1.0, orgMul:2.0, muralMul:1.0, postMul:1.0},
@@ -497,9 +654,9 @@ const TRAITS=[
 
 const CORE=['talk','link','org','low'];
 const LEVELS=[
- {pro:true, name:'I · The kitchen table', desc:'Learn to talk. Watch what spreads.', N:12, rig:0.35, maxT:12, nInc:0, spies:0, reinforce:0, cracks:false,
+ {pro:true, scene:'kitchen', name:'I · The kitchen table', desc:'Learn to talk. Watch what spreads.', N:9, rig:0.35, maxT:12, nInc:0, spies:0, reinforce:0, cracks:false,
   allowed:['talk'], obj:{type:'aware',count:3,lvl:0.5,text:'Help 3 neighbors see clearly (awareness above 50%)'},
-  intro:'Around this table, it is safe to speak. Click a neighbor, then Talk. Press Next turn and watch what you said travel along the lines between people — awareness flows on its own between connected neighbors.'},
+  intro:'Tomorrow, the clinic must turn people away. Rosa knows why, but she is afraid to say it aloud. You have one evening and three energy. Click Rosa, then Talk — say the thing no one at this table will say. Press Next turn and watch it travel along the lines between neighbors.'},
  {pro:true, name:'II · The block', desc:'Some people are cut off. Reach them.', N:26, rig:0.5, maxT:16, nInc:0, spies:0, reinforce:0, cracks:false, twoClusters:true,
   allowed:['talk','org','link'], obj:{type:'wins',count:1,text:'Spark 1 structural win (a blue ripple)'},
   intro:'Across the street lives a whole cluster no one here knows. Build a connection to bridge the gap, then organize until a whole circle sees clearly together — when that happens, a structural win sparks (a blue ripple): something concrete changes, fear drops, and what people remember rises. That ripple is how districts are won.'},
@@ -525,10 +682,106 @@ const LEVELS=[
   allowed:CORE.concat(['mural','post','letter','expose','doc','reach','speak']), newActs:'NEW — Reach out to wavering (surround an incumbent with aware people until they turn amber, then ask them to walk away — success refunds energy, and doubt spreads to enforcers nearby) and Speak publicly (loud, wide, dangerous).'},
  {name:'5 · The regime', desc:'Win too fast and they send reinforcements.', N:74, rig:0.82, maxT:30, winP:0.05, thresh:0.67, floorGain:0.027, crackP:0.16, crackR:0.17, surv:105, linkMax:126, nInc:6, waverAt:0.54, spies:1, reinforce:2},
  {name:'6 · The apparatus', desc:'Two informants. The pillars must fall.', N:74, rig:0.85, maxT:30, winP:0.047, thresh:0.68, floorGain:0.026, crackP:0.17, crackR:0.18, surv:108, linkMax:122, nInc:7, waverAt:0.56, spies:2, reinforce:2},
- {name:'7 · The capital', desc:'Everything at once. Make losses stop mattering.', N:74, rig:0.88, maxT:28, winP:0.045, thresh:0.70, floorGain:0.025, crackP:0.19, crackR:0.19, surv:112, linkMax:118, nInc:8, waverAt:0.58, spies:2, reinforce:3}
+ {name:'7 · The capital', desc:'Everything at once. Make losses stop mattering.', N:74, rig:0.88, maxT:28, winP:0.045, thresh:0.70, floorGain:0.025, crackP:0.19, crackR:0.19, surv:112, linkMax:118, nInc:8, waverAt:0.58, spies:2, reinforce:3},
+ /* ===== ONE VOICE II — THE MORNING AFTER (era 2) =====
+    Sequel campaign. Same engine (diffusion, collective pressure, structural
+    wins), but the dials invert their meaning and holding a coalition together
+    replaces breaking a regime. Gated behind campProgress>=7. era:2 flag drives
+    every branch; finale:true marks the ending chapter. */
+ {era:2, name:'I · The morning after', desc:'The regime is gone. Now the coalition must agree what "won" means.',
+  N:46, maxT:18, thresh:0.60, winP:0.06, floorGain:0.03, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link'], drift0:0.20, mem0:0.44, mandate0:34, driftRate:0.022, rivalRate:0,
+  obj:{type:'deliver', count:3, text:'Deliver 3 concrete results while the coalition still holds'},
+  intro:'The last enforcer left the square before dawn. Now the people who toppled the old order have to build something — and they do not agree on what. Hear people out (Talk), hold assemblies (Organize), bind the coalition together (Build a tie). When a circle is ready, a result gets delivered — a clinic reopens, a pension is restored. But every delivery spends coalition capital: satisfying one bloc strains another. Keep the alliance together while you get things done.'},
+ {era:2, name:'II · What the files know', desc:'The surveillance apparatus still exists. Now it answers to you.',
+  N:48, maxT:20, thresh:0.61, winP:0.055, floorGain:0.028, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','drawer'], drift0:0.24, mem0:0.42, mandate0:36, driftRate:0.024, rivalRate:0.02,
+  obj:{type:'mandate', lvl:46, text:'Reach the end governing by consent — Mandate 46+, coalition intact'},
+  intro:'They left the drawers unlocked. Every file, every wiretap, every name — the machine is intact, and now it is yours. It works. It would make all of this so much easier. Governing by consent is slower, and it costs Mandate to act without asking. What you reach for now, you will be remembered for.'},
+ {era:2, name:'III · Four rooms', desc:'Amnesty. Tribunals. The warehouses. The street. All at once.',
+  N:52, maxT:22, thresh:0.62, winP:0.05, floorGain:0.026, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','delegate'], drift0:0.26, mem0:0.40, mandate0:38, driftRate:0.026, rivalRate:0.03,
+  obj:{type:'factions', lvl:0.35, text:'Hold all four blocs together at once — every faction above 35%'},
+  intro:'Four rooms, four answers. The enforcers who walked away want amnesty. The families who lost people want tribunals. The patron wants his warehouses left out of it. The street wants it all to have meant something. You cannot hold this alone — hand real authority to people you trust (Delegate), and let them keep a room you cannot.'},
+ {era:2, name:'IV · The other founder', desc:'Someone you know is building a coalition of their own.',
+  N:52, maxT:22, thresh:0.62, winP:0.05, floorGain:0.026, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','delegate','drawer'], drift0:0.28, mem0:0.38, mandate0:38, driftRate:0.028, rivalRate:0.055,
+  obj:{type:'rival', lvl:0.55, count:2, text:'Keep the other claim below 55% and deliver 2 results'},
+  intro:'They stood beside you in the worst of it. Now they have a different answer — and a growing base who believe it. Not a villain; a rival. You can out-deliver them, out-organize them, widen the mandate they are eating into — or you can open the drawer and make the problem quietly go away. Each has a price.'},
+ {era:2, finale:true, name:'V · The settlement', desc:'What the morning after finally becomes.',
+  N:56, maxT:24, thresh:0.62, winP:0.048, floorGain:0.025, linkMax:150, nInc:0, spies:0, reinforce:0, cracks:false,
+  allowed:['talk','org','link','delegate','drawer'], drift0:0.30, mem0:0.38, mandate0:40, driftRate:0.03, rivalRate:0.05,
+  obj:{type:'settle', text:'Hold the coalition to the settlement — what it becomes is up to you'},
+  intro:'No more first weeks. Whatever you build now is what people will live inside. Deliver what you can, hand power to those who should hold it, keep the blocs at the table — and decide, once and for all, whether the drawer stays shut. The morning after becomes an ordinary morning. Make it one worth waking to.'}
 ];
 const PRO_DEFAULTS={winP:0.10, thresh:0.55, floorGain:0.03, crackP:0, crackR:0.12, surv:85, linkMax:150, waverAt:0.5};
 const N_PRO=6;
+const N_CAMP=7;   /* era-1 campaign districts: LEVELS indices N_PRO .. N_PRO+N_CAMP-1 */
+
+/* ===== ONE VOICE II — sequel data & state (era 2) ===== */
+const CIVIC2=[
+ 'The first days after victory: agreeing on the enemy was the easy part.',
+ 'The apparatus in the drawer works exactly as designed. That is the whole problem.',
+ 'Four blocs, four legitimate answers. No settlement satisfies them all — and none may be crushed.',
+ 'A second claim rises from within the movement. Not a lie; a different, honest answer.',
+ 'The settlement: not the morning you dreamed of, but one you can defend.'
+];
+/* four blocs from the first campaign, now wanting different things. Opposed in pairs:
+   amnesty↔tribunal, market↔street. Satisfying one strains its rival. */
+const FACTIONS_DEF=[
+ {id:'amnesty', name:'The amnesty',    who:'enforcers who walked away', rival:'tribunal'},
+ {id:'tribunal',name:'The tribunals',  who:'families who lost people',  rival:'amnesty'},
+ {id:'market',  name:'The warehouses', who:'the patron and his trade',  rival:'street'},
+ {id:'street',  name:'The street',     who:'the base that made it',     rival:'market'}
+];
+/* era-2 structural wins are things DELIVERED by a new order, not a fear broken */
+const WIN_MAP2=[
+ ['clinic','The clinic reopens its doors, staffed and funded'],['hospital','The hospital is put back under public hands'],
+ ['rent','Rent control is written into the new charter'],['pension','Back pensions are paid, name by name'],
+ ['school','The schools reopen with books and paid teachers'],['fine','The old fines are cancelled and refunded'],
+ ['job','The blacklists are burned; people are rehired'],['flood','Public works clears the drains at last'],
+ ['harvest','The seized land is returned to those who worked it'],['savings','Savings wiped out by the old scrip are made good'],
+ ['venue','The concert hall reopens — legally, this time'],['read','A free press prints its first uncensored edition']
+];
+const WIN_GENERIC2=['A tribunal is seated, in the open','A new council is elected and sworn','A commission publishes what was hidden','A charter clause is ratified by show of hands','A land dispute is settled without troops'];
+let camp2Progress=0;
+try{camp2Progress=parseInt(localStorage.getItem('ov20_camp2')||'0');}catch(e){camp2Progress=0;}
+function saveCamp2(){try{localStorage.setItem('ov20_camp2',String(camp2Progress));}catch(e){}}
+let unlockSeen=false;
+try{unlockSeen=localStorage.getItem('ov20_unlock')==='1';}catch(e){}
+/* Common Ground meta: which strands the player has leaned on, carried across runs.
+   Overused strands start subsequent runs thinner — attrition, not punishment. */
+let strandLean={};
+try{strandLean=JSON.parse(localStorage.getItem('ov21_lean')||'{}');}catch(e){strandLean={};}
+function saveLean(){try{localStorage.setItem('ov21_lean',JSON.stringify(strandLean));}catch(e){}}
+/* Common Ground run state */
+let cgActive=false,resolve=0,resolveTold=false,strandsThisRun={},cgBeatDone=false;
+function commitLean(){
+  if(!cgActive)return;
+  Object.keys(strandLean).forEach(k=>{strandLean[k]=Math.max(0,strandLean[k]*0.7);}); /* the tired recover */
+  Object.keys(strandsThisRun).forEach(k=>{strandLean[k]=(strandLean[k]||0)+strandsThisRun[k];});
+  saveLean();
+}
+function awareStrands(minAw){const s=new Set();ag.forEach(a=>{if(!a.inc&&!a.gone&&a.strand&&a.aw>=minAw)s.add(a.strand);});return s;}
+/* era-2 run state (reset in initGame) */
+let factions=[],rival=0,rivalName='',usedApparatus=false,apparatusUses=0,empowered=[],deliveredThisRun=0,deliverIdx=0,lastDeliverBloc='';
+let driftTold=false,factionTold=false,drawerTold=false,rivalTold=false,delegateTold=false;
+function era2(){return !!(D&&D.era===2);}
+function faction(id){return factions.find(f=>f.id===id);}
+function weakestFaction(){let m=null,mv=2;factions.forEach(f=>{if(f.coh<mv){mv=f.coh;m=f;}});return m?m.id:null;}
+function factionsIntact(){return factions.every(f=>f.coh>0.06);}
+function factionsCollapsed(){return factions.filter(f=>f.coh<=0.06).length;}
+/* Each campaign district carries its own civic conflict — not just harder numbers.
+   Shown when the district opens, and echoed in its epilogue. */
+const CIVIC=[
+ 'The village learns the oldest lesson: neighbours who act together cannot all be silenced at once.',
+ 'A town of walls and letters — what is said in the open and what is passed hand to hand are two different weapons.',
+ 'Someone here reports to the station. Trust becomes the most dangerous, and most necessary, thing you carry.',
+ 'The district turns inward: the way through runs through the people inside the system.',
+ 'The regime escalates. Win too fast, too loud, and it sends more of its own.',
+ 'An apparatus of watchers — no single pillar holds it up, so no single push will bring it down.',
+ 'The capital, where fear is total and memory is the one thing they cannot confiscate.'
+];
 
 /* ---------- LEGACY (meta-progression) ---------- */
 const LEGACIES=[
@@ -574,6 +827,9 @@ function renderLegacy(){
    ov11_legacy / ov11_snd / ov11_mus             : embers, legacies, audio prefs (since v11)
    ov15_intro                                    : comic intro seen (since v15)
    ov17_hints                                    : once-ever contextual hints (since v17)
+   ov20_camp2 / ov20_unlock                      : sequel progress & unlock (since v20)
+   ov21_lean                                     : Common Ground strand attrition (since v21)
+   ov22_tips                                     : tactical-suggestion toggle (since v22)
    New keys in future versions should use the ov<version>_ prefix of the version
    that introduces them; never repurpose an existing key. ---------- */
 let proDone=[],campProgress=0;
@@ -605,17 +861,297 @@ let firedDilemmas=[],shelterTurns=0,shelterIdx=-1,boostTurns=0,freeLink=false,la
 let epiEvents=[],startName='',startRole='',firstWinSeen=false,inf30Told=false,inf40Told=false,witnessedOnce=false,hopeBonus=0;
 let opp=null,nearMissTold=false,freeZoneTold=false,embersAwarded=false;
 const cv=$('game'),ctx=cv.getContext('2d');
+let bgCanvas=null;   /* pre-rendered district backdrop (streets, buildings, square) */
+let city=null;       /* shared city geometry: streets, buildings, windows, square */
+let grainCanvas=null;/* prerendered paper grain, built once, composited each frame */
+let winScenes=[];    /* cinematic structural-win set pieces: windows light, figures rise, fog tears */
+let timeline=[];     /* Feature 3: one tick per turn — the shape of the run, in memory only */
+/* honour reduced-motion for the NEW drifting/day-cycle motion (canvas isn't covered by the CSS query) */
+const _rmq=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)'))||null;
+function reducedMotion(){return !!(_rmq&&_rmq.matches);}
+/* animation-speed control (Feature): a scaled clock. nowMs()/draw() read animClock,
+   which advances by realtime*animSpeed each frame — so 0.5x/1x/2x slows or hastens
+   every animation and the turn-resolution sequence together. Audio is unaffected. */
+let animSpeed=1, animClock=0, _lastRAF=null;
+try{const v=parseFloat(localStorage.getItem('ov23_speed'));if(v===0.5||v===1||v===2)animSpeed=v;}catch(e){}
 
 /* ---------- JUICE ---------- */
 let floaters=[],rippleAnims=[],nearMisses=[],pops={},shake={mag:0,t0:0},vignette=null,pulses=[];
-function nowMs(){return performance.now();}
+function nowMs(){return animClock;}   /* scaled animation clock — see loop(); lets one speed setting slow/hasten every animation uniformly */
 function addFloat(x,y,txt,color){floaters.push({x,y,txt,color:color||'#4fae8d',t0:nowMs()});if(floaters.length>24)floaters.shift();}
 function addRipple(x,y,color,big){rippleAnims.push({x,y,color:color||'#7ea6d8',t0:nowMs(),big:!!big});}
-function addNearMiss(x,y){nearMisses.push({x,y,t0:nowMs()});}
+function addNearMiss(x,y){nearMisses.push({x,y,t0:nowMs(),turn:turn});}
+/* ---------- CINEMATIC STRUCTURAL WIN (a set piece, never a modal) ----------
+   When a win fires, the winning block exhales: the ripple leads, its windows
+   light one by one, its people straighten in sequence, and the fog tears open
+   before settling lower. Layered over a state change that already happened — it
+   never blocks input and never freezes the turn. Reduced-motion: a gentle fade. */
+function spawnWinScene(ci,nbIdx){
+  const cx=ag[ci].x, cy=ag[ci].y;
+  addRipple(cx,cy,'#7ea6d8',true);                     /* the leading edge */
+  addFloat(cx,cy-18,'✦ something gave way','#7ea6d8');
+  const people=[ci].concat(nbIdx).filter((v,k,arr)=>arr.indexOf(v)===k)
+    .map(idx=>({idx,d:Math.hypot(ag[idx].x-cx,ag[idx].y-cy)})).sort((p,q)=>p.d-q.d);
+  const wins=[];
+  if(city&&city.windows){
+    for(let k=0;k<city.windows.length;k++){
+      const w=city.windows[k], d=Math.hypot((w.x+1.6)-cx,(w.y+2)-cy);
+      if(d<98||(w.owner>=0&&people.some(o=>o.idx===w.owner)))wins.push({k,d});
+    }
+    wins.sort((p,q)=>p.d-q.d);
+  }
+  const rm=reducedMotion();
+  if(rm)people.forEach(o=>addPop(o.idx));              /* straighten, gently, all at once */
+  winScenes.push({cx,cy,t0:nowMs(),dur:rm?1300:2200,people,wins,rm,popped:{}});
+}
+/* ---------- RUN TIMELINE render (Feature 3): a record, never a scorecard ----------
+   One focusable cell per turn; quiet palette-matched glyphs (colour + shape) for
+   what actually happened; current cell highlighted; recap in title/aria for
+   hover and keyboard. Rebuilt once per turn, not per frame. */
+function renderTimeline(){
+  const el=$('timeline');if(!el)return;
+  if(!timeline.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='flex';
+  const cur=timeline.length-1;
+  el.innerHTML=timeline.map((t,i)=>{
+    const g=[];
+    if(t.ev.win)g.push('<span class="tm win">▍</span>');
+    if(t.ev.succeed)g.push('<span class="tm succ">✚</span>');
+    if(t.ev.defect)g.push('<span class="tm def">●</span>');
+    if(t.ev.crack)g.push('<span class="tm crack">▲</span>');
+    if(t.ev.interr)g.push('<span class="tm bad">◇</span>');
+    if(t.ev.opening)g.push('<span class="tm opp">◎</span>');
+    const body=g.length?g.slice(0,3).join(''):'<span class="tkdot"></span>';
+    const lab=('Turn '+t.turn+(t.recap?' — '+t.recap:'')).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    return '<button type="button" class="tk'+(i===cur?' cur':'')+'" title="'+lab+'" aria-label="'+lab+'">'+body+'</button>';
+  }).join('');
+  el.scrollLeft=el.scrollWidth;   /* keep the latest turn in view */
+}
 function addPop(i){pops[i]=nowMs();}
 function doShake(m){shake.mag=m;shake.t0=nowMs();}
 function doVignette(color){vignette={color:color||'201,79,79',t0:nowMs()};}
 /* ---------------------------- */
+
+/* ---------- DISTRICT BACKDROP (the living resistance map) ----------
+   A pre-rendered, per-district charcoal cityscape: an irregular street grid,
+   building silhouettes with a few dim-lit windows, a public square, alleys.
+   Seeded by level so every district wears its own face — kept deliberately
+   faint so people, threads and fog always stay the loudest thing on screen. */
+/* Build the whole city ONCE per district: a shared geometry object (streets,
+   buildings, windows, square) plus a prerendered static image on bgCanvas.
+   Seeded from the district so the same district is the same streets every time.
+   Windows are stored (not baked) so they can light with their occupant later. */
+const STREET_HALF=4;        /* half road width */
+const SIDEWALK=STREET_HALF+3;/* where people stand: just off the road */
+function isKitchen(){return !!(D&&D.scene==='kitchen');}
+/* --- The kitchen table: an intimate courtyard-at-night backdrop with a real
+   central table under a warm lamp. Deterministic; keeps city.windows so they
+   still wake with awareness. Warm amber = human presence. --- */
+function buildKitchenScene(g){
+  const rnd=mulberry32(4210+lvlIdx*131);
+  const R=(a,b)=>a+rnd()*(b-a);
+  city={vx:[],hy:[],buildings:[],windows:[],square:null,table:null};
+  /* warm night base */
+  g.fillStyle='#15100f';g.fillRect(0,0,W,H);
+  const wallH=Math.round(H*0.36);
+  /* --- flanking building silhouettes: we sit between two homes --- */
+  g.fillStyle='rgba(10,9,11,0.9)';
+  g.fillRect(0,0,58,wallH+40); g.fillRect(W-58,0,58,wallH+40);
+  /* --- back wall of the house --- */
+  g.fillStyle='#1d1a20';g.fillRect(46,0,W-92,wallH);
+  g.fillStyle='rgba(46,42,52,0.5)';g.fillRect(46,wallH-3,W-92,3); /* wall base lip */
+  /* baked-in warm windows on the back wall (wake dynamically in draw) */
+  const winY=Math.round(wallH*0.30);
+  for(let k=0;k<4;k++){
+    const wx=Math.round(120+k*128+R(-6,6)), ww=30, wh=42;
+    g.fillStyle='#0c0a0d';g.fillRect(wx,winY,ww,wh);                 /* dark frame, baked */
+    g.strokeStyle='rgba(40,36,44,0.8)';g.lineWidth=1;g.strokeRect(wx+0.5,winY+0.5,ww-1,wh-1);
+    g.strokeStyle='rgba(40,36,44,0.7)';
+    g.beginPath();g.moveTo(wx+ww/2,winY);g.lineTo(wx+ww/2,winY+wh);g.moveTo(wx,winY+wh/2);g.lineTo(wx+ww,winY+wh/2);g.stroke();
+    city.windows.push({x:wx+2,y:winY+2,w:ww-4,h:wh/2-3,owner:-1});
+    city.windows.push({x:wx+2,y:winY+wh/2+1,w:ww-4,h:wh/2-3,owner:-1});
+  }
+  /* --- the doorway: warm light spills out of the house onto the yard --- */
+  const dx=W/2-26, dwd=52, dh=Math.round(wallH*0.86);
+  const spill=g.createLinearGradient(0,wallH-6,0,wallH+150);
+  spill.addColorStop(0,'rgba(228,170,96,0.22)');spill.addColorStop(1,'rgba(228,170,96,0)');
+  g.fillStyle=spill;
+  g.beginPath();g.moveTo(dx+4,wallH-6);g.lineTo(dx+dwd-4,wallH-6);g.lineTo(dx+dwd+40,wallH+150);g.lineTo(dx-40,wallH+150);g.closePath();g.fill();
+  g.fillStyle='#2a2118';g.fillRect(dx,wallH-dh,dwd,dh);                /* the open doorway, warm-dark */
+  g.fillStyle='rgba(228,178,110,0.14)';g.fillRect(dx+3,wallH-dh+3,dwd-6,dh-3);
+  g.strokeStyle='rgba(58,50,42,0.9)';g.lineWidth=2;g.strokeRect(dx-1,wallH-dh,dwd+2,dh);
+  /* --- the yard floor: warm boards + edge vignette --- */
+  const floor=g.createLinearGradient(0,wallH,0,H);
+  floor.addColorStop(0,'#241b18');floor.addColorStop(1,'#171110');
+  g.fillStyle=floor;g.fillRect(0,wallH,W,H-wallH);
+  g.strokeStyle='rgba(0,0,0,0.22)';g.lineWidth=1;
+  for(let y=wallH+16;y<H;y+=17){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  /* --- the pool of lamplight over the table (baked ambient warmth) --- */
+  const cx=W/2, cy=Math.round(H*0.55);
+  const pool=g.createRadialGradient(cx,cy-6,10,cx,cy,300);
+  pool.addColorStop(0,'rgba(232,180,110,0.20)');
+  pool.addColorStop(0.4,'rgba(224,150,86,0.09)');
+  pool.addColorStop(1,'rgba(224,150,86,0)');
+  g.fillStyle=pool;g.fillRect(0,wallH-40,W,H-wallH+40);
+  /* --- the table itself --- */
+  const rx=182, ry=118;
+  city.table={x:cx,y:cy,rx,ry};
+  g.fillStyle='rgba(0,0,0,0.34)';                                     /* soft floor shadow */
+  g.beginPath();g.ellipse(cx,cy+ry*0.34,rx*0.94,ry*0.5,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#3b2a1e';                                              /* table rim/edge */
+  g.beginPath();g.ellipse(cx,cy+3,rx,ry,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#5a4230';                                              /* table top, warm wood */
+  g.beginPath();g.ellipse(cx,cy,rx-6,ry-6,0,0,Math.PI*2);g.fill();
+  const grain=g.createRadialGradient(cx,cy-8,6,cx,cy,rx);
+  grain.addColorStop(0,'rgba(122,90,60,0.55)');grain.addColorStop(1,'rgba(60,42,28,0)');
+  g.fillStyle=grain;g.beginPath();g.ellipse(cx,cy,rx-6,ry-6,0,0,Math.PI*2);g.fill();
+  g.strokeStyle='rgba(24,16,10,0.6)';g.lineWidth=1.5;
+  g.beginPath();g.ellipse(cx,cy,rx-6,ry-6,0,0,Math.PI*2);g.stroke();
+  /* a few things on the table — small silhouettes, hand-placed */
+  g.fillStyle='rgba(22,15,10,0.7)';
+  const props=[[-70,-8,7,4],[52,10,6,4],[10,-30,5,3],[-24,26,6,4],[92,-14,5,3]];
+  props.forEach(p=>{g.beginPath();g.ellipse(cx+p[0],cy+p[1],p[2],p[3],0,0,Math.PI*2);g.fill();});
+  /* the hanging lamp shade + its glow, centered above the table */
+  g.fillStyle='rgba(232,196,132,0.9)';
+  g.beginPath();g.moveTo(cx-14,cy-ry-30);g.lineTo(cx+14,cy-ry-30);g.lineTo(cx+9,cy-ry-18);g.lineTo(cx-9,cy-ry-18);g.closePath();g.fill();
+  g.strokeStyle='rgba(60,50,36,0.8)';g.lineWidth=1;g.beginPath();g.moveTo(cx,cy-ry-30);g.lineTo(cx,0);g.stroke();
+}
+function buildCity(){
+  bgCanvas=document.createElement('canvas');bgCanvas.width=W;bgCanvas.height=H;
+  const g=bgCanvas.getContext('2d');
+  if(isKitchen()){buildKitchenScene(g);return;}
+  const rnd=mulberry32(7331+lvlIdx*104729);
+  const R=(a,b)=>a+rnd()*(b-a);
+  city={vx:[],hy:[],buildings:[],windows:[],square:null};
+  g.fillStyle='#14171c';g.fillRect(0,0,W,H);
+  /* --- streets: a few avenues carve the map into blocks --- */
+  const vx=city.vx,hy=city.hy;
+  let gx=R(74,120); while(gx<W-56){vx.push(gx); gx+=R(120,188);}
+  let gy=R(70,108); while(gy<H-44){hy.push(gy); gy+=R(104,150);}
+  const xs=[0,...vx,W], ys=[0,...hy,H];
+  /* block plates (built-up ground) */
+  for(let bi=0;bi<xs.length-1;bi++)for(let bj=0;bj<ys.length-1;bj++){
+    g.fillStyle='rgba(29,34,44,'+R(0.28,0.5)+')';
+    g.fillRect(xs[bi]+STREET_HALF,ys[bj]+STREET_HALF,xs[bi+1]-xs[bi]-STREET_HALF*2,ys[bj+1]-ys[bj]-STREET_HALF*2);
+  }
+  /* the roads themselves — dark seams + a faint dashed centre line */
+  g.strokeStyle='rgba(9,11,15,0.6)';g.lineWidth=STREET_HALF*2;
+  vx.forEach(s=>{g.beginPath();g.moveTo(s,0);g.lineTo(s,H);g.stroke();});
+  hy.forEach(s=>{g.beginPath();g.moveTo(0,s);g.lineTo(W,s);g.stroke();});
+  g.strokeStyle='rgba(232,228,216,0.04)';g.lineWidth=1;g.setLineDash([5,11]);
+  vx.forEach(s=>{g.beginPath();g.moveTo(s,0);g.lineTo(s,H);g.stroke();});
+  hy.forEach(s=>{g.beginPath();g.moveTo(0,s);g.lineTo(W,s);g.stroke();});
+  g.setLineDash([]);
+  /* --- a public square: one block opened up, paved --- */
+  let sqBlock=null;
+  if(vx.length&&hy.length){
+    const qi=Math.floor(R(0,xs.length-1)),qj=Math.floor(R(0,ys.length-1));
+    sqBlock=[qi,qj];
+    const qx=(xs[qi]+xs[qi+1])/2,qy=(ys[qj]+ys[qj+1])/2,qrx=R(42,58),qry=R(28,40);
+    city.square={x:qx,y:qy,rx:qrx,ry:qry};
+    g.fillStyle='rgba(24,28,37,0.75)';
+    g.beginPath();g.ellipse(qx,qy,qrx,qry,0,0,Math.PI*2);g.fill();
+    g.strokeStyle='rgba(232,228,216,0.05)';g.lineWidth=1;
+    g.beginPath();g.ellipse(qx,qy,qrx,qry,0,0,Math.PI*2);g.stroke();
+    g.fillStyle='rgba(232,228,216,0.09)';g.fillRect(qx-1.5,qy-9,3,18); /* monument */
+  }
+  /* --- buildings fill each block; the square block is left open --- */
+  for(let bi=0;bi<xs.length-1;bi++)for(let bj=0;bj<ys.length-1;bj++){
+    if(sqBlock&&bi===sqBlock[0]&&bj===sqBlock[1])continue;
+    const bx0=xs[bi]+SIDEWALK, by0=ys[bj]+SIDEWALK, bx1=xs[bi+1]-SIDEWALK, by1=ys[bj+1]-SIDEWALK;
+    const bw=bx1-bx0, bh=by1-by0;
+    if(bw<16||bh<16)continue;
+    /* subdivide the block into a small grid of footprints with courtyard gaps */
+    const cols=Math.max(1,Math.round(bw/R(34,52))), rows=Math.max(1,Math.round(bh/R(30,46)));
+    const cw=bw/cols, ch=bh/rows;
+    for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){
+      if(rnd()<0.12)continue;                    /* a gap — courtyard/lot */
+      const pad=R(1.5,3.5);
+      const x=bx0+c*cw+pad, y=by0+r*ch+pad, w=cw-pad*2, h=ch-pad*2;
+      if(w<10||h<10)continue;
+      const hgt=R(3,7);                            /* fake height: roof offset up */
+      city.buildings.push({x,y,w,h,hgt});
+      /* body */
+      g.fillStyle='rgba(20,24,31,0.92)';
+      g.fillRect(x,y+hgt,w,h-hgt);
+      /* roof — a touch lighter, gives a 2.5D lip */
+      g.fillStyle='rgba(37,43,55,0.55)';
+      g.fillRect(x,y,w,hgt+1.5);
+      g.strokeStyle='rgba(46,52,66,0.5)';g.lineWidth=1;g.strokeRect(x+0.5,y+0.5,w-1,h-1);
+      /* windows: a grid on the face, stored dark here and lit dynamically later */
+      for(let wy=y+hgt+4;wy<y+h-5;wy+=7)for(let wx=x+4;wx<x+w-4;wx+=7){
+        if(city.windows.length>320)break;
+        g.fillStyle='rgba(9,11,15,0.7)';g.fillRect(wx,wy,3.2,4.2); /* dark frame, baked */
+        city.windows.push({x:wx,y:wy,w:3.2,h:4.2,owner:-1});
+      }
+    }
+  }
+  /* --- alleys: a few thin darker cuts --- */
+  g.strokeStyle='rgba(9,11,15,0.4)';g.lineWidth=2;
+  for(let k=0;k<5;k++){
+    const ax=R(30,W-30),ay=R(40,H-30),len=R(18,54),ang=rnd()<0.5?0:Math.PI/2;
+    g.beginPath();g.moveTo(ax,ay);g.lineTo(ax+Math.cos(ang)*len,ay+Math.sin(ang)*len);g.stroke();
+  }
+  /* --- recognizable landmarks, seeded per district (small icon marks, no text) --- */
+  const big=city.buildings.filter(b=>b.w>=22&&b.h>=20);
+  const grab=()=>big.length?big.splice(Math.floor(rnd()*big.length),1)[0]:null;
+  const clinic=grab(),school=grab(),market=grab();
+  if(clinic){                     /* clinic: a small pale cross on a sign plate (not red — red means surveillance here) */
+    const cx=clinic.x+clinic.w/2,cy=clinic.y+clinic.hgt+7;
+    g.fillStyle='rgba(20,24,31,0.9)';g.fillRect(cx-5,cy-5,10,10);
+    g.strokeStyle='rgba(226,214,184,0.8)';g.lineWidth=2;
+    g.beginPath();g.moveTo(cx,cy-3);g.lineTo(cx,cy+3);g.moveTo(cx-3,cy);g.lineTo(cx+3,cy);g.stroke();
+  }
+  if(school){                     /* school: a small pennant on a pole */
+    const sx=school.x+school.w*0.5,sy=school.y+2;
+    g.strokeStyle='rgba(150,160,180,0.5)';g.lineWidth=1;
+    g.beginPath();g.moveTo(sx,sy);g.lineTo(sx,sy-9);g.stroke();
+    g.fillStyle='rgba(126,166,216,0.5)';
+    g.beginPath();g.moveTo(sx,sy-9);g.lineTo(sx+7,sy-7);g.lineTo(sx,sy-5);g.closePath();g.fill();
+  }
+  if(market){                     /* market: a couple of striped stall awnings */
+    const mx=market.x+3,my=market.y+market.h-4;
+    for(let s=0;s<2;s++){const ox=mx+s*11;g.fillStyle='rgba(224,164,88,0.35)';
+      g.beginPath();g.moveTo(ox,my);g.lineTo(ox+9,my);g.lineTo(ox+7,my-4);g.lineTo(ox+2,my-4);g.closePath();g.fill();}
+  }
+}
+/* pull a point to the nearest sidewalk so people stand along streets, not in voids */
+function snapToStreet(x,y){
+  if(!city||(!city.vx.length&&!city.hy.length))return {x,y};
+  let nv=1e9,vs=null; city.vx.forEach(s=>{const d=Math.abs(x-s);if(d<nv){nv=d;vs=s;}});
+  let nh=1e9,hs=null; city.hy.forEach(s=>{const d=Math.abs(y-s);if(d<nh){nh=d;hs=s;}});
+  let rx=x,ry=y;
+  if(vs!==null&&(hs===null||nv<=nh)){const side=x>=vs?1:-1;rx=vs+side*SIDEWALK;}
+  else if(hs!==null){const side=y>=hs?1:-1;ry=hs+side*SIDEWALK;}
+  return {x:rx,y:ry};
+}
+/* assign each window to the nearest person, so it can light with their awareness */
+function assignWindows(){
+  if(!city)return;
+  for(const w of city.windows){
+    let best=-1,bd=44*44;
+    for(let i=0;i<NN;i++){
+      const dx=ag[i].x-(w.x+1.6),dy=ag[i].y-(w.y+2);
+      const d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best=i;}
+    }
+    w.owner=best;
+  }
+}
+/* Stage 5: prerender a fine paper grain ONCE and composite it each frame — the
+   samizdat/risograph texture. Not deterministic (texture, not layout). */
+function buildGrain(){
+  grainCanvas=document.createElement('canvas');grainCanvas.width=W;grainCanvas.height=H;
+  const g=grainCanvas.getContext('2d');
+  const img=g.createImageData(W,H),d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    const v=200+Math.random()*55;
+    d[i]=d[i+1]=d[i+2]=v;
+    d[i+3]=Math.random()<0.5?Math.random()*15:0;  /* sparse, low-alpha speckle */
+  }
+  g.putImageData(img,0,0);
+}
+/* ------------------------------------------------------------------- */
 
 function rand(a,b){return a+Math.random()*(b-a);}
 function log(m){
@@ -759,6 +1295,9 @@ function showEpilogue(result,embersEarned){
     parts.push('The window closed with the work unfinished. Windows open again. They always have.');
     $('ep-title').textContent='Epilogue — the window closed';
   }
+  const ciE=lvlIdx-N_PRO;
+  if(!D.pro&&CIVIC[ciE])parts.push(CIVIC[ciE]);
+  parts.push('Remembered this run —\n'+rememberedLines(result).join('\n'));
   if(embersEarned)parts.push('🔥 '+embersEarned+' ember'+(embersEarned>1?'s':'')+' gathered from this story — carried to the next.');
   $('epilogue-text').textContent=parts.join('\n\n');
   $('epilogue-box').style.display='block';
@@ -774,11 +1313,212 @@ $('ep-map').addEventListener('click',()=>{$('epilogue-box').style.display='none'
 function awardEmbers(won){
   if(embersAwarded||D.pro)return 0;
   embersAwarded=true;
+  commitLean();  /* carry forward which strands were leaned on (attrition, not scoring) */
   const earned=wins+defected*2+(won?5:0);
   if(earned>0){legacy.embers+=earned;saveLegacy();}
   return earned;
 }
+
+/* ---------- REFLECTION: the run recognizes how you played it ----------
+   No classes, no labels the player picks — the game reads the shape of the
+   actions taken and names it back. Feeds the epilogue's "Remembered this run". */
+function playstyleLine(){
+  let best=null,bn=0;
+  Object.keys(actionCounts).forEach(k=>{if(actionCounts[k]>bn){bn=actionCounts[k];best=k;}});
+  if(!best)return '';
+  const map={
+    talk:'You worked person to person, at kitchen tables — the quiet organizer\'s way.',
+    org:'You gathered people into rooms; the meeting was your instrument.',
+    mural:'You let the walls carry the work — paint spoke while you rested.',
+    letter:'You wove a web of distant threads; distance meant nothing to your letters.',
+    post:'You cast your words wide and thin across the whole district.',
+    speak:'You chose the open square and the raised voice — loud, and dangerous.',
+    reach:'You turned the system against itself, one uniform at a time.',
+    doc:'You made their own violence testify against them.',
+    low:'You survived by knowing exactly when to disappear.',
+    link:'You built the connective tissue first — a district that could carry a word.'
+  };
+  return map[best]||'';
+}
+function rememberedLines(result){
+  const civ=ag.map((a,i)=>({a,i})).filter(o=>!o.a.inc);
+  const awakened=civ.filter(o=>!o.a.gone&&o.a.aw>=0.5).length;
+  const harmed=civ.filter(o=>o.a.gone||o.a.harmed||o.a.betrayed).length;
+  const protN=ag.filter(a=>a.sheltered).length;
+  let hero=null,hs=-1;
+  civ.forEach(o=>{if(o.i===player||o.a.gone||o.a.inc)return;
+    const s=o.a.aw+(o.a.events?o.a.events.length*0.12:0)+(o.a.organizer?0.35:0);
+    if(s>hs){hs=s;hero=o.a;}});
+  const L=[];
+  L.push('· '+awakened+' neighbour'+(awakened===1?'':'s')+' came to see clearly, and '+wins+' concrete thing'+(wins===1?'':'s')+' changed in ways that cannot be undone.');
+  if(harmed)L.push('· '+harmed+' paid a price — taken, scarred, or turned away. Their names stay in the story.');
+  if(protN)L.push('· '+protN+' were sheltered when the knock came at midnight.');
+  if(defected)L.push('· '+defected+' put down the uniform and carried the work forward.');
+  if(hero)L.push('· If one name is remembered above the rest, it is '+hero.nm+', '+hero.role+'.');
+  const fearBroke=rig<=0.15, memHardened=floor>=0.35;
+  if(result==='win'){
+    L.push(memHardened&&!fearBroke?'· Won on memory: too much was made permanent to erase.':
+      fearBroke&&!memHardened?'· Won by breaking fear\'s hold: words move freely here now.':
+      '· Won on both fronts at once — fear broke as memory hardened.');
+  } else {
+    L.push(floor>=rig?'· Memory outran fear this time; only the clock beat you. Closer than it felt.':
+      '· Fear kept the upper hand this run — next time, protect the work as fast as you spread it.');
+  }
+  const ps=playstyleLine();
+  if(ps)L.push('· '+ps);
+  return L;
+}
 /* ------------------------------ */
+
+/* ==================================================================
+   ONE VOICE II — sequel logic (era 2): deliveries, factions, rival,
+   delegation, the drawer, chapter resolution, endings, epilogue.
+   ================================================================== */
+/* a delivery pleases one bloc and strains its opposed pair — you cannot
+   satisfy all four. Rotates so every result forces a real trade-off. */
+function deliverFaction(){
+  if(!factions.length)return;
+  const f=factions[deliverIdx++%factions.length];
+  f.coh=Math.min(1,f.coh+0.10);
+  const riv=faction(f.rival);if(riv)riv.coh=Math.max(0,riv.coh-0.09);
+  lastDeliverBloc=f.name;
+}
+/* stat relabelling: the dials keep their storage, invert their meaning */
+const STAT_LABELS_1={'st-risk':'Eyes on you','st-inf':'Community trust','st-rig':'Fear in the air','st-floor':'What people remember','st-aw':'Neighborhood awareness'};
+const STAT_LABELS_2={'st-risk':'Legitimacy spent','st-inf':'Mandate','st-rig':'Coalition drift','st-floor':'Contested memory','st-aw':'Coalition support'};
+function applyStatLabels(){
+  const m=era2()?STAT_LABELS_2:STAT_LABELS_1;
+  Object.keys(m).forEach(id=>{const el=$(id);if(!el)return;const l=el.querySelector('.l');if(l)l.innerHTML=m[id]+' <span style="color:#7ea6d8;">ⓘ</span>';});
+}
+function renderFactions(){
+  const el=$('factions');if(!el)return;
+  el.style.display='';
+  const rows=factions.map(f=>{
+    const pct=Math.round(f.coh*100);
+    const col=f.coh<0.2?'201,79,79':(f.coh<0.4?'224,164,88':'79,174,141');
+    return '<div class="frow"><span class="fn">'+f.name+'</span><span class="fbar"><span class="ffill" style="width:'+pct+'%;background:rgba('+col+',0.6)"></span></span><span class="fv">'+pct+'%</span></div>';
+  }).join('');
+  const rivPct=Math.round(rival*100);
+  el.innerHTML='<div class="fhead"><span>The coalition — four blocs at the table</span><span>hold them all</span></div>'+rows+
+    (rivalName?'<div class="rival">'+rivalName+'’s claim <span class="rbar"><span class="rfill" style="width:'+rivPct+'%"></span></span> '+rivPct+'%'+(usedApparatus?' · <span style="color:#8d7bdb;">the drawer is open</span>':'')+'</div>':'');
+}
+/* per-chapter sub-goal (universal loss = fracture / rival eclipse / timeout) */
+function era2SubgoalMet(){
+  const o=D.obj;if(!o)return false;
+  if(o.type==='deliver')return wins>=o.count;
+  if(o.type==='mandate')return inf>=o.lvl&&factionsIntact();
+  if(o.type==='factions')return factions.every(f=>f.coh>=o.lvl);
+  if(o.type==='rival')return rival<=o.lvl&&wins>=(o.count||0);
+  return false; /* 'settle' is the finale, handled below */
+}
+function era2Resolve(){
+  const fractured=factionsCollapsed()>=2||rig>=0.94;
+  const rivalWon=rival>=0.9;
+  if(D.finale){
+    if(fractured){era2Finale('fracture');return;}
+    if(rivalWon){era2Finale('rival');return;}
+    if(turn>D.maxT){era2Finale(null);return;}
+    return; /* play on to the settlement */
+  }
+  if(fractured){era2Loss('The coalition came apart — two blocs walked from the table and did not come back. What replaces it will not be gentle.');return;}
+  if(rivalWon){era2Loss(rivalName+'’s claim eclipsed yours. The coalition chose another morning — not yours.');return;}
+  if(era2SubgoalMet()){era2ChapterWin();return;}
+  if(turn>D.maxT){era2Loss('The window for this chapter closed with the settlement unfinished.');return;}
+}
+function era2ChapterWin(){
+  over=true;sVictory();
+  const ci=lvlIdx-(N_PRO+N_CAMP);
+  if(ci===camp2Progress){camp2Progress=Math.min(5,camp2Progress+1);saveCamp2();}
+  const earned=awardEmbers(true);
+  const titles=['★ The first results are real','★ You governed by consent','★ All four rooms held','★ The other claim, held off','★ The settlement holds'];
+  const bodies=[
+    'Three things were delivered that people can point to — and the coalition is still, somehow, one thing. The morning after has a shape now.',
+    'You reached the table’s end with a mandate still worth the name'+(usedApparatus?', though you opened the drawer to do it — and that will not be forgotten':', and the drawer stayed shut')+'.',
+    'Amnesty, tribunals, warehouses, street — all four still in the room at once. No one got everything. Everyone got something. That is what holding looks like.',
+    rivalName+'’s claim did not carry the day. Not because you crushed it — because you out-delivered it, mostly.',
+    'The settlement holds.'
+  ];
+  showEnd(titles[ci]||'★ Chapter settled','<p>'+(bodies[ci]||'The chapter settles.')+'</p>'+(earned>0?'<p>🔥 <b>+'+earned+' embers</b> — nothing is wasted.</p>':'')+'<p><b>Next:</b> the next chapter of the morning after is unsealed.</p>');
+  showEpilogue2('win',null);
+}
+function era2Loss(reason){
+  over=true;sLoss();
+  const earned=awardEmbers(false);
+  showEnd('The morning after falters','<p>'+reason+'</p>'+era2FailDiag()+(earned>0?'<p>🔥 <b>+'+earned+' embers</b> — nothing is wasted.</p>':'')+'<p><b>Next:</b> return and try a different settlement. Who you empower, what you deliver, and whether the drawer stays shut all change how this holds.</p>');
+  showEpilogue2('loss',null);
+}
+function era2FailDiag(){
+  const L=[];
+  if(factionsCollapsed()>=2)L.push('Two blocs were let go at once — the alliance needs all four, and delivery alone strains them. Assemble and delegate to hold the weak room.');
+  else if(rig>=0.9)L.push('Drift ran away — silence and inaction pulled it apart. The morning after has to be actively held together, every turn.');
+  else if(rival>=0.85)L.push('The other claim grew faster than you answered it — out-deliver it, widen the mandate it feeds on, or (at a price) open the drawer.');
+  else L.push('The sub-goal came up short before the window closed. A tighter rhythm of delivery and consent gets there.');
+  return '<p><i>'+L[0]+'</i></p>';
+}
+/* the endings — chosen from faction/memory/rival/empowerment/apparatus state.
+   None is a pure fantasy; the settlement is a quiet, compromised success. */
+const ENDINGS={
+ settlement:{win:true,title:'Ending — the quiet settlement',
+   body:'No statue, no triumph. A council that argues and keeps meeting. Amnesty for most, a handful of tribunals that satisfy no one entirely, warehouses that pay a little more tax than they’d like. What people remember is written down where it can be checked. It is smaller than the dream in the square — and it is real, and it is yours to keep, together.'},
+ handover:{win:true,title:'Ending — the handover',
+   body:'You did the one thing founders almost never do: you gave it away. Real authority now sits with people you named, each holding a room you could not. The settlement is fragile — spread thin, argued over — but it does not depend on you, and that is the only kind that lasts. You go home an ordinary person. The morning is ordinary too. That was the point.'},
+ strongman:{win:false,title:'Ending — the bargain',
+   body:'Order held. The trains run, the blocs are quiet, the rival’s claim went quietly nowhere. And the drawer stayed open — the files current, the names kept, the machine humming under the new charter as it did under the old. People are careful how they say your name now. You told yourself it was temporary. The apparatus has heard that before.'},
+ fracture:{win:false,title:'Ending — the fracture',
+   body:'It came apart the way these things do — not in one blow, but two rooms emptying, then a third, until the table was a rumor. What made the revolution could not survive the morning after it. Something will fill the space. It usually wears a uniform. What people saw, they keep — and one day they will come back to it.'},
+ rival:{win:false,title:'Ending — the other’s morning',
+   body:rivalName?'':'',dyn:true}
+};
+function era2Finale(forced){
+  over=true;
+  const key=forced||pickEnding();
+  const E=ENDINGS[key];
+  let title=E.title,body=E.body;
+  if(key==='rival'){title='Ending — the other’s morning';
+    body='It was '+rivalName+' who inherited the morning — someone who stood beside you in the worst of it, and answered the after differently. Not a villain; a different, honest claim that grew while yours frayed. They will make their own compromises, their own mistakes. You are in the square again, one voice among many, where you started. Perhaps that was always the truer place.';}
+  if(E.win)sVictory();else sLoss();
+  const ci=lvlIdx-(N_PRO+N_CAMP);
+  if(ci===camp2Progress){camp2Progress=Math.min(5,camp2Progress+1);saveCamp2();} /* finale reached — sequel complete either way */
+  const earned=awardEmbers(E.win);
+  showEnd(title,'<p>'+body+'</p>'+(earned>0?'<p>🔥 <b>+'+earned+' embers</b>.</p>':'')+'<p><b>The morning after is complete.</b> Replay any chapter to reach a different settlement — the drawer, the delegates, and the deliveries all change how it ends.</p>');
+  showEpilogue2('end',key);
+}
+function pickEnding(){
+  if(rival>=0.7)return 'rival';
+  if(factionsCollapsed()>=2||rig>=0.9)return 'fracture';
+  if(usedApparatus)return 'strongman';
+  if(empowered.length>=3&&inf>=45)return 'handover';
+  return 'settlement';
+}
+/* sequel epilogue — reflects blocs, delegates, the drawer, the rival, memory */
+function showEpilogue2(result,endKey){
+  const parts=[];
+  parts.push('You began as '+startName+', '+startRole+', on the morning after — with a coalition, a mandate, and no enemy left to agree on.');
+  epiEvents.forEach(e=>parts.push(e));
+  const strong=factions.filter(f=>f.coh>=0.4).map(f=>f.name.toLowerCase());
+  const lost=factions.filter(f=>f.coh<=0.06).map(f=>f.name.toLowerCase());
+  if(strong.length)parts.push('Still at the table: '+strong.join(', ')+'.');
+  if(lost.length)parts.push('Walked out: '+lost.join(', ')+'. That absence has a shape.');
+  if(empowered.length)parts.push('You handed real authority to '+empowered.map(e=>e.nm).join(', ')+' — power you chose not to keep.');
+  else parts.push('You kept every decision in your own hands. No one learned to carry it but you.');
+  if(usedApparatus)parts.push('You opened the drawer '+(apparatusUses>1?apparatusUses+' times':'once')+'. The files are still current. The machine outlived the regime it served — because you let it.');
+  else parts.push('The drawer stayed shut. Slower, harder, and no one will ever have to wonder what you did with the files.');
+  if(rivalName)parts.push(rival>=0.5?rivalName+'’s claim grew loud beside yours; the movement learned it was never one voice after all.':rivalName+'’s rival claim never caught — answered, not silenced.');
+  parts.push('Remembered this morning —\n'+remembered2().join('\n'));
+  $('ep-title').textContent=(endKey&&ENDINGS[endKey])?ENDINGS[endKey].title:(result==='win'?'Epilogue — the coalition holds, for now':'Epilogue — the morning after');
+  $('epilogue-text').textContent=parts.join('\n\n');
+  $('epilogue-box').style.display='block';
+}
+function remembered2(){
+  const L=[];
+  L.push('· '+wins+' concrete thing'+(wins===1?'':'s')+' delivered — clinics, pensions, tribunals, charters people can point to.');
+  L.push('· Contested memory ended at '+Math.round(floor*100)+'%'+(floor>=0.35?' — defended, on the record.':' — the old version is winning that argument.'));
+  L.push('· Coalition drift '+Math.round(rig*100)+'%, mandate '+Math.round(inf)+'.');
+  if(empowered.length)L.push('· Power now held by '+empowered.length+' other'+(empowered.length===1?'':'s')+' — the settlement does not rest on you alone.');
+  const ps=playstyleLine();if(ps)L.push('· '+ps);
+  return L;
+}
+/* ------------------------------------------------------------------ */
 
 /* ---------- DILEMMAS ---------- */
 const DILEMMAS=[
@@ -885,13 +1625,60 @@ const DILEMMAS=[
           epiEvents.push('When the whisper came about '+v.a.nm+', you accused no one — and quietly built a second path for everything important.');
           log('You accuse no one. But that night you start building a second path for everything important — one that does not run through '+v.a.nm+'. Perhaps you are being unfair. Perhaps you are being wise. Your next connection will cost you nothing; caution has its own economy.');}}
     };
-  }}
+  }},
+ /* ===== ERA 2 DILEMMAS — governing is choosing who to disappoint ===== */
+ {id:'e2_amnesty', era:2, title:'The list of names',
+  when:()=>turn>2,
+  build:()=>({
+    text:'The tribunal committee brings you a list. Forty-one names — mid-level people from the old apparatus, the ones who signed the orders but did not write them. "Try them," say the families. "Let them go," say the ones who walked away, "or no one will ever cross over again." Both are in your coalition. Both are right.',
+    a:{label:'Seat the tribunals', hint:'The families get their day. The turncoats hear a door closing.',
+      fx2:'The tribunals +18% · The amnesty −16% · Contested memory +3 · Mandate +4',
+      fx:()=>{const t=faction('tribunal'),am=faction('amnesty');if(t)t.coh=Math.min(1,t.coh+0.18);if(am)am.coh=Math.max(0,am.coh-0.16);floor=Math.min(0.6,floor+0.03);inf=Math.min(100,inf+4);
+        epiEvents.push('You seated the tribunals. The families wept in the gallery; three of your defected allies did not come back the next morning.');
+        log('The tribunals are seated in the open. The families finally hear the names read aloud. And somewhere, the enforcers who were deciding whether to trust you make their decision.');}},
+    b:{label:'Grant the amnesty', hint:'The crossing-over stays open. The bereaved learn what "settlement" costs.',
+      fx2:'The amnesty +18% · The tribunals −16% · Contested memory −3 · a name is remembered anyway',
+      fx:()=>{const t=faction('tribunal'),am=faction('amnesty');if(am)am.coh=Math.min(1,am.coh+0.18);if(t)t.coh=Math.max(0,t.coh-0.16);floor=Math.max(0.05,floor-0.03);
+        epiEvents.push('You granted the amnesty. More of the old apparatus came over — and a mother stopped coming to the meetings.');
+        log('You grant the amnesty. More of the old machine crosses to your side, useful and quiet. In the third row, a woman who lost her son folds the list, puts it in her coat, and leaves without a word.');}}
+  })},
+ {id:'e2_patron', era:2, title:'The warehouses',
+  when:()=>turn>4,
+  build:()=>({
+    text:'The patron who bankrolled the last hard winter asks for five minutes. "I kept the lights on when it was dangerous to. I only ask that my warehouses stay out of the land question." The street wants those warehouses opened. His money is already funding three of your clinics.',
+    a:{label:'Protect the warehouses', hint:'The clinics stay funded. The street learns whose morning this is.',
+      fx2:'The warehouses +16% · The street −15% · Mandate −6 · Legitimacy spent +8',
+      fx:()=>{const m=faction('market'),st=faction('street');if(m)m.coh=Math.min(1,m.coh+0.16);if(st)st.coh=Math.max(0,st.coh-0.15);inf=Math.max(0,inf-6);risk=Math.min(1,risk+0.08);
+        epiEvents.push('You kept the patron’s warehouses out of the land question. The clinics stayed open; the street noticed who they stayed open for.');
+        log('You keep his name out of the land question. The clinics stay funded, which matters. And the street reads the exemption exactly for what it is.');}},
+    b:{label:'Open them to the land question', hint:'The base is vindicated. The money — and the clinics — may follow it out the door.',
+      fx2:'The street +16% · The warehouses −17% · deliveries harder next while funding wobbles',
+      fx:()=>{const m=faction('market'),st=faction('street');if(st)st.coh=Math.min(1,st.coh+0.16);if(m)m.coh=Math.max(0,m.coh-0.17);rig=Math.min(1,rig+0.05);
+        epiEvents.push('You put the warehouses into the land question. The street cheered; the patron’s money began, quietly, to look for the door.');
+        log('You put the warehouses on the table with everything else. The street cheers in the square. That evening the patron is warm, and vague, and you understand that some of the lights are about to get harder to keep on.');}}
+  })},
+ {id:'e2_drawer', era:2, title:'A name in the files',
+  when:()=>rival>0.4,
+  build:()=>({
+    text:'A folder finds its way to your desk. Inside: everything the old regime had on '+ (rivalName||'your rival') +' — enough, if it were published, to end their competing claim in a week. No one made you open it. It is simply, quietly, there.',
+    a:{label:'Use what the files hold', hint:'The rival problem ends this week. So does something else.',
+      fx2:'Rival claim collapses · Mandate −14 · the drawer is open now, for good',
+      fx:()=>{usedApparatus=true;apparatusUses++;rival=Math.max(0,rival*0.3);inf=Math.max(0,inf-14);
+        epiEvents.push('You used what the files held on '+(rivalName||'your rival')+'. Their claim collapsed within the week. You told yourself it was the last time.');
+        log('You use it. Within a week '+(rivalName||'the rival')+'’s claim is finished — not argued down, just... finished. The method worked as well for you as it did for them. The drawer is open now, and you already know it will not close.');}},
+    b:{label:'Burn the folder unread', hint:'You keep your hands clean. The rival keeps their claim.',
+      fx2:'Rival unchanged · Mandate +8 · Contested memory +2 · nothing owed to the machine',
+      fx:()=>{inf=Math.min(100,inf+8);floor=Math.min(0.6,floor+0.02);
+        epiEvents.push('A folder on '+(rivalName||'your rival')+' reached your desk. You burned it unread, and answered the claim in the open instead.');
+        log('You burn it in the sink and watch the names curl. If you are going to beat '+(rivalName||'this')+', it will be in the open, or not at all. Your hands are empty, which is the point.');}}
+  })}
 ];
 let pendingDilemma=null;
 function maybeFireDilemma(){
   if(D.pro||over||pendingDilemma)return;
   if(Math.random()>0.30)return;
-  const pool=DILEMMAS.filter(d=>!firedDilemmas.includes(d.id)&&d.when());
+  /* era-1 and era-2 dilemmas are mutually exclusive: era-2 ones carry era:2 */
+  const pool=DILEMMAS.filter(d=>(era2()?d.era===2:!d.era)&&!firedDilemmas.includes(d.id)&&d.when());
   if(!pool.length)return;
   const d=pool[Math.floor(rand(0,pool.length))];
   const b=d.build();
@@ -919,35 +1706,60 @@ $('dl-b').addEventListener('click',()=>resolveDilemma('b'));
 
 function renderCampaign(){
   renderLegacy();
-  const pro=$('levels-pro'),camp=$('levels-camp');
-  pro.innerHTML='';camp.innerHTML='';
-  /* recommended next: first unfinished lesson, else first open district */
+  const pro=$('levels-pro'),camp=$('levels-camp'),camp2=$('levels-camp2');
+  pro.innerHTML='';camp.innerHTML='';camp2.innerHTML='';
+  const sequelOpen=campProgress>=N_CAMP;
+  /* recommended next: first unfinished lesson, else first open era-1 district,
+     else first unfinished sequel chapter once the sequel is unlocked */
   let recIdx=-1;
   for(let i=0;i<N_PRO;i++){if(!proDone[i]){recIdx=i;break;}}
-  if(recIdx<0&&N_PRO+campProgress<LEVELS.length)recIdx=N_PRO+campProgress;
+  if(recIdx<0&&campProgress<N_CAMP)recIdx=N_PRO+campProgress;
+  if(recIdx<0&&sequelOpen&&camp2Progress<5)recIdx=N_PRO+N_CAMP+camp2Progress;
   LEVELS.forEach((L,i)=>{
     const div=document.createElement('div');
-    let open,won,stampTxt,stampCls;
+    let open,won,stampTxt,stampCls,host;
     if(L.pro){
-      won=!!proDone[i];open=true;
+      won=!!proDone[i];open=true;host=pro;
       stampTxt=won?'LEARNED':'OPTIONAL';stampCls=won?'won':'opt';
+    } else if(L.era===2){
+      const ci=i-(N_PRO+N_CAMP);host=camp2;
+      won=ci<camp2Progress;open=sequelOpen&&ci<=camp2Progress;
+      stampTxt=won?'SETTLED':(open?'OPEN':(sequelOpen?'SEALED':'LOCKED'));
+      stampCls=won?'won':(open?'open':'sealed');
     } else {
-      const ci=i-N_PRO;
+      const ci=i-N_PRO;host=camp;
       won=ci<campProgress;open=ci<=campProgress;
       stampTxt=won?'LIBERATED':(open?'OPEN':'SEALED');stampCls=won?'won':(open?'open':'sealed');
     }
+    /* while the whole sequel is still locked, hide individual chapters and show a single teaser (below) */
+    if(L.era===2&&!sequelOpen)return;
     div.className='file'+(open?'':' locked')+(won?' done':'');
     div.innerHTML='<div><div class="name">'+L.name+'</div><div class="desc">'+L.desc+'</div></div>'+
       '<span>'+(i===recIdx?'<span class="stamp next">RECOMMENDED</span>':'')+'<span class="stamp '+stampCls+'">'+stampTxt+'</span></span>';
     if(open)div.addEventListener('click',()=>startLevel(i));
-    (L.pro?pro:camp).appendChild(div);
+    host.appendChild(div);
   });
+  /* the sequel section: always visible so players know more exists */
+  $('camp2-head').style.display='';
+  $('camp2-sub').style.display='';
+  if(sequelOpen){
+    $('camp2-sub').textContent='The regime has fallen. Now the coalition has to hold — a harder, less heroic problem. The dials you knew mean something new here.';
+  } else {
+    $('camp2-sub').textContent='What happens after you win?';
+    const teaser=document.createElement('div');
+    teaser.className='file locked';
+    teaser.innerHTML='<div><div class="name">One Voice II — The morning after</div>'+
+      '<div class="desc">Sealed until the regime falls. The fight does not end when you win — it changes shape. Liberate all seven districts to open it.</div></div>'+
+      '<span><span class="stamp sealed">'+(N_CAMP-campProgress)+' districts to go</span></span>';
+    camp2.appendChild(teaser);
+  }
 }
 
 function startLevel(i){
   lvlIdx=i;D=Object.assign({},PRO_DEFAULTS,LEVELS[i]);
   $('screen-campaign').classList.add('hidden');
   $('screen-game').classList.remove('hidden');
+  document.querySelector('.wrap').classList.add('playing');   /* widen to the two-column layout on desktop */
   $('lvl-title').textContent=D.name;
   $('howto-box').open=(i===N_PRO&&getAttempts(N_PRO)===0);
   let introSeen=false;
@@ -964,6 +1776,7 @@ function backToCampaign(){
   if(!over&&turn>1&&fallenThisRun.length){setFallen(lvlIdx,fallenThisRun);}
   updateMurmur(0);
   $('screen-game').classList.add('hidden');
+  document.querySelector('.wrap').classList.remove('playing');  /* campaign map keeps its narrower column */
   $('screen-campaign').classList.remove('hidden');
   renderCampaign();
 }
@@ -986,10 +1799,19 @@ function setButtons(){
   $('st-inf').style.display=D.pro&&!D.allowed.includes('reach')?'none':'';
   $('st-risk').style.display=showRisk?'':'none';
   $('howto-box').style.display=D.pro?'none':'';
+  if(era2()){ /* era 2 shows all four inverted dials, the factions panel, and the govern group */
+    ['st-risk','st-inf','st-rig','st-floor'].forEach(id=>$(id).style.display='');
+    $('factions').style.display='';
+    $('howto-box').style.display='none'; /* the era-1 reference does not describe the morning after */
+  } else {
+    $('factions').style.display='none';
+  }
+  applyStatLabels();
 }
 
 function initGame(){
   NN=D.N;
+  buildCity();
   const srand=mulberry32(1000+lvlIdx*7919);
   const sr=(a,b)=>a+srand()*(b-a);
   ag=[];links=[];built=[];weak=new Set();murals=[];turn=1;energy=3;rig=D.rig;
@@ -999,7 +1821,10 @@ function initGame(){
   journal=[];$('journal').innerHTML='';fallenThisRun=[];epiEvents=[];
   firstWinSeen=false;inf30Told=false;inf40Told=false;witnessedOnce=false;hopeBonus=0;
   opp=null;nearMissTold=false;freeZoneTold=false;embersAwarded=false;lastWinTurn=-99;
-  floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;
+  floaters=[];rippleAnims=[];nearMisses=[];pops={};shake={mag:0,t0:0};vignette=null;winScenes=[];
+  cgActive=!D.pro&&!era2();resolve=0;resolveTold=false;strandsThisRun={};cgBeatDone=false;
+  undoSnap=null;sequencing=false;clearTimeout(_seqTimer);if($('seqskip'))$('seqskip').style.display='none';
+  timeline=[];renderTimeline();
   $('epilogue-box').style.display='none';
   $('pcard').style.display='none';
   firedDilemmas=[];shelterTurns=0;shelterIdx=-1;boostTurns=0;freeLink=false;lastCrackTurn=-99;pendingDilemma=null;$('overlay').style.display='none';
@@ -1015,9 +1840,17 @@ function initGame(){
     const role=ROLES[(lvlIdx*7+idx*5)%ROLES.length];
     const stake=STAKES[(lvlIdx*11+idx*13)%STAKES.length];
     const trait=TRAITS[Math.floor(srand()*TRAITS.length)];
-    return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,met:false,betrayed:false,sheltered:false,press:0,events:[]};
+    return {x,y,aw:sr(0.05,0.18),inc:false,gone:false,waver:false,def:false,doubt:false,nm,role,stake,trait,strand:'',met:false,betrayed:false,sheltered:false,harmed:false,organizer:false,successor:false,press:0,events:[]};
   }
-  if(D.clusterCenter){
+  if(isKitchen()){
+    /* seats around the table: index 0 (you) at the near edge, the rest ringed */
+    const tb=(city&&city.table)?city.table:{x:W/2,y:H*0.55,rx:182,ry:118};
+    const seatR=tb.rx+22, seatRY=tb.ry+20;
+    for(let i=0;i<NN;i++){
+      const ang=Math.PI/2+i*(Math.PI*2/NN);
+      ag.push(mkPerson(i,tb.x+Math.cos(ang)*seatR,tb.y+Math.sin(ang)*seatRY));
+    }
+  } else if(D.clusterCenter){
     for(let i=0;i<NN;i++){
       const ang=sr(0,Math.PI*2),rad=i===0?0:sr(55,185);
       ag.push(mkPerson(i,W/2+Math.cos(ang)*rad,H/2+Math.sin(ang)*rad*0.75));
@@ -1034,6 +1867,23 @@ function initGame(){
     ag[i].inc=true;ag[i].aw=0;
     if(D.clusterCenter){ag[i].x=W/2;ag[i].y=H/2;}
   }
+  /* Stage 1: draw people onto the streets, then space them so tapping stays
+     reliable. Only the open campaign layout is nudged — the clusterCenter and
+     twoClusters lesson layouts keep their exact shape. Runs BEFORE links so the
+     distance-based connections follow the new street geometry. */
+  if(!D.clusterCenter&&!D.twoClusters&&!isKitchen()){
+    for(let i=0;i<NN;i++){
+      const s=snapToStreet(ag[i].x,ag[i].y);
+      ag[i].x=ag[i].x*0.4+s.x*0.6; ag[i].y=ag[i].y*0.4+s.y*0.6;
+    }
+    const MINSEP=19;
+    for(let pass=0;pass<3;pass++)for(let i=0;i<NN;i++)for(let j=i+1;j<NN;j++){
+      let dx=ag[j].x-ag[i].x,dy=ag[j].y-ag[i].y,d=Math.hypot(dx,dy);
+      if(d>0.001&&d<MINSEP){const push=(MINSEP-d)/2;dx/=d;dy/=d;
+        ag[i].x-=dx*push;ag[i].y-=dy*push;ag[j].x+=dx*push;ag[j].y+=dy*push;}
+    }
+    for(let i=0;i<NN;i++){ag[i].x=Math.max(14,Math.min(W-14,ag[i].x));ag[i].y=Math.max(16,Math.min(H-12,ag[i].y));}
+  }
   for(let i=0;i<NN;i++){
     const d=[];
     for(let j=0;j<NN;j++)if(i!==j)d.push([j,Math.hypot(ag[i].x-ag[j].x,ag[i].y-ag[j].y)]);
@@ -1046,14 +1896,54 @@ function initGame(){
     }
   }
   rebuildNbr();
+  assignWindows();  /* bind each window to its nearest person (final positions) */
+  /* Common Ground: give everyone a strand. Overused strands are weighted down so
+     they turn up thinner this run — the people you leaned on hardest are tired. */
+  {
+    const w=STRANDS.map(s=>Math.max(0.2,1-(strandLean[s]||0)*0.1));
+    const tot=w.reduce((a,b)=>a+b,0);
+    for(let i=0;i<NN;i++){
+      let r=srand()*tot,k=0;
+      while(k<STRANDS.length-1&&r>w[k]){r-=w[k];k++;}
+      ag[i].strand=STRANDS[k];
+    }
+  }
   let pi=Math.floor(sr(D.nInc||0,NN));
   while(ag[pi].inc||(D.twoClusters&&ag[pi].x>=360)){pi=(pi+1)%NN;if(pi<(D.nInc||0))pi=D.nInc||0;}
   player=pi;
   ag[player].aw=0.75;
   startName=ag[player].nm;startRole=ag[player].role;
 
+  /* The kitchen table: a curated cast so the opening situation is concrete.
+     You host; Rosa (the nurse who knows about the clinic) sits beside you,
+     afraid to speak, and is the tutorial target. */
+  if(isKitchen()){
+    const KP=[
+      {nm:'You',    role:'the host',      stake:'this is your table, and these neighbors trust you', aw:0.75},
+      {nm:'Rosa',   role:'a nurse',       stake:'tomorrow the clinic must turn people away — and she knows why', aw:0.11, tut:true},
+      {nm:'Tomás',  role:'a baker',       stake:'the shop was fined for nothing', aw:0.14},
+      {nm:'Ana',    role:'a teacher',     stake:'the school has no books this year', aw:0.12},
+      {nm:'Luis',   role:'a bus driver',  stake:'his brother was taken years ago', aw:0.10},
+      {nm:'Carmen', role:'a shopkeeper',  stake:'her rent doubled overnight', aw:0.13},
+      {nm:'Diego',  role:'a student',     stake:'he saw something he was not supposed to see', aw:0.12},
+      {nm:'Marta',  role:'a seamstress',  stake:'the pension stopped coming', aw:0.11},
+      {nm:'Elena',  role:'a pharmacist',  stake:'the hospital sent her mother home untreated', aw:0.13},
+    ];
+    player=0;
+    for(let i=0;i<NN&&i<KP.length;i++){
+      ag[i].nm=KP[i].nm;ag[i].role=KP[i].role;ag[i].stake=KP[i].stake;ag[i].aw=KP[i].aw;
+      ag[i].tut=!!KP[i].tut;
+    }
+    ag[player].aw=0.75;startName=ag[player].nm;startRole=ag[player].role;
+    const rosa=ag.findIndex(a=>a.tut);
+    if(rosa>=0&&!links.some(l=>(l[0]===player&&l[1]===rosa)||(l[0]===rosa&&l[1]===player))){
+      links.push([player,rosa,1]);built.push([player,rosa]);
+    }
+    rebuildNbr();
+  }
+
   let legacyLine='';
-  if(!D.pro&&has('friends')){
+  if(!D.pro&&!era2()&&has('friends')){
     inf=10;
     let bestJ=-1,bd=1e9;
     for(let j=0;j<NN;j++){
@@ -1066,11 +1956,24 @@ function initGame(){
   }
 
   let memoryLine='';
-  if(prevFallen.length&&attempts>0){
+  if(!era2()&&prevFallen.length&&attempts>0){
     ag.forEach(a=>{if(!a.inc&&!a.gone)a.aw=Math.min(1,a.aw+0.05);});
     const rememberer=ag.find(a=>!a.inc&&a!==ag[player]);
     memoryLine=' People here remember last time — they remember '+prevFallen.slice(0,2).join(' and ')+'. '+(rememberer?('"You came back," says '+rememberer.nm+'.'):'')+' No one starts from zero.';
     epiEvents.push('You returned to a neighborhood that remembered '+prevFallen.slice(0,2).join(' and ')+'.');
+  }
+  /* ---- era 2: invert the dials, seat the coalition, name the rival ---- */
+  factions=[];rival=0;rivalName='';usedApparatus=false;apparatusUses=0;empowered=[];deliveredThisRun=0;
+  driftTold=false;factionTold=false;drawerTold=false;rivalTold=false;delegateTold=false;
+  if(era2()){
+    rig=D.drift0;    /* coalition drift — rises passively toward fracture */
+    floor=D.mem0;    /* contested memory — can now be pushed down */
+    risk=0;          /* legitimacy spent — bold public acts burn it */
+    inf=D.mandate0;  /* mandate — what lets you act on others' behalf */
+    FACTIONS_DEF.forEach(f=>factions.push({id:f.id,name:f.name,who:f.who,rival:f.rival,coh:0.55}));
+    const pk=ag.map((a,i)=>({a,i})).filter(o=>!o.a.inc&&o.i!==player);
+    if(pk.length){const r=pk[Math.floor(srand()*pk.length)];rivalName=r.a.nm;r.a.isRival=true;}
+    else rivalName='Beltrán';
   }
   setButtons();
   coachIdx=0;
@@ -1081,8 +1984,15 @@ function initGame(){
   actionCounts={};oppExpired=0;pulses=[];
   $('report').style.display='none';
   renderRoster();
-  const newLine=(!D.pro&&D.newActs)?' — '+D.newActs:'';
-  log((D.pro?D.intro:'You are '+ag[player].nm+', '+ag[player].role+'. These are your neighbors — the same faces every time you return. Click someone to learn who they are.'+newLine)+legacyLine+memoryLine);
+  if(era2()){
+    const ci2=lvlIdx-(N_PRO+N_CAMP);
+    log(D.intro+(CIVIC2[ci2]?' '+CIVIC2[ci2]:''));
+  } else {
+    const newLine=(!D.pro&&D.newActs)?' — '+D.newActs:'';
+    const ci0=lvlIdx-N_PRO;
+    const civicLine=(!D.pro&&CIVIC[ci0])?' '+CIVIC[ci0]:'';
+    log((D.pro?D.intro:'You are '+ag[player].nm+', '+ag[player].role+'. These are your neighbors — the same faces every time you return. Click someone to learn who they are.'+newLine+civicLine)+legacyLine+memoryLine);
+  }
   ui();
   coachShow();
 }
@@ -1103,6 +2013,16 @@ function tint(el,frac,color){
 }
 
 function updateGoal(){
+  if(era2()){
+    const o=D.obj;let line='';
+    if(o.type==='deliver')line=o.text+' — '+Math.min(wins,o.count)+'/'+o.count+' delivered';
+    else if(o.type==='mandate')line=o.text+' — mandate '+Math.round(inf)+'/'+o.lvl+(factionsIntact()?'':' · a bloc is walking out');
+    else if(o.type==='factions'){const lo=Math.round(Math.min.apply(null,factions.map(f=>f.coh))*100);line=o.text+' — weakest bloc '+lo+'% / '+Math.round(o.lvl*100)+'%';}
+    else if(o.type==='rival')line=o.text+' — the claim '+Math.round(rival*100)+'% (hold under '+Math.round(o.lvl*100)+'%), delivered '+Math.min(wins,o.count)+'/'+o.count;
+    else line=o.text;
+    $('goal').innerHTML='Goal: '+line+' · turn '+turn+'/'+D.maxT+'<div class="gnote">Coalition drift '+Math.round(rig*100)+'% — if two blocs walk out, or drift maxes, the morning after fractures.</div>';
+    return;
+  }
   if(D.pro){
     const o=D.obj;
     if(o.type==='aware'){
@@ -1158,10 +2078,24 @@ function ui(){
   tint($('st-rig'),rig,'201,79,79');
   tint($('st-floor'),floor/0.5,'79,174,141');
   $('a-end').classList.toggle('pulse',energy===0&&!over);
+  if(era2())renderFactions();
   updateGoal();
   updateOppUI();
   updateActionLabels();
   stageStats();
+  updateTip();
+  updateUndo();
+  if(isKitchen()){
+    renderTable();
+    /* keep the selected-person panel live as awareness spreads */
+    if(target>=0&&ag[target]&&!ag[target].inc&&!ag[target].gone){
+      const card=$('pcard');
+      if(card&&card.style.display!=='none'){
+        card.innerHTML=kitchenCardHTML(ag[target],target);
+        drawBust(card.querySelector('.pbust'),ag[target],target);
+      }
+    }
+  }
   ['link','letter','mural'].forEach(a2=>{
     const b2=document.querySelector('[data-act="'+a2+'"]');
     if(!b2)return;
@@ -1204,12 +2138,25 @@ function updateActionLabels(){
   if(!D)return;
   const tb=document.querySelector('[data-act="talk"] .bl');
   if(tb)tb.textContent=(target>=0&&ag[target]&&!ag[target].inc)?'Talk with '+ag[target].nm:'Talk with someone';
-  const COSTS={talk:(opp&&opp.id==='gathering')?0:1,post:1,low:1,link:2,letter:2,org:2,mural:muralCost(),doc:2,reach:2,expose:2,speak:3};
+  const COSTS={talk:(opp&&opp.id==='gathering')?0:1,post:1,low:1,link:2,letter:2,org:2,mural:muralCost(),doc:2,reach:2,expose:2,speak:3,delegate:2,drawer:3};
   document.querySelectorAll('[data-act]').forEach(b2=>{
-    const c=COSTS[b2.getAttribute('data-act')];
-    const off=c!==undefined&&energy<c&&!over;
+    const a=b2.getAttribute('data-act'), c=COSTS[a];
+    let reason='';
+    if(c!==undefined&&energy<c&&!over){reason='Not enough energy — needs '+c+'⚡ (you have '+energy+').';}
+    else if(!over&&player>=0&&ag[player]){   /* two clear hard gates get an explicit reason */
+      if(a==='expose'){
+        if(inf<30)reason='Needs community trust 30+ (currently '+Math.round(inf)+').';
+        else if(!spies.some(s=>Math.hypot(s.x-ag[player].x,s.y-ag[player].y)<=linkReach()))reason='No informant within your reach yet.';
+      } else if(a==='reach'){
+        if(!ag.some(o=>o.inc&&!o.def&&o.waver&&Math.hypot(o.x-ag[player].x,o.y-ag[player].y)<linkReach()*1.3))reason='No wavering officer in reach — raise awareness around one until they turn amber.';
+      }
+    }
+    const off=!!reason;
     b2.classList.toggle('nope',off);
     b2.setAttribute('aria-disabled',off?'true':'false');
+    const cb=b2.querySelector('.bcost'); if(cb)cb.textContent=(c!==undefined?c+'⚡':'');
+    if(!b2.dataset.tip)b2.dataset.tip=b2.getAttribute('title')||'';   /* keep the descriptive default */
+    b2.title=off?reason:b2.dataset.tip;
   });
   const sep=' <span style="color:#565b66">·</span> ';
   const awT=Math.round((0.26+0.08*infBonus())*100);
@@ -1227,18 +2174,45 @@ function updateActionLabels(){
   fxSet('reach','<i class="fx-mem">success: fear −5, memory +2</i>'+sep+'<i class="fx-tr">trust +10</i>'+sep+'<i class="fx-en">+1⚡, chains possible</i>'+sep+'<i class="fx-eye">fail: eyes +22</i>');
   fxSet('expose','<i class="fx-mem">memory +2.5</i>'+sep+'<i class="fx-aw">nearby +10 awareness</i>'+sep+'<i class="fx-tr">trust +8 (needs 30+)</i>');
   fxSet('speak','<i class="fx-aw">wide burst, up to +25 awareness</i>'+sep+'<i class="fx-tr">trust +8</i>'+sep+'<i class="fx-eye">eyes +32</i>');
+  if(era2()){ /* relabel the shared actions for governing, and describe the new two */
+    fxSet('talk','<i class="fx-aw">one person +'+awT+' support</i>'+sep+'<i class="fx-tr">mandate +2</i>');
+    fxSet('org','<i class="fx-aw">whole circle +'+awO+' support</i>'+sep+'<i class="fx-tr">mandate +4</i>'+sep+'<i class="fx-mem">holds the weakest bloc, −drift</i>');
+    fxSet('link','<i class="fx-aw">a lasting coalition tie</i>'+sep+'<i class="fx-tr">mandate +3</i>');
+    fxSet('delegate','<i class="fx-en">empower a trusted, awakened person</i>'+sep+'<i class="fx-tr">mandate +8, −drift</i>'+sep+'<i class="fx-mem">they hold a bloc &amp; lend their gift</i>');
+    fxSet('drawer','<i class="fx-mem">the rival claim collapses, order bought</i>'+sep+'<i class="fx-eye">mandate −15</i>'+sep+'<i class="fx-en">permanent — it follows you</i>');
+  }
+  /* kitchen slice: the Talk button becomes a designed Conversation card —
+     a symbol, the named target, and one human sentence of benefit + risk. */
+  const talkBtn=document.querySelector('[data-act="talk"]');
+  if(talkBtn){
+    talkBtn.classList.toggle('convcard',isKitchen());
+    if(isKitchen()){
+      const p=(target>=0&&ag[target]&&!ag[target].inc&&!ag[target].gone)?ag[target]:null;
+      if(!p){
+        fxSet('talk','Choose a neighbor at the table, then say the thing no one will say.');
+      } else if(p.betrayed){
+        fxSet('talk',p.nm+' will not meet your eyes now. Some doors do not reopen.');
+      } else if(!(nbr[player]&&nbr[player].includes(target))){
+        fxSet('talk',p.nm+' sits too far to hear you — words reach only the neighbors beside you.');
+      } else {
+        fxSet('talk','Lean in and say it plainly. '+p.nm+' listens — and by morning carries it to whoever they trust. <i class="fx-en">1⚡</i> · <i class="fx-eye">barely stirs the eyes on you</i>.');
+      }
+    }
+  }
 }
 /* -------------------------------------------------- */
 
 cv.addEventListener('click',e=>{
+  if(sequencing){skipTurnSequence();return;}
   if(over||pendingDilemma)return;
   const r=cv.getBoundingClientRect();
   const mx=(e.clientX-r.left)*(W/r.width),my=(e.clientY-r.top)*(H/r.height);
   if(muralMode){
+    const _snap=snapState();
     const d=Math.hypot(mx-ag[player].x,my-ag[player].y);
     if(d<=linkReach()){
       energy-=muralCost();risk=Math.min(1,risk+0.10+(inSurv(player)?0.05:0));
-      murals.push({x:mx,y:my});inf=Math.min(100,inf+3);muralMode=false;
+      murals.push({x:mx,y:my});inf=Math.min(100,inf+3);muralMode=false;undoSnap=_snap;
       addRipple(mx,my,'#e0a458');addFloat(mx,my-14,'✦ the wall speaks','#e0a458');
       const zones=freeZones();
       if(zones.length&&!freeZoneTold){
@@ -1254,6 +2228,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(letterMode){
+    const _snap=snapState();
     let best=-1,bd=26;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
@@ -1264,7 +2239,7 @@ cv.addEventListener('click',e=>{
     if(best>=0){
       energy-=2;risk=Math.min(1,risk+0.08);
       links.push([player,best,0.5]);built.push([player,best]);weak.add(lkey(player,best));rebuildNbr();
-      inf=Math.min(100,inf+3);letterMode=false;
+      inf=Math.min(100,inf+3);letterMode=false;undoSnap=_snap;
       addPop(best);addFloat(ag[best].x,ag[best].y-14,'✉ a thread crosses the district','#8d7bdb');
       log('You write through the night, and trust the letter to hands you will never see. Days later, '+pname(best)+' writes back. A thin thread now crosses the whole district — words travel it at half strength, but distance means nothing to it.');
       checkTrustMilestones();
@@ -1272,6 +2247,7 @@ cv.addEventListener('click',e=>{
     ui();return;
   }
   if(linkMode){
+    const _snap=snapState();
     let best=-1,bd=26;
     for(let j=0;j<NN;j++){
       if(j===player||ag[j].inc||ag[j].gone)continue;
@@ -1285,7 +2261,7 @@ cv.addEventListener('click',e=>{
       energy-=cost;if(freeLink)freeLink=false;
       risk=Math.min(1,risk+0.06+(inSurv(player)?0.05:0));
       links.push([player,best,1]);built.push([player,best]);rebuildNbr();
-      inf=Math.min(100,inf+3);linkMode=false;
+      inf=Math.min(100,inf+3);linkMode=false;undoSnap=_snap;
       addPop(best);addFloat(ag[best].x,ag[best].y-14,'∞ connected','#8d7bdb');
       log('You find a way to meet '+pname(best)+'. A lasting connection — words can travel it now.'+(cost===0?' (Caution\'s economy: it cost you nothing.)':''));
       coachEvent('link');
@@ -1293,12 +2269,86 @@ cv.addEventListener('click',e=>{
     } else log('No one there you can reach.');
     ui();return;
   }
-  let best=-1,bd=26;
+  let best=-1,bd=isKitchen()?40:26;    /* larger touch target in the kitchen */
   for(let j=0;j<NN;j++){
     if(ag[j].inc||ag[j].gone||j===player)continue;
     const d=Math.hypot(ag[j].x-mx,ag[j].y-my);
     if(d<bd){bd=d;best=j;}
   }
+  selectPerson(best);
+});
+
+/* awareness → a short human state word (never colour-only) */
+function awState(a){
+  if(a.inc)return 'the apparatus';
+  if(a.aw>=0.75)return 'wide awake';
+  if(a.aw>=0.5)return 'sees clearly';
+  if(a.aw>=0.3)return 'listening';
+  return 'still afraid to speak';
+}
+/* named neighbors this person is connected to — the relationships line */
+function relNames(idx){
+  return (nbr[idx]||[]).filter(j=>j!==idx&&ag[j]&&!ag[j].inc&&!ag[j].gone)
+    .map(j=>j===player?'you':ag[j].nm).slice(0,4);
+}
+/* a small procedural bust for the selected-person panel (kitchen slice) */
+function drawBust(cv,p,idx){
+  if(!cv||!cv.getContext)return;
+  const c=cv.getContext('2d'),w=cv.width,h=cv.height;
+  c.clearRect(0,0,w,h);
+  const cx=w/2, t=p.aw;
+  /* warm vignette behind */
+  const bg=c.createRadialGradient(cx,h*0.42,3,cx,h*0.42,w*0.62);
+  bg.addColorStop(0,'rgba(232,178,110,'+(0.10+0.22*t)+')');bg.addColorStop(1,'rgba(232,178,110,0)');
+  c.fillStyle=bg;c.fillRect(0,0,w,h);
+  const skinV=[ '#c99a72','#b98a63','#d8ad82','#a97a55','#c18f68' ][idx%5];
+  const cloth=[ '#5b6b82','#6d5a74','#7a6248','#55705f','#7a5555' ][(idx*3)%5];
+  const lean=(1-t)*4;                    /* hunched forward when afraid */
+  const shoulderY=h-6, headCY=h*0.40+lean*0.5, headR=w*0.20;
+  /* shoulders / torso — opens up (wider) as they wake */
+  c.fillStyle=cloth;
+  const sw=w*0.24+w*0.12*t;
+  c.beginPath();
+  c.moveTo(cx-sw,shoulderY);
+  c.quadraticCurveTo(cx-sw,headCY+headR*0.6,cx,headCY+headR*0.7);
+  c.quadraticCurveTo(cx+sw,headCY+headR*0.6,cx+sw,shoulderY);
+  c.closePath();c.fill();
+  /* head */
+  c.fillStyle=skinV;
+  c.beginPath();c.arc(cx+lean*0.6,headCY,headR,0,Math.PI*2);c.fill();
+  /* hair — simple cap, varied */
+  c.fillStyle=['#2a2320','#3a2c22','#1f1b18','#4a3a2c','#241d1a'][(idx*2)%5];
+  c.beginPath();c.arc(cx+lean*0.6,headCY,headR,Math.PI*1.05,Math.PI*2.05);c.fill();
+  c.fillRect(cx+lean*0.6-headR,headCY-headR*0.3,headR*2,headR*0.5);
+  /* eyeline: downcast when afraid, level when awake (shape, not colour) */
+  c.strokeStyle='rgba(30,22,18,0.7)';c.lineWidth=1.4;c.lineCap='round';
+  const ey=headCY+ (t<0.5? headR*0.28 : headR*0.08);
+  c.beginPath();c.moveTo(cx+lean*0.6-headR*0.5,ey);c.lineTo(cx+lean*0.6-headR*0.15,ey+(t<0.5?1.5:0));
+  c.moveTo(cx+lean*0.6+headR*0.15,ey+(t<0.5?1.5:0));c.lineTo(cx+lean*0.6+headR*0.5,ey);c.stroke();
+  /* a role accessory hint */
+  const rs=roleShape(p.role);
+  c.strokeStyle='rgba(232,224,208,0.75)';c.fillStyle='rgba(232,224,208,0.75)';c.lineWidth=1.4;
+  if(rs===1){c.strokeRect(cx-sw-3,shoulderY-9,6,7);}                 /* bag on the shoulder */
+  else if(rs===2){c.fillRect(cx-sw*0.6,shoulderY-6,sw*1.2,2);}       /* apron string */
+  else if(rs===3){c.strokeRect(cx+sw-2,shoulderY-8,7,6);}            /* case */
+  else if(rs===4){c.beginPath();c.moveTo(cx+sw-1,shoulderY-9);c.lineTo(cx+sw+5,shoulderY-3);c.stroke();} /* tool */
+  c.lineCap='butt';
+}
+function kitchenCardHTML(p,idx){
+  const rel=relNames(idx);
+  const relLine=rel.length?('Sits with '+rel.join(', ')):'On the edge of the table — no one close yet';
+  const st=awState(p);
+  const aw=Math.round(p.aw*100);
+  return '<div class="pcw">'+
+    '<canvas class="pbust" width="56" height="56" aria-hidden="true"></canvas>'+
+    '<div class="pcbody">'+
+      '<div class="pchead"><span class="pn">'+p.nm+'</span><span class="prole">'+p.role+'</span></div>'+
+      '<div class="pcstate"><span class="dot" style="background:rgb('+Math.round(106+(79-106)*p.aw)+','+Math.round(109+(174-109)*p.aw)+','+Math.round(117+(141-117)*p.aw)+')"></span>'+st+' · '+aw+'% awake</div>'+
+      '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+'</div>'+
+      '<div class="pcmeta">'+p.trait.hint+' · '+relLine+(p.betrayed?' · a closed door now':'')+'</div>'+
+    '</div></div>';
+}
+function selectPerson(best){
   target=best;
   const card=$('pcard');
   if(best>=0){
@@ -1313,22 +2363,56 @@ cv.addEventListener('click',e=>{
       log(p.nm+' ('+p.trait.hint+')'+(p.betrayed?' — they no longer meet your eyes.':' — you will talk with them next.'));
     }
     card.style.display='block';
-    card.innerHTML='<span class="pn">'+p.nm+' — '+p.role+'</span> <span class="paw">'+Math.round(p.aw*100)+'% awake</span>'+
-      '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+' · '+p.trait.hint+(p.betrayed?' · they no longer meet your eyes':'')+'</div>';
+    if(isKitchen()){
+      card.innerHTML=kitchenCardHTML(p,best);
+      drawBust(card.querySelector('.pbust'),p,best);
+    } else {
+      card.innerHTML='<span class="pn">'+p.nm+' — '+p.role+'</span> <span class="paw">'+Math.round(p.aw*100)+'% awake</span>'+
+        '<div class="ps">'+p.stake.charAt(0).toUpperCase()+p.stake.slice(1)+' · '+p.trait.hint+(p.strand?' · from '+p.strand:'')+(p.betrayed?' · they no longer meet your eyes':'')+'</div>';
+    }
     coachEvent('select');
   } else {
     card.style.display='none';
   }
+  if(typeof renderTable==='function')renderTable();
   updateActionLabels();
+}
+/* keyboard-navigable roster of the table — the accessible layer for canvas
+   selection. Each neighbor is a real button with a full accessible name; Enter/
+   click/tap selects them exactly as clicking the figure does. Kitchen slice. */
+function renderTable(){
+  const box=$('tablelist');if(!box)return;
+  if(!isKitchen()||!ag.length||over){box.style.display='none';box.innerHTML='';return;}
+  if(box.contains(document.activeElement))return;   /* don't steal keyboard focus mid-navigation */
+  box.style.display='flex';
+  let html='';
+  for(let i=0;i<NN;i++){
+    const a=ag[i];if(a.inc||a.gone)continue;
+    const you=i===player, sel=i===target;
+    const near=you?true:(nbr[player]&&nbr[player].includes(i));
+    const label=(you?'You, the host':a.nm+', '+a.role+' — '+awState(a)+(near?', within reach':', not yet connected'));
+    html+='<button class="tchip'+(sel?' sel':'')+(you?' you':'')+(near?'':' far')+'" data-i="'+i+'"'+
+      (you?' aria-disabled="true"':'')+' aria-pressed="'+(sel?'true':'false')+'" title="'+label+'" aria-label="'+label+'">'+
+      '<span class="tcn">'+(you?'You':a.nm)+'</span><span class="tcs">'+(you?'host':awState(a))+'</span></button>';
+  }
+  box.innerHTML=html;
+}
+document.addEventListener('click',e=>{
+  const chip=e.target&&e.target.closest?e.target.closest('.tchip'):null;
+  if(!chip||!$('tablelist').contains(chip))return;
+  const i=parseInt(chip.getAttribute('data-i'),10);
+  if(!isNaN(i)&&ag[i]&&i!==player&&!ag[i].inc&&!ag[i].gone){selectPerson(i);$('game').focus();}
 });
 
 function act(type){
+  if(sequencing){skipTurnSequence();return;}
   if(over||interrogated||pendingDilemma)return;
   const sp=inSurv(player)?0.08:0;
   if(type==='link'){if(energy<2&&!freeLink){log('Not enough energy.');return;}muralMode=false;letterMode=false;linkMode=!linkMode;ui();return;}
   if(type==='letter'){if(energy<2){log('Not enough energy.');return;}muralMode=false;linkMode=false;letterMode=!letterMode;ui();return;}
   if(type==='mural'){if(energy<muralCost()){log('Not enough energy.');return;}linkMode=false;letterMode=false;muralMode=!muralMode;ui();return;}
   linkMode=false;muralMode=false;letterMode=false;
+  const _snap=snapState();   /* undo: captured before any committing action mutates state; installed at the tail */
   if(type==='talk'){
     const gathering=opp&&opp.id==='gathering';
     const cost=gathering?0:1;
@@ -1380,6 +2464,7 @@ function act(type){
     inf=Math.min(100,inf+4);
     addFloat(ag[player].x,ag[player].y-16,ring.size+' listened'+(market?' (market day)':''),'#4fae8d');
     log('Chairs in a circle, coffee, low voices.'+(star?' '+star.nm+' speaks up — meetings are where they come alive.':'')+(market?' The market crowd doubles everything.':'')+' The whole block leaves thinking.'+(sp?' (Someone may have seen you.)':''));
+    if(era2()){rig=Math.max(0,rig-0.03);const wf=faction(weakestFaction());if(wf)wf.coh=Math.min(1,wf.coh+0.03);}
     checkTrustMilestones();
   } else if(type==='post'){
     if(energy<1){log('Not enough energy — press Next turn.');return;}
@@ -1472,9 +2557,53 @@ function act(type){
     addFloat(ag[player].x,ag[player].y-14,'−'+Math.round((before-risk)*100)+' eyes','#7ea6d8');
     nbr[player].forEach(j=>{if(!ag[j].inc&&!ag[j].gone)ag[j].aw=Math.max(floor,ag[j].aw-0.05);});
     log('You go quiet for a while. The eyes move on — but your neighbors, hearing nothing, begin to drift.');
+  } else if(type==='delegate'){
+    /* SUCCESSION AS SPINE: hand real authority to a named, awakened person.
+       Reuses setHeirBoon/heirMul — their trait now shapes your hand. */
+    if(!era2())return;
+    if(energy<2){log('Not enough energy — press Next turn.');return;}
+    if(target<0){log('Choose someone first — click a person you would trust with real authority.');return;}
+    const p=ag[target];
+    if(p.inc||p.gone){log('Choose one of the coalition.');return;}
+    if(p.isRival){log(p.nm+' has their own claim now. Empowering them would just be handing them the table.');return;}
+    if(p.empowered){log(p.nm+' already holds a portfolio.');return;}
+    if(p.aw<0.45){log(p.nm+' is not ready to carry this — spend time with them first, until they see clearly.');return;}
+    energy-=2;
+    p.empowered=true;p.successor=true;
+    setHeirBoon(p.trait);
+    const fid=weakestFaction();
+    empowered.push({nm:p.nm,role:p.role,trait:p.trait.id,fid:fid});
+    inf=Math.min(100,inf+8);
+    rig=Math.max(0,rig-0.06);
+    if(fid){const f=faction(fid);if(f)f.coh=Math.min(1,f.coh+0.14);}
+    addRipple(p.x,p.y,'#8d7bdb');addFloat(p.x,p.y-16,'given a portfolio','#8d7bdb');
+    rosterNote(target,'T'+turn+': given real authority'+(fid?' — '+faction(fid).name.toLowerCase()+' is theirs to hold':''));
+    epiEvents.push(p.nm+', '+p.role+', was handed authority you could not keep alone'+(fid?' — '+faction(fid).name.toLowerCase()+' is theirs now':'')+'.');
+    log('You hand '+p.nm+' something real — not a title, a responsibility. '+(boonText(p.trait)?boonText(p.trait).charAt(0).toUpperCase()+boonText(p.trait).slice(1)+'. ':'')+'You cannot hold all of this alone. That was never the plan.');
+    hintOnce('delegate','You cannot hold the morning after by yourself. Who you empower shapes how it ends — each keeps a bloc you cannot, and lends their gift to your hand.');
+  } else if(type==='drawer'){
+    /* THE APPARATUS IN THE DRAWER: effective, and permanent. No moralizing —
+       the consequence does the work (mandate falls; roster & epilogue change). */
+    if(!era2())return;
+    if(energy<3){log('Not enough energy — press Next turn.');return;}
+    energy-=3;
+    usedApparatus=true;apparatusUses++;
+    risk=Math.min(1,risk+0.06);
+    inf=Math.max(0,inf-15);
+    rival=Math.max(0,rival*0.45-0.05);
+    rig=Math.max(0,rig-0.08);
+    let sf=null,sv=2;factions.forEach(f=>{if(f.coh<sv){sv=f.coh;sf=f;}});
+    if(sf)sf.coh=Math.min(1,sf.coh+0.05);
+    doVignette('141,123,219');doShake(4);
+    addFloat(ag[player].x,ag[player].y-14,'the drawer opens','#8d7bdb');
+    rosterNote(player,'T'+turn+': opened the drawer'+(apparatusUses>1?' again':''));
+    epiEvents.push('When it got hard, you opened the drawer'+(apparatusUses>1?' — not for the first time':'')+'. It worked. It always works.');
+    log('You open the drawer. The files are exactly where they were left. By morning the problem has quietly receded — no announcement, no vote. It worked. It always works. Something in how people say your name has changed, and it will not change back.');
+    hintOnce('drawer','The apparatus works — and using it is permanent. It follows you into the roster and the ending. Effective is not the same as free.');
   }
   coachEvent(type);
   actionCounts[type]=(actionCounts[type]||0)+1;
+  undoSnap=_snap;   /* an action committed — this snapshot is now undoable */
   ui();
 }
 
@@ -1499,8 +2628,11 @@ function checkObjective(){
 }
 
 function endTurn(){
+  if(sequencing){skipTurnSequence();return;}   /* a Next-turn click during the reveal just skips it */
   if(over||pendingDilemma)return;
+  undoSnap=null;                                 /* undo does not cross turns */
   const leftoverEnergy=energy;
+  const _tlDef=defected,_tlOpp=opp,_tlPlayer=player;  /* Feature 3: snapshot for this turn's timeline tick */
   interrogated=false;linkMode=false;muralMode=false;letterMode=false;
   nearMissTold=false;
 
@@ -1606,25 +2738,48 @@ function endTurn(){
     const nb=nbr[i].filter(j=>!ag[j].gone&&!ag[j].inc);
     if(!nb.length){a.press=Math.max(0,a.press*0.8);continue;}
     const loc=(a.aw+nb.reduce((s,j)=>s+ag[j].aw,0))/(nb.length+1);
-    if(loc>D.thresh&&rig>0.12){
-      const wasPress=a.press;
-      a.press=Math.min(1,a.press+0.20+D.winP*1.6+rand(0,0.06));
+    /* Common Ground: a circle spanning more distinct strands breaks through with
+       less awareness (and fills a touch faster). A narrow circle faces the full
+       bar — always passable, just harder. Breadth is incentive, never a gate. */
+    let distinct=1;
+    if(cgActive){
+      const cs=new Set(); if(a.strand)cs.add(a.strand);
+      nb.forEach(j=>{if(ag[j].aw>0.4&&ag[j].strand)cs.add(ag[j].strand);});
+      distinct=Math.max(1,cs.size);
+    }
+    const effThresh=cgActive?Math.max(D.thresh-CG_CAP,D.thresh-(distinct-1)*CG_DISCOUNT):D.thresh;
+    const wasPress=a.press;
+    if(loc>effThresh&&(era2()||rig>0.12)){
+      a.press=Math.min(1,a.press+0.20+D.winP*1.6+rand(0,0.06)+(cgActive?(distinct-1)*0.015:0));
       if(a.press>=1&&winsFiredThisTurn===0){
         /* THE WIN — concrete, local, attributed */
         a.press=0;winsFiredThisTurn++;
-        rig=Math.max(0.1,rig-0.065);floor=Math.min(0.5,floor+D.floorGain);wins++;
-        addRipple(a.x,a.y,'#7ea6d8',true);
-        addFloat(a.x,a.y-18,'✦ something gave way','#7ea6d8');
+        if(cgActive){const cs=new Set();if(a.strand)cs.add(a.strand);nb.forEach(j=>{if(ag[j].aw>0.4&&ag[j].strand)cs.add(ag[j].strand);});cs.forEach(st=>{strandsThisRun[st]=(strandsThisRun[st]||0)+1;});}
+        if(era2()){
+          floor=Math.min(0.6,floor+D.floorGain);  /* memory, actively defended by delivery */
+          rig=Math.max(0,rig-0.05);               /* a delivery holds the coalition, briefly */
+          risk=Math.max(0,risk-0.08);             /* results restore standing */
+          inf=Math.min(100,inf+2);wins++;deliveredThisRun++;
+          deliverFaction();                        /* satisfies one bloc, strains its rival */
+        } else {
+          rig=Math.max(0.1,rig-0.065);floor=Math.min(0.5,floor+D.floorGain);wins++;
+        }
+        spawnWinScene(i,nb);                        /* the cinematic set piece (Feature 1) */
         winThis=true;lastWinTurn=turn;
         if(Math.hypot(a.x-ag[player].x,a.y-ag[player].y)<150)winNear=true;
         const outcome=winOutcome(a);
         const helpers=nb.map(j=>ag[j]).filter(p=>p.aw>0.4).sort((x,y)=>y.aw-x.aw).slice(0,3);
         const CREDIT=[' brought their whole household',' spoke where everyone could hear',' kept copies of everything, just in case'];
         let attrib=helpers.map((p,k)=>p.nm+CREDIT[k%CREDIT.length]).join('; ');
-        winStory='★ '+outcome+' — because '+a.nm+', '+a.role+', would not let it pass.'+(attrib?' '+attrib+'.':'')+' Fear falls. What people remember rises. This cannot be fully erased now.';
+        if(era2()){
+          winStory='★ '+outcome+' — '+a.nm+', '+a.role+', pushed it through the coalition.'+(attrib?' '+attrib+'.':'')+' Delivered'+(lastDeliverBloc?', to the relief of '+lastDeliverBloc.toLowerCase()+' — and the irritation of their rivals':'')+'. Governing is trading.';
+        } else {
+          winStory='★ '+outcome+' — because '+a.nm+', '+a.role+', would not let it pass.'+(attrib?' '+attrib+'.':'')+' Fear falls. What people remember rises. This cannot be fully erased now.';
+        }
         epiEvents.push(outcome+' — '+a.nm+(helpers[0]?', with '+helpers.map(p=>p.nm).join(' and '):'')+'.');
+        a.organizer=true;
         rosterNote(i,'T'+turn+': '+outcome);
-        helpers.forEach(p=>{const j=ag.indexOf(p);if(j>=0)rosterNote(j,'T'+turn+': part of it when '+outcome.toLowerCase());});
+        helpers.forEach(p=>{const j=ag.indexOf(p);if(j>=0){p.organizer=true;rosterNote(j,'T'+turn+': part of it when '+outcome.toLowerCase());}});
       } else if(a.press>=1){
         a.press=0.96; /* the district can only absorb so much change in one week */
       } else if(a.press>=0.55&&wasPress<0.55&&!nearMissTold){
@@ -1638,9 +2793,35 @@ function endTurn(){
     } else {
       a.press=Math.max(0,a.press*0.85-0.01);
     }
+    a.pressWas=wasPress;   /* Feature 2: remember last turn's pressure so draw can read the trend */
   }
   if(winThis)sWin();
   if(winNear)hopeBonus=1;
+
+  /* ---- ERA 2: the dials, inverted. Holding, not winning. ---- */
+  if(era2()){
+    const deliveredThisTurn=winsFiredThisTurn>0;
+    const acted=leftoverEnergy<(boostTurns>0?4:3);
+    /* coalition drift rises on its own — silence and inaction fracture the alliance */
+    rig=Math.min(1,rig+D.driftRate*(acted?0.55:1.35)-(deliveredThisTurn?0.02:0));
+    rig=Math.max(0,rig);
+    /* faction cohesion decays; a bloc held by a delegate erodes far more slowly */
+    factions.forEach(f=>{
+      const held=empowered.some(e=>e.fid===f.id);
+      f.coh=Math.max(0,f.coh-(held?0.006:0.014));
+    });
+    /* contested memory erodes: the old apparatus publishes its own version */
+    floor=Math.max(0.05,floor-(0.006+rival*0.02));
+    /* legitimacy recovers with delivered results, not with hiding */
+    risk=Math.max(0,risk-(deliveredThisTurn?0.03:0.008));
+    /* the rival claim grows, faster on low mandate, high drift, or an alienated bloc */
+    const weakBloc=factions.some(f=>f.coh<0.3);
+    rival=Math.min(1,Math.max(0,rival+D.rivalRate*(1+(inf<35?0.6:0)+(rig>0.5?0.5:0)+(weakBloc?0.5:0))-(deliveredThisTurn?0.05:0)));
+    /* progressive reveal via the existing hint system */
+    if(rig>0.4&&!driftTold){driftTold=true;hintOnce('drift','Coalition drift is the old Fear dial, inverted — now it climbs on its own. Silence pulls the alliance apart. Deliver, assemble, and delegate to hold it down.');}
+    if(!factionTold&&turn>=2){factionTold=true;hintOnce('factions','Four blocs, four answers. Every delivery pleases one and strains its opposite. Keep them all at the table — if two walk out, the coalition falls.');}
+    if(rival>0.34&&!rivalTold){rivalTold=true;hintOnce('rival',rivalName+' is building a claim of their own — not a villain, a different answer. Out-deliver them and widen your mandate, or open the drawer and pay for it.');}
+  }
 
   let msg='';
   if(winThis&&!firstWinSeen){
@@ -1651,6 +2832,35 @@ function endTurn(){
     msg=(winStory?winStory+' ':'')||'✦ Something shifts — a small victory people can point to. Fear falls; memory rises. ';
   }
   if(winNear)msg+='It happened close enough to see — hope is fuel (+1 energy next turn). ';
+
+  /* ---- COMMON GROUND: the shared pool, and the beat where breadth lands ---- */
+  if(cgActive){
+    let nAw=0;ag.forEach(a=>{if(!a.inc&&!a.gone&&a.aw>=0.5)nAw++;});
+    resolve+=spreadCount+nAw+winsFiredThisTurn*6;   /* one pool — every strand adds to it */
+    if(!resolveTold&&(floor>=0.28||rig<=0.22)){     /* the reveal: one line, once, unexplained */
+      resolveTold=true;
+      log('— Resolve: '+Math.round(resolve)+'. One pool. All of them.');
+    }
+    /* the beat: the whole district is asked to hold one line at once. A broad
+       coalition clears it for almost nothing; a narrow one holds too, but pays
+       dearly. Both roads through — never gated. */
+    if(!cgBeatDone&&turn>=Math.ceil(D.maxT*0.5)){
+      cgBeatDone=true;
+      const distinctNow=awareStrands(0.5).size;
+      const target=Math.min(5,2+Math.floor((lvlIdx-N_PRO)/2));
+      if(distinctNow>=target){
+        rig=Math.max(0.1,rig-0.05);floor=Math.min(0.5,floor+0.02);
+        ag.forEach(a=>{if(!a.inc&&!a.gone)a.aw=Math.min(1,a.aw+0.03);});
+        addRipple(ag[player].x,ag[player].y,'#7ea6d8',true);
+        msg+='◆ The district was asked to hold one line at once — and it held easily, because the call came from every corner. ';
+      } else {
+        risk=Math.min(1,risk+0.26);rig=Math.min(0.94,rig+0.03);
+        ag.forEach(a=>{if(!a.inc&&!a.gone)a.aw=Math.max(floor,a.aw-0.05);});
+        doShake(4);
+        msg+='◆ The district was asked to hold one line at once. It held — but it leaned on so few that it cost everyone dearly. ';
+      }
+    }
+  }
 
   if(reinfThresholds.length&&rig<reinfThresholds[0]){
     reinfThresholds.shift();reinfPending=true;
@@ -1711,7 +2921,7 @@ function endTurn(){
         if(a.aw*sEff<floor){memHeld++;heldN++;if(shieldFloats<4){addFloat(a.x,a.y-14,'⛨ memory holds','#e0a458');shieldFloats++;}}
         a.aw=Math.max(floor,a.aw*sEff);
         if(before2-a.aw>0.05)harmedN++;
-        if(before2-a.aw>0.12&&a.met)rosterNote(j,'T'+turn+': caught in the crackdown');
+        if(before2-a.aw>0.12&&a.met){a.harmed=true;rosterNote(j,'T'+turn+': caught in the crackdown');}
         if(witnessed)a.aw=Math.min(1,a.aw+0.08);
       }
     });
@@ -1752,6 +2962,7 @@ function endTurn(){
           msg+='✖ They came for '+takenName+' at dawn. '+hp.nm+', '+hp.role+', picks up the work — '+why+'.';
           epiEvents.push('They came for '+takenName+' at dawn. '+hp.nm+' — '+hp.role+' — picked up the work, because '+why+'.');
           player=h;risk=0;target=-1;inf=Math.max(0,inf-25);
+          hp.successor=true;
           setHeirBoon(hp.trait);
           rosterNote(h,'T'+turn+': picked up the work when it mattered most');
           addFloat(hp.x,hp.y-16,'the work continues','#8d7bdb');
@@ -1801,19 +3012,23 @@ function endTurn(){
     ];
     msg='★ '+lessons[lvlIdx]+' Lesson learned — return to the map.';
     showEnd('★ Lesson learned','<p>'+lessons[lvlIdx]+'</p><p><b>Next:</b> back at the map, take the next lesson — or jump straight into District 1 of the campaign, where everything comes together.</p>');
+  } else if(!over&&era2()){
+    era2Resolve();
   } else if(!over&&!D.pro&&(floor>=0.35||rig<=0.15)){
     over=true;
     sVictory();
     const ci=lvlIdx-N_PRO;
     const firstCampWin=(ci===0&&campProgress===0);
-    if(ci===campProgress){campProgress=Math.min(LEVELS.length-N_PRO,campProgress+1);saveProgress();}
+    if(ci===campProgress){campProgress=Math.min(N_CAMP,campProgress+1);saveProgress();}
     setFallen(lvlIdx,[]);
-    const last=lvlIdx===LEVELS.length-1;
+    const last=lvlIdx===N_PRO+N_CAMP-1;
+    const justUnlocked=last&&!unlockSeen;
+    if(justUnlocked){unlockSeen=true;try{localStorage.setItem('ov20_unlock','1');}catch(e){}}
     const earned=awardEmbers(true);
     msg='★ District liberated in '+turn+' turns. 🔥 +'+earned+' embers. '+(last?'The campaign is complete. What people have seen cannot be unseen.':'The next district is unsealed.');
-    showEnd('★ District liberated — in '+turn+' turns','<p>🔥 <b>+'+earned+' embers</b> earned from your wins and defections.</p>'+
+    showEnd(justUnlocked?'★ The regime has fallen':'★ District liberated — in '+turn+' turns','<p>🔥 <b>+'+earned+' embers</b> earned from your wins and defections.</p>'+
       (firstCampWin?'<p><b>New — Legacies unlocked.</b> A 🔥 section has appeared on the map screen, below the lessons. Embers buy Legacies: permanent gifts — cheaper murals, a wider press, old friends waiting — that every future story begins with. Win or lose, embers always carry over. Nothing is wasted.</p>':'')+
-      '<p><b>Next:</b> '+(last?'the campaign is complete. Replay any district — for higher ember counts, faster liberations, and the stories you haven\'t seen yet.':'the next district is unsealed. Check the Legacy shop first if your embers can afford something.')+'</p>');
+      (justUnlocked?'<p><b>The seventh district is free. The old order is over.</b></p><p>And now the fight changes shape. The coalition that toppled the regime has to decide what comes next — who is forgiven, who is tried, what is remembered, who holds power. A harder, less heroic problem than taking it down.</p><p><b>New — <span style="color:#e0a458;">One Voice II: The Morning After</span> is unsealed</b>, below the campaign on the map. Winning is behind you. Holding it together is what comes now.</p>':'<p><b>Next:</b> '+(last?'the campaign is complete. Replay any district — for higher ember counts, faster liberations, and the stories you haven\'t seen yet.':'the next district is unsealed. Check the Legacy shop first if your embers can afford something.')+'</p>'));
     showEpilogue('win',earned);
   } else if(!over&&turn>D.maxT){
     over=true;
@@ -1843,55 +3058,126 @@ function endTurn(){
     if(shelterTurns>0)parts.push('hiding someone draws eyes');
     let hot=null,hp=0.3;
     ag.forEach(a=>{if(!a.inc&&!a.gone&&a.press>hp){hp=a.press;hot=a;}});
-    if(hot)parts.push('pressure builds at '+hot.nm+'\'s — '+Math.round(hp*100)+'% ready');
+    if(hot){const st=hp>0.75?'close to breaking through':(hp>0.5?'closing in':'stirring');parts.push(hot.nm+'\'s circle is '+st+' — '+Math.round(hp*100)+'% ready');}
     if(leftoverEnergy>0)parts.push('you ended the turn with '+leftoverEnergy+'⚡ unused');
     const rep=$('report');
     if(parts.length&&!over){rep.style.display='block';rep.textContent='↳ '+parts.join(' · ');}
     else rep.style.display='none';
   })();
+  /* Feature 3: append this turn's tick — marks drawn only from what actually happened,
+     recap pulled from the turn's own story line. No score, no judgment. */
+  {
+    const ev={};
+    if(winsFiredThisTurn>0)ev.win=1;
+    if(lastCrackTurn===turn-1)ev.crack=1;
+    if(defected>_tlDef)ev.defect=1;
+    if(!_tlOpp&&opp)ev.opening=1;
+    if(interrogated)ev.interr=1;
+    if(player!==_tlPlayer)ev.succeed=1;
+    const recap=(msg||'').replace(/<[^>]*>/g,'').replace(/^[★✦◆◇⚠✖⏱◎↳\s-]+/,'').trim().slice(0,120);
+    timeline.push({turn:turn-1,ev,recap});
+    renderTimeline();
+  }
   if(crackIn===1)hintOnce('warn','⚠ First warning: the amber circle is where they strike next turn. If eyes on you are high inside it, lay low.');
   coachEvent('turn');
   if(winThis)coachEvent('win');
   if(over&&D.pro&&checkObjective())coachEvent('win');
-  log(msg||'The turn passes. Words keep moving quietly between neighbors.');
   ui();
-  if(!over)maybeFireDilemma();
+  playTurnSequence(msg||'The turn passes. Words keep moving quietly between neighbors.', function(){ if(!over)maybeFireDilemma(); });
 }
 
+/* Stage 6: a mural is a small stencilled mark — fist / eye / word */
+function drawMuralMark(x,y,kind){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='#e0a458';
+  if(kind===0){            /* a raised fist */
+    ctx.fillRect(-3,-1,6,5); ctx.fillRect(-3,-5,6,3); ctx.fillRect(-1.4,-9,2.6,5);
+    ctx.strokeStyle='rgba(20,23,30,0.45)';ctx.lineWidth=0.7;
+    ctx.beginPath();ctx.moveTo(-1.4,-4.5);ctx.lineTo(-1.4,-1);ctx.moveTo(0.6,-4.5);ctx.lineTo(0.6,-1);ctx.stroke();
+  } else if(kind===1){     /* an open eye */
+    ctx.beginPath();ctx.moveTo(-6,0);ctx.quadraticCurveTo(0,-5,6,0);ctx.quadraticCurveTo(0,5,-6,0);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#14171c';ctx.beginPath();ctx.arc(0,0,1.9,0,Math.PI*2);ctx.fill();
+  } else {                 /* a stencilled word */
+    ctx.fillRect(-7,-3.5,14,1.7);
+    for(let k=-6;k<=5;k+=3)ctx.fillRect(k,-1,1.5,4);
+  }
+  ctx.restore();
+}
+/* which one-stroke accessory (if any) hints at a person's trade */
+function roleShape(role){
+  role=role||'';
+  if(/nurse|doctor|teacher|student|librar|pharmac/.test(role))return 1; /* a bag */
+  if(/baker|cook|waiter|shop|vendor|barber|fisher/.test(role))return 2; /* an apron */
+  if(/music|paint/.test(role))return 3;                                 /* a case */
+  if(/mechanic|electric|weld|carpenter|janitor|driver/.test(role))return 4; /* a tool */
+  return 0;
+}
 function drawFigure(x,y,t,pb,col,ts,i){
   /* a small person. t = awareness 0..1.
-     Unaware: hunched, head down, arms tight. Aware: standing tall, arms open. */
+     Unaware: hunched, head down, arms tight. Aware: standing tall, arms open.
+     K scales the whole figure up in the kitchen slice — larger, readable, memorable. */
+  const K=isKitchen()?1.7:1;
   const sway=Math.sin(ts/900+i*1.7)*0.6*(0.3+t);   /* the aware sway gently, alive */
   const scale=1+pb*0.06;
-  const h=(5.5+4.5*t)*scale;                        /* body height grows as they stand up */
-  const lean=(1-t)*3.2;                             /* hunch: head drifts forward when unaware */
-  const headR=(2.1+0.9*t)*scale;
+  const h=(5.5+4.5*t)*scale*K;                      /* body height grows as they stand up */
+  const lean=(1-t)*3.2*K;                           /* hunch: head drifts forward when unaware */
+  const headR=(2.1+0.9*t)*scale*K;
   ctx.strokeStyle=col;ctx.fillStyle=col;
-  ctx.lineWidth=1.7;
+  ctx.lineWidth=1.7*(K>1?1.4:1);
   ctx.lineCap='round';
   /* legs */
   ctx.beginPath();
-  ctx.moveTo(x-2.2,y+4);ctx.lineTo(x+sway*0.3,y-1);ctx.lineTo(x+2.2,y+4);
+  ctx.moveTo(x-2.2*K,y+4*K);ctx.lineTo(x+sway*0.3,y-1*K);ctx.lineTo(x+2.2*K,y+4*K);
   ctx.stroke();
   /* body */
   ctx.beginPath();
-  ctx.moveTo(x+sway*0.3,y-1);
+  ctx.moveTo(x+sway*0.3,y-1*K);
   ctx.quadraticCurveTo(x+lean*0.5+sway*0.5,y-h*0.6,x+lean*0.8+sway,y-h);
   ctx.stroke();
   /* arms: tight when afraid, opening as they wake */
   const ay=y-h*0.62;
-  const spread=1.2+4.2*t;
-  const armLift=t*2.5;
+  const spread=(1.2+4.2*t)*K;
+  const armLift=t*2.5*K;
   ctx.beginPath();
-  ctx.moveTo(x-spread+sway*0.5,ay+3-armLift);
+  ctx.moveTo(x-spread+sway*0.5,ay+3*K-armLift);
   ctx.lineTo(x+lean*0.4+sway*0.6,y-h*0.72);
-  ctx.lineTo(x+spread+sway*0.5,ay+3-armLift);
+  ctx.lineTo(x+spread+sway*0.5,ay+3*K-armLift);
   ctx.stroke();
   /* head */
   ctx.beginPath();
-  ctx.arc(x+lean+sway,y-h-headR+1,headR,0,Math.PI*2);
+  ctx.arc(x+lean+sway,y-h-headR+1*K,headR,0,Math.PI*2);
   ctx.fill();
+  /* Stage 6: a faint one-stroke hint of trade — enough to recognize, never cartoonish */
+  const rs=(ag[i]&&!ag[i].inc)?roleShape(ag[i].role):0;
+  if(rs&&t>0.18){
+    ctx.lineWidth=1.2*(K>1?1.4:1);ctx.strokeStyle=col;
+    const hx=x+spread*0.7+sway*0.5,hy2=ay+3*K-armLift;
+    if(rs===1){ctx.strokeRect(hx-0.4*K,hy2+0.5*K,2.4*K,3*K);}                            /* bag */
+    else if(rs===2){ctx.beginPath();ctx.moveTo(x-2.4*K,y-1*K);ctx.lineTo(x+2.4*K,y-1*K);ctx.stroke();} /* apron waist */
+    else if(rs===3){ctx.strokeRect(hx-1*K,hy2+1*K,4*K,2.2*K);}                           /* case */
+    else if(rs===4){ctx.beginPath();ctx.moveTo(hx,hy2+2*K);ctx.lineTo(hx+3*K,hy2-2*K);ctx.stroke();} /* tool */
+  }
   ctx.lineCap='butt';
+}
+/* a short warm name label under a figure — kitchen slice legibility */
+function drawNameLabel(x,y,name,strong){
+  ctx.save();
+  ctx.font=(strong?'600 ':'')+'11px ui-monospace,SFMono-Regular,Menlo,monospace';
+  const w=ctx.measureText(name).width, pad=5;
+  ctx.globalAlpha=0.9;
+  ctx.fillStyle='rgba(18,13,11,0.82)';
+  roundRectPath(x-w/2-pad,y,w+pad*2,15,4);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle=strong?'#f0d9ab':'rgba(232,224,208,0.92)';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(name,x,y+8);
+  ctx.textAlign='start';ctx.textBaseline='alphabetic';
+  ctx.restore();
+}
+function roundRectPath(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 
 function draw(ts){
@@ -1904,6 +3190,59 @@ function draw(ts){
     ctx.translate((Math.random()*2-1)*shake.mag*f,(Math.random()*2-1)*shake.mag*f);
   }
   if(!D){ctx.restore();return;}
+  if(bgCanvas)ctx.drawImage(bgCanvas,0,0);
+
+  /* Stage 2: windows wake. Each is tied to its nearest person; it glows warm as
+     their awareness rises and darkens when a crackdown suppresses the area
+     (awareness falls -> window dims, for free). Only lit windows draw. */
+  if(city&&city.windows.length){
+    for(let k=0;k<city.windows.length;k++){
+      const w=city.windows[k], o=w.owner>=0?ag[w.owner]:null;
+      if(!o||o.gone)continue;
+      const t=o.inc?(o.def?0.55:0):o.aw;
+      if(t<=0.28)continue;
+      const a=Math.min(0.5,(t-0.28)*0.72);
+      ctx.fillStyle='rgba(224,164,88,'+a+')';
+      ctx.fillRect(w.x,w.y,w.w,w.h);
+    }
+  }
+
+  /* Stage 4: a slow day-cycle tint — dusk → night → blue hour → dawn — as a
+     turn-driven wash UNDER people and signals, so gameplay contrast never drops.
+     Skipped in the kitchen: it is an interior evening that instead WARMS as the
+     table wakes (below), so the cascade leaves a visible, lasting mark. */
+  if(!isKitchen()){
+    const p=Math.max(0,Math.min(1,(turn-1)/Math.max(1,D.maxT-1)));
+    const KF=[[40,34,52,0.05],[24,30,58,0.10],[30,46,68,0.11],[64,52,44,0.07]];
+    const seg=p*3,i=Math.min(2,Math.floor(seg)),f=seg-i,A=KF[i],B=KF[i+1];
+    ctx.fillStyle='rgba('+Math.round(A[0]+(B[0]-A[0])*f)+','+Math.round(A[1]+(B[1]-A[1])*f)+','+Math.round(A[2]+(B[2]-A[2])*f)+','+(A[3]+(B[3]-A[3])*f)+')';
+    ctx.fillRect(0,0,W,H);
+  } else if(city&&city.table){
+    /* the table warms as awareness spreads: a live amber pool whose reach and
+       brightness climb with how many neighbors now see clearly. Persistent —
+       once the room is warm it stays warm, a standing sign of what changed. */
+    const civ=ag.filter(a=>!a.inc&&!a.gone);
+    const awake=civ.filter(a=>a.aw>=0.5).length;
+    const frac=civ.length?awake/civ.length:0;
+    const t=city.table, warmth=0.06+0.20*frac;
+    const puls=reducedMotion()?1:(0.94+0.06*Math.sin(ts/700));
+    const rad=(t.rx+30)+frac*90;
+    const wg=ctx.createRadialGradient(t.x,t.y-6,8,t.x,t.y,rad);
+    wg.addColorStop(0,'rgba(236,186,116,'+(warmth*puls)+')');
+    wg.addColorStop(0.5,'rgba(228,158,92,'+(warmth*0.4*puls)+')');
+    wg.addColorStop(1,'rgba(228,158,92,0)');
+    ctx.fillStyle=wg;ctx.fillRect(t.x-rad,t.y-rad,rad*2,rad*2);
+  }
+  /* Stage 3: light as the medium. The player carries a soft pool of lamplight;
+     murals cast fainter ones (drawn below). Warm, low, under the people. */
+  if(player>=0&&ag[player]&&!ag[player].gone){
+    const px=ag[player].x,py=ag[player].y-3,rad=72;
+    const lg=ctx.createRadialGradient(px,py,0,px,py,rad);
+    lg.addColorStop(0,'rgba(226,198,142,0.15)');
+    lg.addColorStop(0.5,'rgba(224,180,120,0.05)');
+    lg.addColorStop(1,'rgba(224,180,120,0)');
+    ctx.fillStyle=lg;ctx.fillRect(px-rad,py-rad,rad*2,rad*2);
+  }
 
   const zones=freeZones();
   zones.forEach(z=>{
@@ -1919,6 +3258,10 @@ function draw(ts){
     ctx.beginPath();ctx.arc(a.x,a.y,D.surv,0,Math.PI*2);
     ctx.fillStyle='rgba(201,79,79,0.06)';ctx.fill();
     ctx.strokeStyle='rgba(201,79,79,0.28)';ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+    /* a checkpoint barrier at the post — warning-tape stripes below the square */
+    ctx.save();ctx.translate(a.x,a.y+11);ctx.globalAlpha=a.waver?0.4:0.7;
+    for(let s=-8;s<8;s+=4){ctx.fillStyle=(Math.floor((s+8)/4)%2)?'rgba(224,164,88,0.6)':'rgba(20,23,30,0.75)';ctx.fillRect(s,-1.5,4,3);}
+    ctx.restore();ctx.globalAlpha=1;
   });
   ag.forEach(a=>{
     if(!a.def)return;
@@ -1926,9 +3269,13 @@ function draw(ts){
     ctx.fillStyle='rgba(79,174,141,0.07)';ctx.fill();
   });
   murals.forEach((m,mi)=>{
-    const sh2=0.045+0.025*Math.sin(ts/450+mi*2);
-    ctx.beginPath();ctx.arc(m.x,m.y,90,0,Math.PI*2);
-    ctx.fillStyle='rgba(224,164,88,'+sh2+')';ctx.fill();
+    /* Stage 3: a mural casts a soft pool of light, not a flat disc */
+    const puls=reducedMotion()?0.5:(0.5+0.5*Math.sin(ts/450+mi*2));
+    const rad=84,mg=ctx.createRadialGradient(m.x,m.y,0,m.x,m.y,rad);
+    mg.addColorStop(0,'rgba(224,164,88,'+(0.05+0.03*puls)+')');
+    mg.addColorStop(0.55,'rgba(224,164,88,'+(0.02+0.012*puls)+')');
+    mg.addColorStop(1,'rgba(224,164,88,0)');
+    ctx.fillStyle=mg;ctx.fillRect(m.x-rad,m.y-rad,rad*2,rad*2);
   });
   if((linkMode||muralMode)&&player>=0){
     ctx.beginPath();ctx.arc(ag[player].x,ag[player].y,linkReach(),0,Math.PI*2);
@@ -1982,29 +3329,23 @@ function draw(ts){
     ctx.beginPath();ctx.arc(A.x+(B.x-A.x)*f,A.y+(B.y-A.y)*f-3,2.2,0,Math.PI*2);
     ctx.fillStyle='#4fae8d';ctx.globalAlpha=0.8*(1-f*0.4);ctx.fill();ctx.globalAlpha=1;
   });
-  nearMisses=nearMisses.filter(n=>ts-n.t0<3400);
+  /* near-misses persist through the NEXT turn (Feature 2) — the block that almost
+     gave way stays softly marked long enough to act on, not a one-frame flash */
+  nearMisses=nearMisses.filter(n=>turn-(n.turn||turn)<=1);
   nearMisses.forEach(n=>{
-    const age=(ts-n.t0)/3400;
-    const puls=0.5+0.5*Math.sin(ts/160);
-    ctx.beginPath();ctx.arc(n.x,n.y-5,24+5*puls,0,Math.PI*2);
-    ctx.strokeStyle='#7ea6d8';
-    ctx.globalAlpha=(1-age)*0.65*puls;
+    const rmN=reducedMotion(), puls=rmN?0.8:(0.5+0.5*Math.sin(ts/160));
+    const fade=(n.turn===turn)?0.85:0.5;   /* dimmer once it is the older, last-chance turn */
+    ctx.beginPath();ctx.arc(n.x,n.y-5,24+(rmN?3:5*puls),0,Math.PI*2);
+    ctx.strokeStyle='#7ea6d8';ctx.globalAlpha=fade*0.65*(rmN?1:puls);
     ctx.setLineDash([3,5]);ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
-    ctx.globalAlpha=(1-age)*0.85;
+    ctx.globalAlpha=fade;
     ctx.fillStyle='#7ea6d8';ctx.font='11px ui-monospace,monospace';ctx.textAlign='center';
     ctx.fillText('◇ almost',n.x,n.y-34);
     ctx.textAlign='start';ctx.globalAlpha=1;
   });
-  murals.forEach(m=>{
-    ctx.fillStyle='#e0a458';
-    ctx.beginPath();
-    for(let p=0;p<4;p++){
-      const ang=p*Math.PI/2+ts/4000;
-      ctx.lineTo(m.x+Math.cos(ang)*6,m.y+Math.sin(ang)*6);
-      ctx.lineTo(m.x+Math.cos(ang+Math.PI/4)*2.5,m.y+Math.sin(ang+Math.PI/4)*2.5);
-    }
-    ctx.closePath();ctx.fill();
-  });
+  /* Stage 6: murals as small stencilled marks — a fist, an eye, a word —
+     chosen deterministically per mural instead of a rotating diamond */
+  murals.forEach((m,mi)=>{drawMuralMark(m.x,m.y,(m.kind!==undefined?m.kind:(m.kind=mi%3)));});
   spies.forEach(spy=>{
     ctx.beginPath();ctx.arc(spy.x,spy.y,70,0,Math.PI*2);
     ctx.strokeStyle='rgba(232,228,216,0.25)';ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
@@ -2053,32 +3394,71 @@ function draw(ts){
       ctx.strokeStyle='rgba(232,228,216,0.35)';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(a.x-5,a.y-9);ctx.lineTo(a.x+5,a.y+1);ctx.stroke();
     }
+    const kitchen=isKitchen(), ringK=kitchen?1.7:1, ringCY=a.y-(kitchen?9:5);
     if(i===target){
-      ctx.beginPath();ctx.arc(a.x,a.y-5,12+t*3,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(a.x,ringCY,(12+t*3)*ringK,0,Math.PI*2);
       ctx.fillStyle='rgba(224,164,88,0.14)';ctx.fill();
       ctx.strokeStyle='#e0a458';ctx.lineWidth=2.2;
-      ctx.beginPath();ctx.arc(a.x,a.y-5,9+t*3,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(a.x,ringCY,(9+t*3)*ringK,0,Math.PI*2);ctx.stroke();
     }
     if(i===player){
       const halo=0.5+0.5*Math.sin(ts/600);
       ctx.strokeStyle='#8d7bdb';ctx.lineWidth=2.5;
-      ctx.beginPath();ctx.arc(a.x,a.y-5,11+t*3+pb,0,Math.PI*2);ctx.stroke();
-      ctx.beginPath();ctx.arc(a.x,a.y-5,15+t*3,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(a.x,ringCY,(11+t*3)*ringK+pb,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(a.x,ringCY,(15+t*3)*ringK,0,Math.PI*2);
       ctx.strokeStyle='rgba(141,123,219,'+(0.15*halo)+')';ctx.lineWidth=2;ctx.stroke();
     }
+    /* kitchen slice: short name labels for you / the selected / the tutorial target */
+    if(kitchen&&(i===player||i===target||a.tut)){
+      const label=(i===player)?'You':a.nm;
+      drawNameLabel(a.x,a.y+11,label,i===player||i===target);
+    }
   });
-  /* fear made visible: a haze over the whole district that thins as fear falls */
+  /* fear as atmosphere over the streets: layered, denser at the edges, slowly
+     drifting. Thins visibly as rig falls — that legibility is a gameplay signal. */
   const fogA=rig*0.15;
-  if(fogA>0.015){
-    ctx.fillStyle='rgba(148,158,178,'+fogA+')';
-    ctx.fillRect(-10,-10,W+20,H+20);
+  if(fogA>0.012){
+    ctx.fillStyle='rgba(150,160,180,'+(fogA*0.7)+')';
+    ctx.fillRect(0,0,W,H);
+    const eg=ctx.createRadialGradient(W/2,H/2,H*0.28,W/2,H/2,W*0.62);
+    eg.addColorStop(0,'rgba(150,160,180,0)');
+    eg.addColorStop(1,'rgba(150,160,180,'+(fogA*0.9)+')');
+    ctx.fillStyle=eg;ctx.fillRect(0,0,W,H);
+    const drift=reducedMotion()?0:ts/90;
     for(let c=0;c<3;c++){
-      const cx=((ts/70+c*300)%(W+320))-160;
-      const cy=55+c*150;
-      ctx.beginPath();ctx.ellipse(cx,cy,150,42,0,0,Math.PI*2);
-      ctx.fillStyle='rgba(148,158,178,'+(rig*0.05)+')';ctx.fill();
+      const cx=((drift+c*300)%(W+340))-170,cy=48+c*150;
+      const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,150);
+      bg.addColorStop(0,'rgba(150,160,180,'+(rig*0.05)+')');
+      bg.addColorStop(1,'rgba(150,160,180,0)');
+      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(cx,cy,150,44,0,0,Math.PI*2);ctx.fill();
     }
   }
+  /* the win set piece (Feature 1) — drawn OVER the fog so the haze visibly tears
+     open: a warm clearing grows then settles, windows light one by one across the
+     block, figures straighten in sequence. One win per turn, so never chaotic. */
+  winScenes=winScenes.filter(s=>ts-s.t0<s.dur+300);
+  winScenes.forEach(s=>{
+    const e=(ts-s.t0)/s.dur, fade=1-Math.max(0,(e-0.75)/0.25);
+    const tear=s.rm?Math.min(1,e):Math.min(1,e*1.7);
+    const rad=40+tear*82, a0=(s.rm?0.16:0.24)*Math.max(0,fade);
+    const cg=ctx.createRadialGradient(s.cx,s.cy,0,s.cx,s.cy,rad);
+    cg.addColorStop(0,'rgba(226,196,140,'+a0+')');
+    cg.addColorStop(0.5,'rgba(224,180,120,'+(a0*0.4)+')');
+    cg.addColorStop(1,'rgba(224,180,120,0)');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(s.cx,s.cy,rad,0,Math.PI*2);ctx.fill();
+    const nW=s.wins.length;
+    for(let k=0;k<nW;k++){                          /* windows light one by one */
+      const trig=s.rm?0:(k/Math.max(1,nW))*0.6, lit=e-trig;
+      if(lit<=0)continue;
+      const amp=Math.min(1,lit*4)*Math.max(0,fade), w=city.windows[s.wins[k].k];
+      ctx.fillStyle='rgba(228,198,142,'+(0.6*amp)+')';
+      ctx.fillRect(w.x-0.4,w.y-0.4,w.w+0.8,w.h+0.8);
+    }
+    if(!s.rm)for(let k=0;k<s.people.length;k++){    /* figures rise in sequence */
+      const po=s.people[k], trig=(k/Math.max(1,s.people.length))*0.55;
+      if(e>=trig&&!s.popped[po.idx]){s.popped[po.idx]=1;addPop(po.idx);}
+    }
+  });
   /* memory made visible: chalk tallies along the bottom wall — one for every 2% remembered */
   if(!D.pro){
     const marks=Math.round(floor*100/2);
@@ -2092,12 +3472,36 @@ function draw(ts){
       ctx.stroke();
     }
   }
-  /* readiness rings: collective pressure made visible */
+  /* readiness rings (Feature 2): a block heating toward a win reads at a glance —
+     warm brightening under it + a bright climbing arc. A block that slipped back
+     below threshold COOLS distinctly — a grey, dashed, dimming arc with a small
+     down-chevron (shape AND colour, never colour alone) — so you can see a
+     neighbourhood drifting back to sleep as clearly as one waking. */
+  const rmR=reducedMotion();
   ag.forEach(a=>{
-    if(a.inc||a.gone||a.press<0.12)return;
-    ctx.beginPath();
-    ctx.arc(a.x,a.y-5,16,-Math.PI/2,-Math.PI/2+a.press*Math.PI*2);
-    ctx.strokeStyle='#7ea6d8';ctx.globalAlpha=0.55;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;
+    if(a.inc||a.gone)return;
+    const p=a.press, trend=p-(a.pressWas||0), cooling=trend<-0.02&&p>0.12;
+    if(p<0.12&&!cooling)return;
+    if(p>0.5&&!cooling){                 /* warm brightening: this block is close and still climbing */
+      const warmth=(p-0.5)/0.5, r=30+p*16;
+      const gl=ctx.createRadialGradient(a.x,a.y-5,0,a.x,a.y-5,r);
+      gl.addColorStop(0,'rgba(226,188,132,'+(0.05+0.10*warmth)+')');
+      gl.addColorStop(1,'rgba(226,188,132,0)');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(a.x,a.y-5,r,0,Math.PI*2);ctx.fill();
+    }
+    const ready=p>0.75&&!cooling, puls=(ready&&!rmR)?(0.7+0.3*Math.sin(ts/200)):1;
+    ctx.beginPath();ctx.arc(a.x,a.y-5,16,-Math.PI/2,-Math.PI/2+p*Math.PI*2);
+    if(cooling){ctx.strokeStyle='rgba(150,160,178,0.8)';ctx.setLineDash([2,4]);ctx.globalAlpha=0.35+0.3*p;ctx.lineWidth=1.6;}
+    else{ctx.strokeStyle=p<0.35?'rgba(126,166,216,0.4)':(p<0.75?'#7ea6d8':'#9fc6ea');ctx.globalAlpha=(0.4+0.4*p)*puls;ctx.lineWidth=ready?2.8:2;}
+    ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    if(cooling){                          /* a small down-tick: slipping away */
+      ctx.strokeStyle='rgba(150,160,178,0.75)';ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.moveTo(a.x,a.y-23);ctx.lineTo(a.x,a.y-16);ctx.moveTo(a.x-2.5,a.y-18.5);ctx.lineTo(a.x,a.y-16);ctx.lineTo(a.x+2.5,a.y-18.5);ctx.stroke();
+    } else if(ready){
+      ctx.fillStyle='#9fc6ea';ctx.globalAlpha=rmR?1:(0.7+0.3*Math.sin(ts/200));
+      ctx.font='9px ui-monospace,monospace';ctx.textAlign='center';
+      ctx.fillText('◈ ready',a.x,a.y-24);ctx.textAlign='start';ctx.globalAlpha=1;
+    }
   });
   /* action previews: who would this touch? */
   if(previewAct==='org'&&player>=0&&!over){
@@ -2144,18 +3548,120 @@ function draw(ts){
       ctx.fillRect(-10,-10,W+20,H+20);
     } else vignette=null;
   }
+  /* Stage 5: paper grain, composited last as a whole-page texture (prerendered) */
+  if(!grainCanvas)buildGrain();
+  if(grainCanvas)ctx.drawImage(grainCanvas,0,0);
   ctx.restore();
 }
 
+/* ---------- TURN-RESOLUTION SEQUENCE ----------
+   Paces the turn's narration into readable sentence-beats while the map
+   animations play alongside. The state is already final; this only reveals the
+   story a beat at a time, and is fully skippable. Reduced-motion → instant. */
+let sequencing=false,_seqBeats=[],_seqIdx=0,_seqFinal='',_seqAfter=null,_seqTimer=null;
+function splitBeats(s){
+  const out=[]; let cur='';
+  for(let i=0;i<s.length;i++){ cur+=s[i];
+    if((s[i]==='.'||s[i]==='!'||s[i]==='?')&&(i+1>=s.length||s[i+1]===' ')){ if(cur.trim())out.push(cur.trim()); cur=''; }
+  }
+  if(cur.trim())out.push(cur.trim());
+  return out;
+}
+function playTurnSequence(finalMsg,after){
+  clearTimeout(_seqTimer);
+  _seqFinal=finalMsg||''; _seqAfter=after||null;
+  const beats=splitBeats(_seqFinal);
+  if(reducedMotion()||over||beats.length<2){ _seqBeats=[]; finishTurnSequence(); return; }
+  _seqBeats=beats; _seqIdx=0; sequencing=true;
+  const sk=$('seqskip'); if(sk)sk.style.display='';
+  updateUndo();
+  seqStep();
+}
+function seqStep(){
+  if(!sequencing)return;
+  if(_seqIdx>=_seqBeats.length){ finishTurnSequence(); return; }
+  $('log').innerHTML=_seqBeats[_seqIdx++];
+  _seqTimer=setTimeout(seqStep, Math.max(280, 820/animSpeed));
+}
+function finishTurnSequence(){
+  clearTimeout(_seqTimer); sequencing=false;
+  const sk=$('seqskip'); if(sk)sk.style.display='none';
+  if(_seqFinal)log(_seqFinal);      /* the single journal entry + full "what changed" line */
+  const after=_seqAfter; _seqAfter=null; _seqBeats=[];
+  ui();
+  if(after)after();
+}
+function skipTurnSequence(){ if(sequencing)finishTurnSequence(); }
+
+/* ---------- ONE-ACTION UNDO ----------
+   Snapshot the full in-memory run-state before a committed action; restore it on
+   undo. It never writes any localStorage key, so it cannot corrupt saved
+   progress. Available only until the turn ends (cleared in endTurn/initGame). */
+function cloneDeep(x){
+  if(x===null||typeof x!=='object')return x;
+  if(x instanceof Set)return new Set(x);
+  if(Array.isArray(x)){const a=new Array(x.length);for(let i=0;i<x.length;i++)a[i]=cloneDeep(x[i]);return a;}
+  const o={}; for(const k in x)o[k]=cloneDeep(x[k]); return o;
+}
+let undoSnap=null;
+function snapState(){
+  return {
+    ag:cloneDeep(ag),links:cloneDeep(links),built:cloneDeep(built),weak:new Set(weak),nbr:cloneDeep(nbr),
+    murals:cloneDeep(murals),spies:cloneDeep(spies),reinfThresholds:cloneDeep(reinfThresholds),
+    journal:cloneDeep(journal),fallenThisRun:cloneDeep(fallenThisRun),firedDilemmas:cloneDeep(firedDilemmas),
+    epiEvents:cloneDeep(epiEvents),crackZone:cloneDeep(crackZone),opp:cloneDeep(opp),heirMul:cloneDeep(heirMul),
+    factions:cloneDeep(factions),empowered:cloneDeep(empowered),strandsThisRun:cloneDeep(strandsThisRun),
+    actionCounts:cloneDeep(actionCounts),
+    log:$('log').innerHTML,
+    s:{turn,energy,rig,floor,wins,inf,player,risk,lives,crackIn,target,interrogated,linkMode,muralMode,letterMode,defected,
+       reinfPending,postTrail,docActive,shelterTurns,shelterIdx,boostTurns,freeLink,lastCrackTurn,lastWinTurn,
+       firstWinSeen,inf30Told,inf40Told,witnessedOnce,hopeBonus,nearMissTold,freeZoneTold,embersAwarded,
+       resolve,resolveTold,cgBeatDone,rival,usedApparatus,apparatusUses,deliveredThisRun,deliverIdx,lastDeliverBloc,
+       driftTold,factionTold,drawerTold,rivalTold,delegateTold}
+  };
+}
+function doUndo(){
+  if(!undoSnap||over||sequencing)return;
+  const k=undoSnap,s=k.s;
+  ag=k.ag;links=k.links;built=k.built;weak=k.weak;nbr=k.nbr;murals=k.murals;spies=k.spies;
+  reinfThresholds=k.reinfThresholds;journal=k.journal;fallenThisRun=k.fallenThisRun;firedDilemmas=k.firedDilemmas;
+  epiEvents=k.epiEvents;crackZone=k.crackZone;opp=k.opp;heirMul=k.heirMul;factions=k.factions;empowered=k.empowered;
+  strandsThisRun=k.strandsThisRun;actionCounts=k.actionCounts;
+  turn=s.turn;energy=s.energy;rig=s.rig;floor=s.floor;wins=s.wins;inf=s.inf;player=s.player;risk=s.risk;lives=s.lives;
+  crackIn=s.crackIn;target=s.target;interrogated=s.interrogated;linkMode=s.linkMode;muralMode=s.muralMode;letterMode=s.letterMode;
+  defected=s.defected;reinfPending=s.reinfPending;postTrail=s.postTrail;docActive=s.docActive;shelterTurns=s.shelterTurns;
+  shelterIdx=s.shelterIdx;boostTurns=s.boostTurns;freeLink=s.freeLink;lastCrackTurn=s.lastCrackTurn;lastWinTurn=s.lastWinTurn;
+  firstWinSeen=s.firstWinSeen;inf30Told=s.inf30Told;inf40Told=s.inf40Told;witnessedOnce=s.witnessedOnce;hopeBonus=s.hopeBonus;
+  nearMissTold=s.nearMissTold;freeZoneTold=s.freeZoneTold;embersAwarded=s.embersAwarded;resolve=s.resolve;resolveTold=s.resolveTold;
+  cgBeatDone=s.cgBeatDone;rival=s.rival;usedApparatus=s.usedApparatus;apparatusUses=s.apparatusUses;deliveredThisRun=s.deliveredThisRun;
+  deliverIdx=s.deliverIdx;lastDeliverBloc=s.lastDeliverBloc;driftTold=s.driftTold;factionTold=s.factionTold;drawerTold=s.drawerTold;
+  rivalTold=s.rivalTold;delegateTold=s.delegateTold;
+  $('log').innerHTML=k.log;
+  $('journal').innerHTML=journal.map(e=>'<div'+(e.c||'')+'><span class="jt">T'+e.t+'</span>'+e.m+'</div>').join('');
+  floaters=[];rippleAnims=[];pulses=[];winScenes=[];pops={};   /* drop the undone action's transient effects */
+  undoSnap=null;$('pcard').style.display='none';
+  renderRoster();
+  if(era2())renderFactions();
+  ui();
+}
+function updateUndo(){
+  const b=$('a-undo'); if(!b)return;
+  b.style.display=(undoSnap&&!over&&!sequencing)?'block':'none';   /* explicit 'block' — CSS default is none */
+}
+
 function loop(ts){
-  draw(ts);
+  if(_lastRAF===null)_lastRAF=ts;
+  let dt=ts-_lastRAF; _lastRAF=ts;
+  if(dt<0)dt=0; else if(dt>200)dt=200;   /* clamp tab-switch gaps */
+  animClock+=dt*animSpeed;
+  draw(animClock);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
 document.querySelectorAll('[data-act]').forEach(btn=>{
   const label=btn.textContent;
-  btn.innerHTML='<span class="bl">'+label+'</span><span class="bs"></span>';
+  btn.innerHTML='<span class="bl">'+label+'</span><span class="bcost"></span><span class="bs"></span>';
   btn.addEventListener('click',()=>act(btn.getAttribute('data-act')));
   const a2=btn.getAttribute('data-act');
   btn.addEventListener('mouseenter',()=>{previewAct=a2;});
@@ -2164,8 +3670,23 @@ document.querySelectorAll('[data-act]').forEach(btn=>{
   btn.addEventListener('blur',()=>{if(previewAct===a2)previewAct=null;});
 });
 $('a-end').addEventListener('click',endTurn);
-$('a-retry').addEventListener('click',()=>{$('epilogue-box').style.display='none';initGame();});
-$('btn-back').addEventListener('click',backToCampaign);
+$('a-undo').addEventListener('click',doUndo);
+$('seqskip').addEventListener('click',skipTurnSequence);
+/* Restart confirmation (Feature 9): two-step, non-modal, only mid-run when progress would be lost */
+let retryArmed=false,retryT=null;
+function disarmRetry(){retryArmed=false;clearTimeout(retryT);const b=$('a-retry');if(b){b.textContent='Restart this chapter';b.classList.remove('modeon');}}
+$('a-retry').addEventListener('click',()=>{
+  if(over){$('epilogue-box').style.display='none';initGame();return;}   /* run already ended — nothing to lose */
+  if(!retryArmed){
+    retryArmed=true;
+    $('a-retry').textContent='Restart — this turn’s progress is lost. Click again to confirm.';
+    $('a-retry').classList.add('modeon');
+    retryT=setTimeout(disarmRetry,4500);
+    return;
+  }
+  disarmRetry();$('epilogue-box').style.display='none';initGame();
+});
+$('btn-back').addEventListener('click',()=>{disarmRetry();backToCampaign();});
 $('btn-sound').addEventListener('click',()=>{
   soundOn=!soundOn;
   savePrefs();
@@ -2178,6 +3699,46 @@ $('btn-music').addEventListener('click',()=>{
   setMusic(!musicOn);
   $('btn-music').textContent='♫ music: '+(musicOn?'on':'off');
 });
+/* ---------- TACTICAL SUGGESTIONS (Feature 7): one guiding line per turn, dismissible ---------- */
+let tipsOn=true; try{tipsOn=localStorage.getItem('ov22_tips')!=='off';}catch(e){}
+function saveTips(){try{localStorage.setItem('ov22_tips',tipsOn?'on':'off');}catch(e){}}
+$('btn-tips').addEventListener('click',()=>{tipsOn=!tipsOn;saveTips();$('btn-tips').textContent='◈ tips: '+(tipsOn?'on':'off');if(D)ui();});
+$('btn-tips').textContent='◈ tips: '+(tipsOn?'on':'off');
+/* animation-speed cycle: 1× → 2× → ½× → 1× (persisted) */
+function speedLabel(v){return v===0.5?'½×':(v===2?'2×':'1×');}
+$('btn-speed').addEventListener('click',()=>{
+  animSpeed=animSpeed===1?2:(animSpeed===2?0.5:1);
+  try{localStorage.setItem('ov23_speed',String(animSpeed));}catch(e){}
+  $('btn-speed').textContent='▷ speed: '+speedLabel(animSpeed);
+});
+$('btn-speed').textContent='▷ speed: '+speedLabel(animSpeed);
+$('tip').addEventListener('click',e=>{if(e.target&&e.target.classList.contains('tipx')){tipsOn=false;saveTips();$('btn-tips').textContent='◈ tips: off';$('tip').style.display='none';}});
+/* Compute the single most relevant suggestion. It never names a "best move" — it
+   points at a condition the player reads and decides on. Priority: imminent danger,
+   then a reachable opening, then the block closest to breaking through. */
+function updateTip(){
+  const el=$('tip');if(!el)return;
+  if(!tipsOn||over||!D||player<0||!ag[player]){el.style.display='none';return;}
+  let tip='';
+  if(crackIn===1&&crackZone){
+    const inZ=Math.hypot(ag[player].x-crackZone.x,ag[player].y-crackZone.y)<155;
+    tip='⚠ A crackdown is expected in the marked block next turn'+((inZ&&risk>0.4)?' — you are inside it and eyes are high.':'.');
+  } else if(!era2()&&inf>=30&&ag.some(o=>o.inc&&!o.def&&o.waver&&Math.hypot(o.x-ag[player].x,o.y-ag[player].y)<linkReach()*1.3)){
+    tip='A wavering officer is within reach and people trust you now — you could ask them to walk away.';
+  } else {
+    let hot=null,hotIdx=-1,hp=0.45;
+    ag.forEach((a,i)=>{if(a.inc||a.gone||i===player)return;if(a.press>hp){hp=a.press;hot=a;hotIdx=i;}});
+    if(hot){
+      const nbi=nbr[hotIdx]||[];
+      const hes=nbi.map(j=>ag[j]).filter(p=>p&&!p.inc&&!p.gone&&p.aw<0.5&&!p.betrayed).sort((x,y)=>y.aw-x.aw)[0];
+      tip='◇ '+hot.nm+'’s circle is close to breaking through'+(hes?' — '+hes.nm+' still needs bringing along.':' — one more aware voice.');
+    } else if(opp&&opp.label){
+      tip='◎ '+opp.label;
+    }
+  }
+  if(tip){el.style.display='block';el.innerHTML='<button class="tipx" title="Hide tips" aria-label="Hide tactical suggestions">×</button>'+tip;}
+  else el.style.display='none';
+}
 $('btn-sound').textContent='♪ sound: '+(soundOn?'on':'off');
 $('btn-music').textContent='♫ music: '+(musicOn?'on':'off');
 
@@ -2190,12 +3751,18 @@ function rosterNote(i,txt){
 }
 function chipsFor(a,i){
   const c=[];
-  if(i===player&&!a.gone)c.push(['carries the work','you']);
+  if(i===player&&!a.gone)c.push([a.successor?'successor — carries the work':'carries the work','you']);
   if(a.gone)c.push(['taken','bad']);
   if(a.def)c.push(['walked away from power','']);
   if(a.betrayed)c.push(['a closed door','bad']);
-  if(a.sheltered)c.push(['was sheltered','']);
-  if(!a.gone&&i!==player&&a.aw>=0.5&&!a.inc)c.push(['sees clearly','']);
+  if(a.sheltered)c.push(['sheltered','']);
+  if(a.organizer&&!a.gone&&i!==player)c.push(['organizer','']);
+  if(a.harmed&&!a.gone&&!a.betrayed)c.push(['bears a scar','bad']);
+  if(!a.gone&&i!==player&&!a.inc){
+    if(a.aw>=0.75)c.push(['wide awake','']);
+    else if(a.aw>=0.5)c.push(['sees clearly','']);
+    else if(a.aw>=0.3)c.push(['listening','']);
+  }
   return c;
 }
 function renderRoster(){
@@ -2207,7 +3774,7 @@ function renderRoster(){
     const a=o.a;
     const chips=chipsFor(a,o.i).map(c=>'<span class="chip '+c[1]+'">'+c[0]+'</span>').join('');
     return '<div class="rp"><b>'+a.nm+'</b> — '+a.role+chips+
-      '<div class="rs">'+a.stake.charAt(0).toUpperCase()+a.stake.slice(1)+' · '+a.trait.hint+(a.gone?'':' · '+Math.round(a.aw*100)+'% awake')+'</div>'+
+      '<div class="rs">'+a.stake.charAt(0).toUpperCase()+a.stake.slice(1)+' · '+a.trait.hint+(a.strand?' · from '+a.strand:'')+(a.gone?'':' · '+Math.round(a.aw*100)+'% awake')+'</div>'+
       (a.events&&a.events.length?'<div class="re">'+a.events.join(' · ')+'</div>':'')+'</div>';
   }).join('');
 }
@@ -2238,8 +3805,10 @@ const WIN_MAP=[
 const WIN_GENERIC=['The checkpoint stands empty on market day','The new rule quietly stops being enforced','The notice comes down from the board and stays down','The petition is read aloud, and no one is arrested','The landlord blinks first'];
 let winGenIdx=0;
 function winOutcome(a){
-  for(const w of WIN_MAP){if(a.stake.indexOf(w[0])>=0)return w[1];}
-  return WIN_GENERIC[(winGenIdx++)%WIN_GENERIC.length];
+  const map=era2()?WIN_MAP2:WIN_MAP;
+  for(const w of map){if(a.stake.indexOf(w[0])>=0)return w[1];}
+  const gen=era2()?WIN_GENERIC2:WIN_GENERIC;
+  return gen[(winGenIdx++)%gen.length];
 }
 /* ------------------------------------------------------------------ */
 
@@ -2284,6 +3853,7 @@ function orgRingSet(){
   return ring;
 }
 document.addEventListener('keydown',e=>{
+  if(sequencing&&(e.key==='Escape'||e.key==='Enter'||e.key===' ')){skipTurnSequence();e.preventDefault();return;}
   if(e.key==='Escape'){
     linkMode=false;muralMode=false;letterMode=false;previewAct=null;
     $('kpipop').style.display='none';
@@ -2359,13 +3929,21 @@ const KPI_INFO={
  'st-rig':'Fear slows how quickly awareness travels — the gray fog. Structural wins weaken it. At 15%, the district is free.',
  'st-floor':'The part of awareness made irreversible by concrete victories — the chalk on the wall. Crackdowns cannot erase it. At 35%, the district is free.'
 };
+/* era-2: the same dials mean something new after victory */
+const KPI_INFO2={
+ 'st-aw':'How much of the coalition actively backs the settlement. Volatile — only what is delivered and written down endures.',
+ 'st-risk':'Legitimacy spent. Bold, unilateral acts (the drawer, loud moves) burn your standing. It recovers slowly through delivered results — not through hiding.',
+ 'st-inf':'Your mandate — what lets you act on others\' behalf. It grows when you share power (delegate) and consent; it falls when you act without asking (the drawer).',
+ 'st-rig':'Coalition drift. Unlike Fear, this rises on its own: silence and inaction pull the alliance apart. Deliver, assemble, and delegate to hold it down. If it maxes, the coalition fractures.',
+ 'st-floor':'Contested memory. No longer a floor that only rises — the old apparatus is publishing its own version, and rival pressure pushes it down. Defend it by delivering results.'
+};
 Object.keys(KPI_INFO).forEach(id=>{
   const el=$(id);if(!el)return;
   el.querySelector('.l').innerHTML+=' <span style="color:#7ea6d8;">ⓘ</span>';
   el.addEventListener('click',()=>{
     const pop=$('kpipop');
     if(pop.dataset.for===id&&pop.style.display==='block'){pop.style.display='none';pop.dataset.for='';return;}
-    pop.dataset.for=id;pop.style.display='block';pop.textContent=KPI_INFO[id];
+    pop.dataset.for=id;pop.style.display='block';pop.textContent=(era2()&&KPI_INFO2[id])?KPI_INFO2[id]:KPI_INFO[id];
   });
 });
 /* ----------------------------------------- */
