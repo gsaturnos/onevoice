@@ -113,6 +113,22 @@ button:focus-visible, .stat:focus-visible, summary:focus-visible{outline:2px sol
 #factions .rival .rbar{display:inline-block; width:60px; height:6px; border:1px solid rgba(201,79,79,0.4); vertical-align:middle; margin:0 6px; position:relative;}
 #factions .rival .rfill{position:absolute; left:0; top:0; bottom:0; background:rgba(201,79,79,0.6);}
 canvas{width:100%; border:1px solid var(--line); background:#171a21; display:block; cursor:crosshair;}
+/* ---------- TWO-COLUMN GAMEPLAY LAYOUT (desktop) — map left, person+actions right ---------- */
+#gwrap{display:grid; gap:14px; margin:8px 0 0; align-items:start;}
+#gmap,#gside,#greadout{min-width:0;}
+#tip{display:none; font-family:ui-monospace,monospace; font-size:12.5px; color:#d8c9a0; margin:8px 0 0; padding:7px 11px; border:1px solid rgba(224,164,88,0.35); border-left:3px solid var(--lamp); background:rgba(224,164,88,0.06); line-height:1.5;}
+#tip .tipx{float:right; color:var(--muted); cursor:pointer; margin-left:8px; border:none; background:none; font-size:12px; padding:0 2px;}
+.bcost{position:absolute; top:4px; right:6px; font-size:9.5px; color:var(--muted); font-family:ui-monospace,monospace; letter-spacing:0;}
+.actions button{padding-right:26px;}
+@media (min-width:900px){
+  .wrap.playing{max-width:1160px;}
+  #gwrap{grid-template-columns:minmax(0,1fr) 312px; grid-template-areas:"map side" "readout side";}
+  #gmap{grid-area:map;} #gside{grid-area:side;} #greadout{grid-area:readout;}
+  #gside .actions{flex-direction:column; gap:6px;}
+  #gside .actions button{width:100%; max-width:none; flex:1 1 auto;}
+  #gside #a-end{margin-top:12px;}
+  #greadout{margin-top:0;}
+}
 .banner{display:none; padding:8px 14px; font-size:14px; margin:0 0 10px; border:1px solid; font-family:ui-monospace,monospace;}
 .banner.warn{color:var(--lamp); border-color:var(--lamp); background:rgba(224,164,88,.08);}
 .banner.bad{color:var(--danger); border-color:var(--danger); background:rgba(201,79,79,.08);}
@@ -269,6 +285,7 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button id="btn-music" aria-label="Toggle background music">♫ music: on</button>
       <button id="btn-sound" aria-label="Toggle sound effects">♪ sound: on</button>
+      <button id="btn-tips" aria-label="Toggle tactical suggestions">◈ tips: on</button>
       <button id="btn-back">← Back to the map</button>
     </div>
   </div>
@@ -303,12 +320,47 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
       <b>Embers</b> are earned at the end of every campaign run — win or lose — from your wins and defections. Spend them on Legacies at the map screen: permanent gifts that every future story begins with. Nothing is ever wasted.
     </div>
   </details>
-  <div class="banner" id="banner" role="status" aria-live="polite"></div>
-  <canvas id="game" width="720" height="440"></canvas>
-  <div id="pcard"></div>
-  <div id="log" role="log" aria-live="polite"></div>
-  <div id="report" aria-live="polite"></div>
-  <div id="timeline" role="group" aria-label="Run timeline — one tick per turn"></div>
+  <div id="gwrap">
+    <div id="gmap">
+      <div class="banner" id="banner" role="status" aria-live="polite"></div>
+      <canvas id="game" width="720" height="440" tabindex="0" aria-label="Neighborhood map. Click a neighbor to select them; their details and available actions appear in the panel beside the map."></canvas>
+    </div>
+    <div id="gside">
+      <div id="pcard" aria-live="polite"></div>
+      <div id="tip" aria-live="polite"></div>
+      <div class="group-label" id="grp-personal">Personal</div>
+      <div class="actions">
+        <button data-act="talk" title="Pick a neighbor by clicking them, then talk. Big awareness boost for one person. Barely raises eyes on you.">Talk with someone</button>
+        <button data-act="letter" title="Click ANYONE, anywhere on the map — no range limit. Creates a thinner permanent connection (half strength), and letters can be intercepted: small rise in eyes on you.">Send a letter</button>
+        <button data-act="low" title="Cools eyes on you by 18. But your neighbors, hearing nothing from you, drift back a little.">Lay low</button>
+        <button data-act="doc" title="Arms your camera. The next crackdown is witnessed: its suppression mostly fails and people gain awareness from seeing it.">Document injustice</button>
+      </div>
+      <div class="group-label" id="grp-organize">Organize</div>
+      <div class="actions">
+        <button data-act="link" title="Click anyone in your reach circle to create a permanent connection. Awareness flows through it forever — even without you.">Build a connection</button>
+        <button data-act="org" title="Raises awareness across your whole extended circle at once. At trust 40+, it reaches even further.">Organize a meeting</button>
+        <button data-act="mural" title="Click a spot in your reach to paint. It passively raises awareness around it every turn, forever — until a crackdown paints over it (which weakens the crackdown). Three murals close together create a free zone.">Paint a mural</button>
+        <button data-act="post" title="Reaches random people across the whole map, but thinly — and it is traceable: eyes on you keep rising for 3 turns.">Post online</button>
+      </div>
+      <div class="group-label" id="grp-resist">Resist</div>
+      <div class="actions">
+        <button data-act="speak" title="A wide surge of awareness around you — and a huge spike in eyes on you. Timing is everything.">Speak publicly</button>
+        <button data-act="reach" title="Ask a wavering (amber) incumbent to walk away. Odds improve with surrounding awareness and your trust. Success removes their surveillance, turns them into an amplifier, gives you +1 energy — and spreads doubt through every enforcer nearby.">Reach out to wavering</button>
+        <button data-act="expose" title="Needs trust 30+ and the informant inside your reach circle. Removes it and galvanizes everyone nearby.">Expose informant</button>
+      </div>
+      <div class="group-label" id="grp-govern">Govern</div>
+      <div class="actions">
+        <button data-act="delegate" title="Hand a trusted, awakened person real authority. They keep a bloc you cannot, their trait strengthens your hand, and it widens your mandate. Who you empower shapes the ending.">Delegate authority</button>
+        <button data-act="drawer" title="Open the old surveillance apparatus. It works: the rival claim recedes, order is bought. But it costs mandate, and it will follow you into the roster and the ending — permanently.">Open the drawer</button>
+      </div>
+      <button id="a-end">Next turn →</button>
+    </div>
+    <div id="greadout">
+      <div id="log" role="log" aria-live="polite"></div>
+      <div id="report" aria-live="polite"></div>
+      <div id="timeline" role="group" aria-label="Run timeline — one tick per turn"></div>
+    </div>
+  </div>
   <div id="epilogue-box">
     <h2 id="ep-title">Epilogue</h2>
     <div id="epilogue-text"></div>
@@ -318,32 +370,6 @@ button.nope:hover, button:disabled:hover{border-color:var(--line); background:va
       <button id="ep-map">Back to the map</button>
     </div>
   </div>
-  <div class="group-label">Light — 1 energy</div>
-  <div class="actions">
-    <button data-act="talk" title="Pick a neighbor by clicking them, then talk. Big awareness boost for one person. Barely raises eyes on you.">Talk with someone</button>
-    <button data-act="post" title="Reaches random people across the whole map, but thinly — and it is traceable: eyes on you keep rising for 3 turns.">Post online</button>
-    <button data-act="low" title="Cools eyes on you by 18. But your neighbors, hearing nothing from you, drift back a little.">Lay low</button>
-  </div>
-  <div class="group-label">Committed — 2 energy</div>
-  <div class="actions">
-    <button data-act="link" title="Click anyone in your reach circle to create a permanent connection. Awareness flows through it forever — even without you.">Build a connection</button>
-    <button data-act="letter" title="Click ANYONE, anywhere on the map — no range limit. Creates a thinner permanent connection (half strength), and letters can be intercepted: small rise in eyes on you.">Send a letter</button>
-    <button data-act="org" title="Raises awareness across your whole extended circle at once. At trust 40+, it reaches even further.">Organize a meeting</button>
-    <button data-act="mural" title="Click a spot in your reach to paint. It passively raises awareness around it every turn, forever — until a crackdown paints over it (which weakens the crackdown). Three murals close together create a free zone.">Paint a mural</button>
-    <button data-act="doc" title="Arms your camera. The next crackdown is witnessed: its suppression mostly fails and people gain awareness from seeing it.">Document injustice</button>
-    <button data-act="reach" title="Ask a wavering (amber) incumbent to walk away. Odds improve with surrounding awareness and your trust. Success removes their surveillance, turns them into an amplifier, gives you +1 energy — and spreads doubt through every enforcer nearby.">Reach out to wavering</button>
-    <button data-act="expose" title="Needs trust 30+ and the informant inside your reach circle. Removes it and galvanizes everyone nearby.">Expose informant</button>
-  </div>
-  <div class="group-label">Bold — 3 energy</div>
-  <div class="actions">
-    <button data-act="speak" title="A wide surge of awareness around you — and a huge spike in eyes on you. Timing is everything.">Speak publicly</button>
-  </div>
-  <div class="group-label" id="grp-govern">Govern</div>
-  <div class="actions">
-    <button data-act="delegate" title="Hand a trusted, awakened person real authority. They keep a bloc you cannot, their trait strengthens your hand, and it widens your mandate. Who you empower shapes the ending.">Delegate authority</button>
-    <button data-act="drawer" title="Open the old surveillance apparatus. It works: the rival claim recedes, order is bought. But it costs mandate, and it will follow you into the roster and the ending — permanently.">Open the drawer</button>
-  </div>
-  <button id="a-end">Next turn →</button>
   <details id="story-box" open>
     <summary>📖 The story so far — it grows with every choice</summary>
     <div id="journal"></div>
@@ -771,6 +797,7 @@ function renderLegacy(){
    ov17_hints                                    : once-ever contextual hints (since v17)
    ov20_camp2 / ov20_unlock                      : sequel progress & unlock (since v20)
    ov21_lean                                     : Common Ground strand attrition (since v21)
+   ov22_tips                                     : tactical-suggestion toggle (since v22)
    New keys in future versions should use the ov<version>_ prefix of the version
    that introduces them; never repurpose an existing key. ---------- */
 let proDone=[],campProgress=0;
@@ -953,6 +980,28 @@ function buildCity(){
   for(let k=0;k<5;k++){
     const ax=R(30,W-30),ay=R(40,H-30),len=R(18,54),ang=rnd()<0.5?0:Math.PI/2;
     g.beginPath();g.moveTo(ax,ay);g.lineTo(ax+Math.cos(ang)*len,ay+Math.sin(ang)*len);g.stroke();
+  }
+  /* --- recognizable landmarks, seeded per district (small icon marks, no text) --- */
+  const big=city.buildings.filter(b=>b.w>=22&&b.h>=20);
+  const grab=()=>big.length?big.splice(Math.floor(rnd()*big.length),1)[0]:null;
+  const clinic=grab(),school=grab(),market=grab();
+  if(clinic){                     /* clinic: a small pale cross on a sign plate (not red — red means surveillance here) */
+    const cx=clinic.x+clinic.w/2,cy=clinic.y+clinic.hgt+7;
+    g.fillStyle='rgba(20,24,31,0.9)';g.fillRect(cx-5,cy-5,10,10);
+    g.strokeStyle='rgba(226,214,184,0.8)';g.lineWidth=2;
+    g.beginPath();g.moveTo(cx,cy-3);g.lineTo(cx,cy+3);g.moveTo(cx-3,cy);g.lineTo(cx+3,cy);g.stroke();
+  }
+  if(school){                     /* school: a small pennant on a pole */
+    const sx=school.x+school.w*0.5,sy=school.y+2;
+    g.strokeStyle='rgba(150,160,180,0.5)';g.lineWidth=1;
+    g.beginPath();g.moveTo(sx,sy);g.lineTo(sx,sy-9);g.stroke();
+    g.fillStyle='rgba(126,166,216,0.5)';
+    g.beginPath();g.moveTo(sx,sy-9);g.lineTo(sx+7,sy-7);g.lineTo(sx,sy-5);g.closePath();g.fill();
+  }
+  if(market){                     /* market: a couple of striped stall awnings */
+    const mx=market.x+3,my=market.y+market.h-4;
+    for(let s=0;s<2;s++){const ox=mx+s*11;g.fillStyle='rgba(224,164,88,0.35)';
+      g.beginPath();g.moveTo(ox,my);g.lineTo(ox+9,my);g.lineTo(ox+7,my-4);g.lineTo(ox+2,my-4);g.closePath();g.fill();}
   }
 }
 /* pull a point to the nearest sidewalk so people stand along streets, not in voids */
@@ -1599,6 +1648,7 @@ function startLevel(i){
   lvlIdx=i;D=Object.assign({},PRO_DEFAULTS,LEVELS[i]);
   $('screen-campaign').classList.add('hidden');
   $('screen-game').classList.remove('hidden');
+  document.querySelector('.wrap').classList.add('playing');   /* widen to the two-column layout on desktop */
   $('lvl-title').textContent=D.name;
   $('howto-box').open=(i===N_PRO&&getAttempts(N_PRO)===0);
   let introSeen=false;
@@ -1615,6 +1665,7 @@ function backToCampaign(){
   if(!over&&turn>1&&fallenThisRun.length){setFallen(lvlIdx,fallenThisRun);}
   updateMurmur(0);
   $('screen-game').classList.add('hidden');
+  document.querySelector('.wrap').classList.remove('playing');  /* campaign map keeps its narrower column */
   $('screen-campaign').classList.remove('hidden');
   renderCampaign();
 }
@@ -1884,6 +1935,7 @@ function ui(){
   updateOppUI();
   updateActionLabels();
   stageStats();
+  updateTip();
   ['link','letter','mural'].forEach(a2=>{
     const b2=document.querySelector('[data-act="'+a2+'"]');
     if(!b2)return;
@@ -1928,10 +1980,23 @@ function updateActionLabels(){
   if(tb)tb.textContent=(target>=0&&ag[target]&&!ag[target].inc)?'Talk with '+ag[target].nm:'Talk with someone';
   const COSTS={talk:(opp&&opp.id==='gathering')?0:1,post:1,low:1,link:2,letter:2,org:2,mural:muralCost(),doc:2,reach:2,expose:2,speak:3,delegate:2,drawer:3};
   document.querySelectorAll('[data-act]').forEach(b2=>{
-    const c=COSTS[b2.getAttribute('data-act')];
-    const off=c!==undefined&&energy<c&&!over;
+    const a=b2.getAttribute('data-act'), c=COSTS[a];
+    let reason='';
+    if(c!==undefined&&energy<c&&!over){reason='Not enough energy — needs '+c+'⚡ (you have '+energy+').';}
+    else if(!over&&player>=0&&ag[player]){   /* two clear hard gates get an explicit reason */
+      if(a==='expose'){
+        if(inf<30)reason='Needs community trust 30+ (currently '+Math.round(inf)+').';
+        else if(!spies.some(s=>Math.hypot(s.x-ag[player].x,s.y-ag[player].y)<=linkReach()))reason='No informant within your reach yet.';
+      } else if(a==='reach'){
+        if(!ag.some(o=>o.inc&&!o.def&&o.waver&&Math.hypot(o.x-ag[player].x,o.y-ag[player].y)<linkReach()*1.3))reason='No wavering officer in reach — raise awareness around one until they turn amber.';
+      }
+    }
+    const off=!!reason;
     b2.classList.toggle('nope',off);
     b2.setAttribute('aria-disabled',off?'true':'false');
+    const cb=b2.querySelector('.bcost'); if(cb)cb.textContent=(c!==undefined?c+'⚡':'');
+    if(!b2.dataset.tip)b2.dataset.tip=b2.getAttribute('title')||'';   /* keep the descriptive default */
+    b2.title=off?reason:b2.dataset.tip;
   });
   const sep=' <span style="color:#565b66">·</span> ';
   const awT=Math.round((0.26+0.08*infBonus())*100);
@@ -3160,7 +3225,7 @@ requestAnimationFrame(loop);
 
 document.querySelectorAll('[data-act]').forEach(btn=>{
   const label=btn.textContent;
-  btn.innerHTML='<span class="bl">'+label+'</span><span class="bs"></span>';
+  btn.innerHTML='<span class="bl">'+label+'</span><span class="bcost"></span><span class="bs"></span>';
   btn.addEventListener('click',()=>act(btn.getAttribute('data-act')));
   const a2=btn.getAttribute('data-act');
   btn.addEventListener('mouseenter',()=>{previewAct=a2;});
@@ -3169,8 +3234,21 @@ document.querySelectorAll('[data-act]').forEach(btn=>{
   btn.addEventListener('blur',()=>{if(previewAct===a2)previewAct=null;});
 });
 $('a-end').addEventListener('click',endTurn);
-$('a-retry').addEventListener('click',()=>{$('epilogue-box').style.display='none';initGame();});
-$('btn-back').addEventListener('click',backToCampaign);
+/* Restart confirmation (Feature 9): two-step, non-modal, only mid-run when progress would be lost */
+let retryArmed=false,retryT=null;
+function disarmRetry(){retryArmed=false;clearTimeout(retryT);const b=$('a-retry');if(b){b.textContent='Restart this chapter';b.classList.remove('modeon');}}
+$('a-retry').addEventListener('click',()=>{
+  if(over){$('epilogue-box').style.display='none';initGame();return;}   /* run already ended — nothing to lose */
+  if(!retryArmed){
+    retryArmed=true;
+    $('a-retry').textContent='Restart — this turn’s progress is lost. Click again to confirm.';
+    $('a-retry').classList.add('modeon');
+    retryT=setTimeout(disarmRetry,4500);
+    return;
+  }
+  disarmRetry();$('epilogue-box').style.display='none';initGame();
+});
+$('btn-back').addEventListener('click',()=>{disarmRetry();backToCampaign();});
 $('btn-sound').addEventListener('click',()=>{
   soundOn=!soundOn;
   savePrefs();
@@ -3183,6 +3261,38 @@ $('btn-music').addEventListener('click',()=>{
   setMusic(!musicOn);
   $('btn-music').textContent='♫ music: '+(musicOn?'on':'off');
 });
+/* ---------- TACTICAL SUGGESTIONS (Feature 7): one guiding line per turn, dismissible ---------- */
+let tipsOn=true; try{tipsOn=localStorage.getItem('ov22_tips')!=='off';}catch(e){}
+function saveTips(){try{localStorage.setItem('ov22_tips',tipsOn?'on':'off');}catch(e){}}
+$('btn-tips').addEventListener('click',()=>{tipsOn=!tipsOn;saveTips();$('btn-tips').textContent='◈ tips: '+(tipsOn?'on':'off');if(D)ui();});
+$('btn-tips').textContent='◈ tips: '+(tipsOn?'on':'off');
+$('tip').addEventListener('click',e=>{if(e.target&&e.target.classList.contains('tipx')){tipsOn=false;saveTips();$('btn-tips').textContent='◈ tips: off';$('tip').style.display='none';}});
+/* Compute the single most relevant suggestion. It never names a "best move" — it
+   points at a condition the player reads and decides on. Priority: imminent danger,
+   then a reachable opening, then the block closest to breaking through. */
+function updateTip(){
+  const el=$('tip');if(!el)return;
+  if(!tipsOn||over||!D||player<0||!ag[player]){el.style.display='none';return;}
+  let tip='';
+  if(crackIn===1&&crackZone){
+    const inZ=Math.hypot(ag[player].x-crackZone.x,ag[player].y-crackZone.y)<155;
+    tip='⚠ A crackdown is expected in the marked block next turn'+((inZ&&risk>0.4)?' — you are inside it and eyes are high.':'.');
+  } else if(!era2()&&inf>=30&&ag.some(o=>o.inc&&!o.def&&o.waver&&Math.hypot(o.x-ag[player].x,o.y-ag[player].y)<linkReach()*1.3)){
+    tip='A wavering officer is within reach and people trust you now — you could ask them to walk away.';
+  } else {
+    let hot=null,hotIdx=-1,hp=0.45;
+    ag.forEach((a,i)=>{if(a.inc||a.gone||i===player)return;if(a.press>hp){hp=a.press;hot=a;hotIdx=i;}});
+    if(hot){
+      const nbi=nbr[hotIdx]||[];
+      const hes=nbi.map(j=>ag[j]).filter(p=>p&&!p.inc&&!p.gone&&p.aw<0.5&&!p.betrayed).sort((x,y)=>y.aw-x.aw)[0];
+      tip='◇ '+hot.nm+'’s circle is close to breaking through'+(hes?' — '+hes.nm+' still needs bringing along.':' — one more aware voice.');
+    } else if(opp&&opp.label){
+      tip='◎ '+opp.label;
+    }
+  }
+  if(tip){el.style.display='block';el.innerHTML='<button class="tipx" title="Hide tips" aria-label="Hide tactical suggestions">×</button>'+tip;}
+  else el.style.display='none';
+}
 $('btn-sound').textContent='♪ sound: '+(soundOn?'on':'off');
 $('btn-music').textContent='♫ music: '+(musicOn?'on':'off');
 
