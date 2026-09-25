@@ -224,3 +224,70 @@ not code: the scene-descriptor/palette system (→ `content/theme.ts` +
 over the canvas, procedural portrait/label primitives, the conversation-action
 card, and the "environment transforms as awareness spreads" feedback — all
 re-expressed against the clean core/render boundary rather than ported verbatim.
+
+---
+
+## 7. Phase 2 — approved decisions (2026-09-25)
+
+These six decisions were reviewed and approved before Phase 2 began. They are
+binding for the parity phase; any change to them, or to mechanics, content, save
+behavior, or the architecture above, requires separate approval.
+
+### 7.1 Renderer
+**PixiJS**, accepting one bundled runtime dependency. Pixi is bundled by Vite
+into the offline build (no CDN, no runtime network). The renderer stays an
+adapter behind the snapshot boundary and can be swapped without touching
+`core/`.
+
+### 7.2 Build strategy & preview deploy
+**Parallel build with eventual cutover.** V2 lives under `/v2`; `v2/dist` is
+served through a **separate Vercel preview** while parity is established. The
+production entry point (`/index.html`) is **not** replaced or modified, and
+**no cutover happens without separate approval**.
+
+### 7.3 Parity oracle & tolerance
+**Stable `staging` is the reference implementation** — never experimental PR
+#10. Parity requires **exact equality** for integer, Boolean, enum,
+action-order, and seeded-RNG behavior, and a **documented small epsilon** only
+for genuine floating-point calculations. Deterministic **action transcripts**
+and **golden-master outputs** are captured in version control (under
+`v2/test/golden/`).
+
+> **Determinism finding (must be read with 7.3).** Production `index.html` is
+> only *partially* seed-deterministic. Initial layout is seeded
+> (`initGame` uses `mulberry32(1000 + lvlIdx*7919)`), but every stochastic
+> **turn-level** event — crackdown spawn, reinforcement placement, informant
+> guilt, wavering, opportunity/dilemma firing, `post`/`reach` outcomes — calls
+> **unseeded `Math.random()`** directly. Exact golden-master parity is
+> therefore impossible against production *as shipped*.
+>
+> **Method:** the parity harness runs the production simulation with a single
+> **RNG seam** — every `Math.random()`/`rand()` call is routed through the same
+> `mulberry32` stream V2 uses — so the oracle and V2 draw an identical entropy
+> sequence and can be compared field-for-field. This changes **only the test
+> oracle**; the shipped production game keeps `Math.random()` and is untouched.
+> The seam is the definition of "seeded-RNG behavior" in 7.3.
+
+### 7.4 Save data (read-only in Phase 2)
+Preserve compatibility with the existing save formats/keys (`ov8_*`, `ov11_*`,
+`ov15_*`, `ov17_*`; plus `ov22_*`/`ov23_*` recognised). **During Phase 2, V2
+treats production save data as read-only input:** it imports/clones production
+saves into a **versioned V2 development namespace** (`ov_v2dev_*`) and writes
+**only** there. The importer is **idempotent**, preserves original values,
+tolerates missing/malformed data, and ships with **rollback tests**. V2 does
+**not** write to or overwrite production keys until cutover is separately
+approved.
+
+### 7.5 Content source (transitional)
+**Stable `staging` is the content source of truth during Phase 2** — never
+experimental PR #10. To avoid parallel manual editing of duplicate content, V2
+content is **extracted from the staging baseline through a documented,
+repeatable process** (`v2/tools/extract-content` reads the constants from
+`staging:index.html` and emits typed `content/` modules). Any parity-phase
+content change is made once in the baseline and propagated through that process.
+Moving the canonical source to typed V2 content is reconsidered **only after
+parity is proven**.
+
+### 7.6 Toolchain & CI
+Add **typecheck, Vitest, dependency-boundary enforcement, and the production
+build** to **push-triggered CI** for the V2 branch. **No scheduled routines.**
