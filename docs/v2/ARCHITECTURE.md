@@ -318,3 +318,50 @@ parity is proven**.
 ### 7.6 Toolchain & CI
 Add **typecheck, Vitest, dependency-boundary enforcement, and the production
 build** to **push-triggered CI** for the V2 branch. **No scheduled routines.**
+
+## 8. Phase 3 — "The kitchen table" vertical slice (in progress)
+
+A polished PixiJS rendering of **level 0 only** ("I · The kitchen table"), built to
+test whether the parity-proven core can carry a graphic-novel presentation. The
+core is untouched; the renderer is a pure observer.
+
+### 8.1 The animation boundary
+The renderer and audio **display** state; they never decide it. Every animated
+transition is played only after the app has already committed the action to the
+pure reducer (`applyAction`), and a HUD influence preview is literally the reducer
+run on a copy and thrown away (`core/insight.ts`). Timing is decoupled from state
+(`render/anim.ts`), so acceleration, skipping, and reduced-motion cannot change any
+outcome — verified by winning the level identically with motion on and reduced.
+
+### 8.2 Scene composition (view-only re-seating)
+For level 0 the cast is re-seated around an authored kitchen table
+(`render/scene.ts`, a pure view-model) ordered by link-proximity to the player, so
+relationships read as "who sits near me". This is a presentation choice; link
+**topology** still comes from the core and the renderer never writes back. The room
+(`render/Room.ts`) is layered (wall, window, hanging lamp, shelves, table back/front
+rims, foreground) and warms through three environmental states — **silent →
+awakening → acting together** — with a persistent lit-lantern/lit-windows trace
+after the cascade. Characters (`render/Character.ts`) are inked busts with fixed
+identity (garment/skin/hair/role prop/silhouette) and awareness-driven posture,
+expression, warmth, and a clarity halo. All art is procedural `Graphics` — no image
+assets.
+
+### 8.3 Sequences
+`render/Fx.ts` provides the warm talk signal, the overnight propagation shimmer
+(drawn from the real per-link diffusion), and the cascade bloom. Sound
+(`audio/AudioController.ts`) is procedural Web Audio on independent music/sfx buses,
+resumed on first gesture (autoplay-safe). The HUD (`ui/Hud.ts`) is scene-dominant,
+accessible HTML: objective, turn, energy, the selected-person card with influence
+preview, an accessible neighbour roster (keyboard/touch path), a ≤3-item "what
+changed" summary, and a tactical suggestion.
+
+### 8.4 New adapter layer
+`audio/` joins `render/`, `ui/`, `persistence/` as an adapter (may use `core` +
+`content`, never another adapter); wiring lives only in `app/main.ts`. Enforced by
+`tools/check-boundaries.mjs`.
+
+### 8.5 Scope & deploy
+Level 0 only; deployed to the isolated `onevoice-227j` preview; production and
+`/index.html` untouched; saves remain read-only in `ov_v2dev_v1_*`. The full PixiJS
+treatment of the remaining levels is **not** in scope until the slice is judged
+strong enough to extend.

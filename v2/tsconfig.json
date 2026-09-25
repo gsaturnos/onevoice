@@ -18,7 +18,8 @@
       "@core/*": ["src/core/*"],
       "@content/*": ["src/content/*"],
       "@render/*": ["src/render/*"],
-      "@ui/*": ["src/ui/*"]
+      "@ui/*": ["src/ui/*"],
+      "@audio/*": ["src/audio/*"]
     }
   },
   "include": ["src", "test"]
