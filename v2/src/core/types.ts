@@ -150,10 +150,18 @@ export interface GameState {
 }
 
 /**
- * Player-facing actions. The parity phase ports these incrementally; the demo
- * app currently drives only `talk` and `endTurn`.
+ * Player-facing actions. Ported incrementally (Stage B: talk/org/low/post/doc/
+ * speak). reach/expose/link/letter/mural land with Stage C. The demo app drives
+ * only `talk` and `endTurn`.
  */
-export type Action = { kind: 'talk'; target: number } | { kind: 'endTurn' };
+export type Action =
+  | { kind: 'talk'; target: number }
+  | { kind: 'org' }
+  | { kind: 'low' }
+  | { kind: 'post' }
+  | { kind: 'doc' }
+  | { kind: 'speak' }
+  | { kind: 'endTurn' };
 
 /** A read-only view handed to render/ui. They must never mutate it. */
 export type Snapshot = Readonly<GameState>;

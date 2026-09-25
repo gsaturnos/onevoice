@@ -146,9 +146,22 @@ function sWin(){}
 function sVictory(){}
 function sChain(){}
 function checkTrustMilestones(){}
-let __rng=Math.random;
-function rand(a,b){return a+__rng()*(b-a);}
+function sOpp(){}
+function sNear(){}
+function sWarn(){}
+function sKnock(){}
+function sLoss(){}
+let __rng = Math.random;         // the injectable turn-level entropy stream
+function __ovrand(){ return __rng(); }
 `;
+
+// RNG seam: production draws turn-level entropy through BOTH rand() and direct
+// Math.random(). We textually route every `Math.random` in the EXTRACTED
+// functions to __ovrand (the injectable stream) so oracle and V2 draw the same
+// sequence. initGame's layout RNG is mulberry32 (not Math.random) and is
+// untouched, so createGame parity is unaffected.
+const seam = (s) => s.replace(/Math\.random\b/g, '__ovrand');
+const FNS = (n) => seam(FN(n));
 
 const API = `
 function _snapshot(){
@@ -157,6 +170,7 @@ function _snapshot(){
     links: links.map(l=>[...l]),
     nbr: nbr.map(x=>[...x]),
     player, turn, energy, rig, floor, inf, risk, defected, over, wins,
+    docActive, postTrail,
     spies: spies.map(s=>({...s})),
     reinfThresholds: [...reinfThresholds],
   };
@@ -173,6 +187,9 @@ return {
   },
   snapshot: _snapshot,
   setRng(fn){ __rng = fn; },
+  setTarget(i){ target = i; },
+  setEnergy(n){ energy = n; },
+  act(type){ act(type); return _snapshot(); },
   levelCount(){ return LEVELS.length; },
   levelIsPro(idx){ return !!LEVELS[idx].pro; },
 };
@@ -185,7 +202,17 @@ const body = [
   FN('mulberry32'),
   FN('rebuildNbr'),
   STUBS,
-  FN('initGame'),
+  FNS('rand'),
+  FNS('infBonus'),
+  FNS('linkReach'),
+  FNS('lkey'),
+  FNS('inSurv'),
+  FNS('localAwAround'),
+  FNS('orgRingSet'),
+  FNS('muralCost'),
+  FNS('triggerDefection'),
+  FNS('initGame'),
+  FNS('act'),
   API,
 ].join('\n');
 
