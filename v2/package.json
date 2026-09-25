@@ -1,0 +1,25 @@
+{
+  "name": "one-voice-v2",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "One Voice V2 frontend — isolated TS + Vite + PixiJS architecture prototype. Simulation core is DOM/render-agnostic. Production /index.html is unaffected.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "node tools/check-boundaries.mjs",
+    "test": "vitest run",
+    "extract-content": "node tools/extract-content.mjs",
+    "refresh-baseline": "git show origin/staging:index.html > test/golden/staging-index.html && node tools/extract-content.mjs"
+  },
+  "dependencies": {
+    "pixi.js": "^8.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0",
+    "vitest": "^1.6.0"
+  }
+}
