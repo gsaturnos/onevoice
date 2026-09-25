@@ -108,6 +108,37 @@ export interface LegacyState {
   owned: string[];
 }
 
+/** Heir-boon multipliers, reset on setup and re-derived on heir succession. */
+export interface HeirMul {
+  talk: number;
+  org: number;
+  muralTick: number;
+  postAdd: number;
+  risk: number;
+}
+
+/** An active opportunity window (campaign only). */
+export interface Opp {
+  id: 'gathering' | 'market' | 'visitor' | 'paper';
+  turnsLeft: number;
+  label: string;
+  targetIdx?: number;
+}
+
+/**
+ * A fired dilemma awaiting the player's choice. It blocks act()/endTurn until
+ * resolved. `a`/`b` carry the two outcomes as pure state transforms.
+ */
+export interface PendingDilemma {
+  id: string;
+  a: DilemmaChoice;
+  b: DilemmaChoice;
+}
+export interface DilemmaChoice {
+  /** apply this choice's effects to the state, in place */
+  fx: (s: GameState) => void;
+}
+
 /** Everything the simulation carries between turns. Pure data. */
 export interface GameState {
   level: LevelDef;
@@ -121,6 +152,15 @@ export interface GameState {
   weak: string[]; // keys (lkey) of half-strength links made by letters
   murals: Array<{ x: number; y: number }>;
   neighbors: number[][]; // adjacency derived from links
+  /**
+   * Count of animation "pulses" the production oracle accumulates (capped at
+   * 12). Carried ONLY to reproduce the RNG draw sequence: production draws pulse
+   * timing (Math.random) from the same turn-entropy stream as its mechanics, so
+   * the reference oracle consumes those draws; V2 must consume them identically
+   * to stay in parity. Not a gameplay value. See docs/v2/ARCHITECTURE.md §7.3.
+   */
+  pulseCount: number;
+  heirMul: HeirMul;
 
   turn: number;
   energy: number;
@@ -146,6 +186,13 @@ export interface GameState {
   lastCrackTurn: number;
   lastWinTurn: number;
   interrogated: boolean;
+  witnessedOnce: boolean;
+  lives: number;
+
+  opp: Opp | null;
+  oppExpired: number;
+  firedDilemmas: string[];
+  pendingDilemma: PendingDilemma | null;
 
   over: boolean;
   won: boolean;

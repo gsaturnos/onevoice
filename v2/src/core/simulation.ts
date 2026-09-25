@@ -113,8 +113,8 @@ export function applyAction(prev: GameState, action: Action): GameState {
       if (q.betrayed) return s;
       if (!s.neighbors[p].includes(t)) return s; // words travel links only
       s.energy -= cost;
-      s.risk = Math.min(1, s.risk + (0.03 + sp) * 1);
-      let mul = q.trait.talkMul * 1;
+      s.risk = Math.min(1, s.risk + (0.03 + sp) * s.heirMul.risk);
+      let mul = q.trait.talkMul * s.heirMul.talk;
       if (q.trait.id === 'wary' && s.inf >= 30) mul = 1.2;
       q.aw = Math.min(1, q.aw + (0.26 + 0.08 * infBonus(s)) * mul);
       s.inf = Math.min(100, s.inf + 2);
@@ -123,11 +123,12 @@ export function applyAction(prev: GameState, action: Action): GameState {
     case 'org': {
       if (s.energy < 2) return s;
       s.energy -= 2;
-      s.risk = Math.min(1, s.risk + (0.13 + sp) * 1);
+      s.risk = Math.min(1, s.risk + (0.13 + sp) * s.heirMul.risk);
       const ring = orgRingSet(s);
+      const mul2 = s.heirMul.org; // (market ? 1.5 : 1) * (has('deep') ? 1.3 : 1) — Stage C2/legacy
       ring.forEach((j) => {
         const a = s.agents[j];
-        a.aw = Math.min(1, a.aw + (0.12 + 0.04 * infBonus(s)) * a.trait.orgMul * 1);
+        a.aw = Math.min(1, a.aw + (0.12 + 0.04 * infBonus(s)) * a.trait.orgMul * mul2);
       });
       s.inf = Math.min(100, s.inf + 4);
       return s;
@@ -145,8 +146,8 @@ export function applyAction(prev: GameState, action: Action): GameState {
     case 'post': {
       if (s.energy < 1) return s;
       s.energy -= 1;
-      s.postTrail = 3; // no 'paper' opportunity yet
-      const reachN = 14; // (has('press')?20:14) + heirMul.postAdd, clean
+      s.postTrail = 3; // no 'paper' opportunity yet (Stage C2)
+      const reachN = 14 + s.heirMul.postAdd; // (has('press') ? 20 : 14) + postAdd
       const rng = makeRng(s.rngState);
       const NN = s.agents.length;
       for (let t2 = 0; t2 < reachN; t2++) {
@@ -273,39 +274,436 @@ export function applyAction(prev: GameState, action: Action): GameState {
   }
 }
 
+// --- geometry helpers for mural free zones (ports of production) ---
+
+/** All mural triangles whose three vertices are pairwise within 210px. */
+function freeZones(s: GameState): Array<[{ x: number; y: number }, { x: number; y: number }, { x: number; y: number }]> {
+  const m = s.murals;
+  const zones: Array<[{ x: number; y: number }, { x: number; y: number }, { x: number; y: number }]> = [];
+  for (let a = 0; a < m.length; a++)
+    for (let b = a + 1; b < m.length; b++)
+      for (let c = b + 1; c < m.length; c++) {
+        const A = m[a];
+        const B = m[b];
+        const C = m[c];
+        if (
+          Math.hypot(A.x - B.x, A.y - B.y) <= 210 &&
+          Math.hypot(B.x - C.x, B.y - C.y) <= 210 &&
+          Math.hypot(A.x - C.x, A.y - C.y) <= 210
+        )
+          zones.push([A, B, C]);
+      }
+  return zones;
+}
+
+function inTriangle(
+  p: { x: number; y: number },
+  A: { x: number; y: number },
+  B: { x: number; y: number },
+  C: { x: number; y: number },
+): boolean {
+  const sgn = (a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }): number =>
+    (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
+  const d1 = sgn(p, A, B);
+  const d2 = sgn(p, B, C);
+  const d3 = sgn(p, C, A);
+  const neg = d1 < 0 || d2 < 0 || d3 < 0;
+  const pos = d1 > 0 || d2 > 0 || d3 > 0;
+  return !(neg && pos);
+}
+
+function inAnyZone(p: { x: number; y: number }, zones: ReturnType<typeof freeZones>): boolean {
+  return zones.some((z) => inTriangle(p, z[0], z[1], z[2]));
+}
+
+/** Derive heir-boon multipliers from the successor's trait (port of setHeirBoon). */
+function setHeirBoon(s: GameState, trait: Agent['trait']): void {
+  s.heirMul = { talk: 1, org: 1, muralTick: 1, postAdd: 0, risk: 1 };
+  if (trait.id === 'talker') s.heirMul.talk = 1.25;
+  else if (trait.id === 'gatherer') s.heirMul.org = 1.25;
+  else if (trait.id === 'artist') s.heirMul.muralTick = 1.4;
+  else if (trait.id === 'online') s.heirMul.postAdd = 6;
+  else if (trait.id === 'wary') {
+    s.heirMul.risk = 0.8;
+    s.heirMul.talk = 0.85;
+  }
+}
+
+/** Decrement an active opportunity window (port of tickOpp; no RNG). */
+function tickOpp(s: GameState): void {
+  if (!s.opp) return;
+  s.opp.turnsLeft--;
+  if (s.opp.turnsLeft <= 0) {
+    s.oppExpired++;
+    s.opp = null;
+  }
+}
+
 /**
- * Resolve a turn — PHASE-1 DEMO diffusion only. The faithful endTurn port
- * (diffusion + floor/memory, free zones, defection auras, shelter,
- * reinforcements, crackdowns, opportunities, dilemmas, win/loss) is Stage C.
+ * Stage C1 covers the guided ("pro") levels, where production returns early
+ * (D.pro) from both of these, so they draw nothing. The campaign bodies — which
+ * DO consume the turn-entropy stream — arrive in Stage C2 (opportunities) and
+ * Stage C3 (dilemmas). Guarded so a premature campaign call is a visible no-op
+ * rather than a silent parity drift.
+ */
+function maybeSpawnOpp(s: GameState, _rng: Rng): void {
+  if (s.level.pro || s.opp || s.over) return;
+  // TODO(Stage C2): turn>=3 gate draw, pick OPPS, make() — campaign only.
+}
+function maybeFireDilemma(s: GameState, _rng: Rng): void {
+  if (s.level.pro || s.over || s.pendingDilemma) return;
+  // TODO(Stage C3): 0.30 gate draw, pick DILEMMAS, build() — campaign only.
+}
+
+/**
+ * Resolve a turn — a faithful port of production endTurn. All stochastic draws
+ * (reinforcement placement, diffusion pulse timing, win-pressure jitter,
+ * spontaneous crackdowns) come from the shared turn-entropy stream in
+ * s.rngState, in the exact production order, so oracle and V2 stay in lockstep.
+ * View-only side effects (floats, ripples, sound, coach, end screens) are
+ * dropped; every mechanic mutation is preserved. See docs/v2/ARCHITECTURE.md §7.3.
  */
 export function tick(prev: GameState): GameState {
   const s = clone(prev);
-  if (s.over) return s;
+  if (s.over || s.pendingDilemma) return s;
 
-  const spread = 0.12 * (1 - s.rig);
-  const before = s.agents.map((a) => a.aw);
-  for (let i = 0; i < s.agents.length; i++) {
-    const a = s.agents[i];
-    if (a.inc || a.gone) continue;
-    let pull = 0;
-    for (const j of s.neighbors[i]) {
-      if (s.agents[j].gone) continue;
-      pull += Math.max(0, before[j] - before[i]);
+  const D = s.level;
+  const NN = s.agents.length;
+  const ag = s.agents;
+  const p = s.player;
+  s.interrogated = false;
+
+  const rng = makeRng(s.rngState);
+  const rand = (a: number, b: number): number => a + rng.next() * (b - a);
+
+  // A. a pending reinforcement drops in as a fresh incumbent.
+  if (s.reinfPending) {
+    s.reinfPending = false;
+    for (let tries = 0; tries < 25; tries++) {
+      const idx = Math.floor(rand(0, NN));
+      if (!ag[idx].inc && !ag[idx].gone && idx !== p) {
+        ag[idx].inc = true;
+        ag[idx].aw = 0;
+        ag[idx].waver = false;
+        ag[idx].def = false;
+        ag[idx].doubt = false;
+        break;
+      }
     }
-    a.aw = Math.min(1, a.aw + spread * pull * 0.25);
   }
 
-  s.turn += 1;
-  s.energy = 3;
+  const zones = freeZones(s);
 
-  if (objectiveMet(s)) {
+  // B. overnight diffusion along links (simultaneous), then floor + memory decay.
+  let spreadCount = 0;
+  let memHeld = 0;
+  const next = ag.map((a) => a.aw);
+  s.links.forEach((l) => {
+    const i = l[0];
+    const j = l[1];
+    const w = l[2] || 1;
+    const d = 1 - s.rig * 0.5;
+    const r = 0.08 * d * w;
+    if (!ag[i].inc && !ag[i].gone && !ag[j].inc && !ag[j].gone) {
+      if (ag[i].aw > ag[j].aw) {
+        const t2 = (ag[i].aw - ag[j].aw) * r;
+        next[j] = Math.min(1, next[j] + t2);
+        if (t2 > 0.004) {
+          spreadCount++;
+          if (s.pulseCount < 12) {
+            rng.next(); // pulse timing draw (nowMs()+Math.random()*400)
+            s.pulseCount++;
+          }
+        }
+      }
+      if (ag[j].aw > ag[i].aw) {
+        const t2 = (ag[j].aw - ag[i].aw) * r;
+        next[i] = Math.min(1, next[i] + t2);
+        if (t2 > 0.004) {
+          spreadCount++;
+          if (s.pulseCount < 12) {
+            rng.next();
+            s.pulseCount++;
+          }
+        }
+      }
+    }
+  });
+  ag.forEach((a, i) => {
+    if (!a.inc && !a.gone) {
+      if (next[i] - 0.004 < s.floor && a.aw > s.floor - 0.001) memHeld++;
+      a.aw = Math.max(s.floor, next[i] - 0.004);
+    }
+  });
+
+  // C. free-zone growth.
+  if (zones.length) {
+    ag.forEach((a) => {
+      if (a.inc || a.gone) return;
+      if (inAnyZone(a, zones)) a.aw = Math.min(1, a.aw + 0.015);
+    });
+  }
+
+  // D. defectors radiate awareness.
+  ag.forEach((a) => {
+    if (!a.def) return;
+    ag.forEach((b) => {
+      if (b.inc || b.gone) return;
+      if (Math.hypot(a.x - b.x, a.y - b.y) < 110) b.aw = Math.min(1, b.aw + 0.015);
+    });
+  });
+
+  // E. sheltering someone: eyes rise, the circle warms; the guest slips out on t0.
+  if (s.shelterTurns > 0) {
+    s.shelterTurns--;
+    s.risk = Math.min(1, s.risk + 0.08);
+    const sh = ag[s.shelterIdx];
+    if (sh && !sh.gone) {
+      s.neighbors[p].forEach((j) => {
+        if (!ag[j].inc && !ag[j].gone) ag[j].aw = Math.min(1, ag[j].aw + 0.03);
+      });
+    }
+  }
+
+  // F. murals keep speaking.
+  s.murals.forEach((m) => {
+    ag.forEach((a) => {
+      if (a.inc || a.gone) return;
+      if (Math.hypot(a.x - m.x, a.y - m.y) < 90)
+        a.aw = Math.min(1, a.aw + 0.02 * a.trait.muralMul * s.heirMul.muralTick);
+    });
+  });
+
+  // G. a fading post trail keeps eyes on you.
+  if (s.postTrail > 0) {
+    s.postTrail--;
+    s.risk = Math.min(1, s.risk + 0.03);
+  }
+
+  // H. informants hunt the hottest un-sheltered person, chilling awareness nearby.
+  s.spies.forEach((spy) => {
+    let hot: Agent | null = null;
+    let hv = -1;
+    ag.forEach((a) => {
+      if (a.inc || a.gone) return;
+      if (ag.some((d2) => d2.def && Math.hypot(d2.x - a.x, d2.y - a.y) < 110)) return;
+      if (a.aw > hv) {
+        hv = a.aw;
+        hot = a;
+      }
+    });
+    if (hot) {
+      const h = hot as Agent;
+      const dx = h.x - spy.x;
+      const dy = h.y - spy.y;
+      const dd = Math.hypot(dx, dy) || 1;
+      const speed = s.lvlIdx >= 11 ? 62 : 52;
+      spy.x += (dx / dd) * speed;
+      spy.y += (dy / dd) * speed;
+    }
+    ag.forEach((a) => {
+      if (a.inc || a.gone) return;
+      if (Math.hypot(a.x - spy.x, a.y - spy.y) < 70) a.aw = Math.max(s.floor, a.aw - 0.06);
+    });
+    if (Math.hypot(ag[p].x - spy.x, ag[p].y - spy.y) < 70) s.risk = Math.min(1, s.risk + 0.07);
+  });
+
+  // I. incumbents waver when their neighbourhood wakes up.
+  ag.forEach((a, i) => {
+    if (!a.inc || a.def) return;
+    const th = D.waverAt - (a.doubt ? 0.12 : 0);
+    a.waver = localAwAround(s, i, 110) > th;
+  });
+
+  // J. collective pressure — structural wins fire when a circle stays ready.
+  let winNear = false;
+  let winsFiredThisTurn = 0;
+  for (let i = 0; i < NN; i++) {
+    const a = ag[i];
+    if (a.inc || a.gone) continue;
+    const nb = s.neighbors[i].filter((j) => !ag[j].gone && !ag[j].inc);
+    if (!nb.length) {
+      a.press = Math.max(0, a.press * 0.8);
+      continue;
+    }
+    const loc = (a.aw + nb.reduce((sum, j) => sum + ag[j].aw, 0)) / (nb.length + 1);
+    if (loc > D.thresh && s.rig > 0.12) {
+      a.press = Math.min(1, a.press + 0.2 + D.winP * 1.6 + rand(0, 0.06));
+      if (a.press >= 1 && winsFiredThisTurn === 0) {
+        a.press = 0;
+        winsFiredThisTurn++;
+        s.rig = Math.max(0.1, s.rig - 0.065);
+        s.floor = Math.min(0.5, s.floor + D.floorGain);
+        s.wins++;
+        s.lastWinTurn = s.turn;
+        if (Math.hypot(a.x - ag[p].x, a.y - ag[p].y) < 150) winNear = true;
+      } else if (a.press >= 1) {
+        a.press = 0.96;
+      }
+    } else {
+      a.press = Math.max(0, a.press * 0.85 - 0.01);
+    }
+  }
+  let hopeBonus = 0;
+  if (winNear) hopeBonus = 1;
+
+  // reinforcement thresholds: gains alarm the regime.
+  if (s.reinfThresholds.length && s.rig < s.reinfThresholds[0]) {
+    s.reinfThresholds.shift();
+    s.reinfPending = true;
+  }
+
+  const nIncNow = Math.max(1, ag.filter((a) => a.inc).length);
+  const activeInc = ag.filter((a) => a.inc && !a.def).length;
+
+  // K. crackdowns — scripted (fixed turn) or spontaneous (seeded roll).
+  if (D.scriptedCrack && s.turn === D.scriptedCrack - 1 && s.crackIn < 0) {
+    s.crackIn = 1;
+    s.crackZone = { x: ag[p].x, y: ag[p].y, r: 155 };
+  } else if (s.crackIn === 1 && D.scriptedCrack && s.turn === D.scriptedCrack) {
+    s.crackIn = -1;
+    s.lastCrackTurn = s.turn;
+    const witnessed = s.docActive;
+    s.docActive = false;
+    const cz = s.crackZone as { x: number; y: number };
+    s.crackZone = null;
+    const suppress = witnessed ? 0.9 : 0.6;
+    ag.forEach((a) => {
+      if (a.inc || a.gone) return;
+      if (Math.hypot(a.x - cz.x, a.y - cz.y) < 155) {
+        a.aw = Math.max(s.floor, a.aw * suppress);
+        if (witnessed) a.aw = Math.min(1, a.aw + 0.1);
+      }
+    });
+    if (witnessed) s.witnessedOnce = true;
+    const inZone = Math.hypot(ag[p].x - cz.x, ag[p].y - cz.y) < 155;
+    if (inZone && s.risk > 0.4 && !witnessed) {
+      s.over = true;
+      s.won = false;
+    }
+  } else if (s.crackIn === 1 && s.crackZone) {
+    tickGenericCrackdown(s, nIncNow, activeInc);
+  } else if (
+    s.crackIn < 0 &&
+    !D.scriptedCrack &&
+    D.cracks !== false &&
+    rng.next() < (D.crackP + s.rig * 0.12) * (activeInc / nIncNow)
+  ) {
+    s.crackIn = 1;
+    const hot = ag
+      .map((a, i) => ({ a, i }))
+      .filter((o) => !o.a.inc && !o.a.gone)
+      .sort((x, y) => y.a.aw - x.a.aw)[0];
+    s.crackZone = { x: hot.a.x, y: hot.a.y, r: 155 };
+  }
+
+  // L. opportunities (campaign only — no draw on pro levels).
+  tickOpp(s);
+  maybeSpawnOpp(s, rng);
+
+  // M. turn rolls over; energy resets with any boost/hope.
+  s.turn++;
+  s.energy = (s.boostTurns > 0 ? 4 : 3) + hopeBonus;
+  if (s.boostTurns > 0) s.boostTurns--;
+
+  // N. win / loss / timeout.
+  if (!s.over && D.pro && objectiveMet(s)) {
     s.over = true;
     s.won = true;
-  } else if (s.turn > s.level.maxT) {
+  } else if (!s.over && !D.pro && (s.floor >= 0.35 || s.rig <= 0.15)) {
+    s.over = true;
+    s.won = true;
+  } else if (!s.over && s.turn > D.maxT) {
     s.over = true;
     s.won = false;
   }
+
+  // O. a dilemma may present (campaign only — no draw on pro levels).
+  if (!s.over) maybeFireDilemma(s, rng);
+
+  s.rngState = rng.state();
   return s;
+}
+
+/**
+ * The spontaneous/mural-hit crackdown branch, including heir succession when the
+ * player is taken. Ported from production endTurn's third crack branch.
+ */
+function tickGenericCrackdown(s: GameState, nIncNow: number, activeInc: number): void {
+  const D = s.level;
+  const ag = s.agents;
+  const p = s.player;
+  s.crackIn = -1;
+  s.lastCrackTurn = s.turn;
+  const witnessed = s.docActive;
+  s.docActive = false;
+  const cz = s.crackZone as { x: number; y: number };
+  const muralHit = s.murals.findIndex((m) => Math.hypot(m.x - cz.x, m.y - cz.y) < 155);
+  let suppress = 0.55;
+  if (muralHit >= 0) {
+    s.murals.splice(muralHit, 1);
+    suppress = 0.75;
+  }
+  if (witnessed) suppress = Math.max(suppress, 0.85);
+  s.rig = Math.min(0.94, s.rig + D.crackR * (1 - s.floor) * (activeInc / nIncNow) * (witnessed ? 0.4 : 1));
+  const zonesNow = freeZones(s);
+  ag.forEach((a) => {
+    if (a.inc || a.gone) return;
+    if (Math.hypot(a.x - cz.x, a.y - cz.y) < 155) {
+      let sEff = suppress;
+      if (zonesNow.length && inAnyZone(a, zonesNow)) sEff = Math.max(sEff, 0.85);
+      a.aw = Math.max(s.floor, a.aw * sEff);
+      if (witnessed) a.aw = Math.min(1, a.aw + 0.08);
+    }
+  });
+  if (witnessed) {
+    s.witnessedOnce = true;
+    if (s.turn - s.lastWinTurn <= 2 && s.lastWinTurn > 0) {
+      s.floor = Math.min(0.5, s.floor + 0.02);
+      ag.forEach((a) => {
+        if (!a.inc && !a.gone) a.aw = Math.min(1, a.aw + 0.04);
+      });
+    }
+  }
+  const inZone = Math.hypot(ag[p].x - cz.x, ag[p].y - cz.y) < 155;
+  if (s.shelterTurns > 0 && inZone) s.risk = Math.min(1, s.risk + 0.15);
+  if (inZone && s.risk > 0.4) {
+    if (s.risk > 0.7) {
+      ag[p].gone = true;
+      s.lives++;
+      if (s.shelterTurns > 0 && s.shelterIdx >= 0 && !ag[s.shelterIdx].gone) {
+        ag[s.shelterIdx].gone = true;
+        s.shelterTurns = 0;
+        s.shelterIdx = -1;
+      }
+      const heirs = ag
+        .map((a, i) => ({
+          a,
+          i,
+          score:
+            a.aw +
+            (s.neighbors[i] && s.neighbors[i].includes(p) ? 0.25 : 0) +
+            (s.built.some((b) => (b[0] === p && b[1] === i) || (b[1] === p && b[0] === i)) ? 0.2 : 0),
+        }))
+        .filter((o) => !o.a.inc && !o.a.gone && o.i !== p && o.a.aw > 0.45)
+        .sort((x, y) => y.score - x.score);
+      if (heirs.length) {
+        const h = heirs[0].i;
+        const hp = ag[h];
+        s.player = h;
+        s.risk = 0;
+        s.inf = Math.max(0, s.inf - 25);
+        setHeirBoon(s, hp.trait);
+      } else {
+        s.over = true;
+        s.won = false;
+      }
+    } else {
+      s.interrogated = true;
+      s.risk = Math.min(1, s.risk + 0.15);
+    }
+  }
+  s.crackZone = null;
 }
 
 function clone(s: GameState): GameState {
@@ -319,5 +717,9 @@ function clone(s: GameState): GameState {
     neighbors: s.neighbors.map((n) => [...n]),
     spies: s.spies.map((sp) => ({ ...sp })),
     reinfThresholds: [...s.reinfThresholds],
+    heirMul: { ...s.heirMul },
+    opp: s.opp ? { ...s.opp } : null,
+    firedDilemmas: [...s.firedDilemmas],
+    // pendingDilemma carries pure fx closures; the reference is safe to share.
   };
 }

@@ -34,6 +34,8 @@ function loadSource() {
 }
 
 // Slice a balanced `{...}` (or `[...]`/`(...)`) region starting at `from`.
+// Comment-aware: `//` and `/* */` are skipped so an apostrophe inside a comment
+// (e.g. "a circle's") does not corrupt quote/bracket tracking.
 function balancedFrom(src, from) {
   let i = from;
   let depth = 0;
@@ -45,6 +47,8 @@ function balancedFrom(src, from) {
       if (c === quote) quote = null;
       continue;
     }
+    if (c === '/' && src[i + 1] === '/') { i = src.indexOf('\n', i); if (i < 0) i = src.length; continue; }
+    if (c === '/' && src[i + 1] === '*') { i = src.indexOf('*/', i + 2) + 1; continue; }
     if (c === "'" || c === '"' || c === '`') { quote = c; continue; }
     if (c === '{' || c === '[' || c === '(') depth++;
     else if (c === '}' || c === ']' || c === ')') {
@@ -103,7 +107,7 @@ export function extractConstRHS(src, name) {
 
 const src = loadSource();
 
-const DATA = ['NAMES', 'ROLES', 'STAKES', 'TRAITS', 'CORE', 'PRO_DEFAULTS', 'N_PRO', 'LEVELS']
+const DATA = ['NAMES', 'ROLES', 'STAKES', 'TRAITS', 'CORE', 'PRO_DEFAULTS', 'N_PRO', 'LEVELS', 'WIN_MAP', 'WIN_GENERIC']
   .map((n) => `const ${n}=${extractConstRHS(src, n)};`)
   .join('\n');
 
@@ -122,6 +126,7 @@ let opp=null,nearMissTold=false,freeZoneTold=false,embersAwarded=false,pendingDi
 let floaters=[],rippleAnims=[],nearMisses=[],pops={},shake={mag:0,t0:0},vignette=null,pulses=[];
 let coachIdx=0,heirMul={talk:1,org:1,muralTick:1,postAdd:0,risk:1},stageR={risk:true,inf:true,rigflo:true},previewAct=null,actionCounts={},oppExpired=0;
 let legacyOwned=[];
+let proDone=[],campProgress=0,winGenIdx=0;
 `;
 
 const STUBS = `
@@ -162,6 +167,11 @@ function sKnock(){}
 function sLoss(){}
 function pname(i){ return ag[i].nm+', '+ag[i].role; }
 function updateActionLabels(){}
+function showEnd(){}
+function showEpilogue(){}
+function failDiag(){return '';}
+function awardEmbers(){return 0;}
+function sDilemma(){}
 const cv = _el;
 let __rng = Math.random;         // the injectable turn-level entropy stream
 function __ovrand(){ return __rng(); }
@@ -174,6 +184,12 @@ function __ovrand(){ return __rng(); }
 // untouched, so createGame parity is unaffected.
 const seam = (s) => s.replace(/Math\.random\b/g, '__ovrand');
 const FNS = (n) => seam(FN(n));
+
+// OPPS/DILEMMAS make/build bodies draw entropy (rand + a direct Math.random in
+// the traitor dilemma), so seam them too. Defined after `seam` is in scope.
+const DATA2 = ['OPPS', 'DILEMMAS']
+  .map((n) => `const ${n}=${seam(extractConstRHS(src, n))};`)
+  .join('\n');
 
 // The mural/link/letter completion logic lives in the canvas click handler.
 // Wrap its real body as a callable so the oracle exercises production code.
@@ -192,6 +208,16 @@ function _snapshot(){
     murals: murals.map(m=>({...m})),
     spies: spies.map(s=>({...s})),
     reinfThresholds: [...reinfThresholds],
+    reinfPending, crackIn,
+    crackZone: crackZone?{...crackZone}:null,
+    shelterTurns, shelterIdx, boostTurns, witnessedOnce, interrogated,
+    lastCrackTurn, lastWinTurn, lives,
+    pulses: pulses.length,
+    oppExpired,
+    opp: opp?{...opp}:null,
+    firedDilemmas: [...firedDilemmas],
+    pending: !!pendingDilemma,
+    heirMul: {...heirMul},
   };
 }
 return {
@@ -210,6 +236,8 @@ return {
   setEnergy(n){ energy = n; },
   setInf(n){ inf = n; },
   act(type){ act(type); return _snapshot(); },
+  endTurn(){ endTurn(); return _snapshot(); },
+  resolveDilemma(which){ resolveDilemma(which); return _snapshot(); },
   // Two-step UI actions: act() toggles the mode, the canvas click completes it.
   // getBoundingClientRect() returns {left:0,top:0,width:720,height:440}, so
   // clientX/Y map straight to game coords (mx=x, my=y).
@@ -229,6 +257,7 @@ const body = [
   "'use strict';",
   GLOBALS,
   DATA,
+  DATA2,
   FN('mulberry32'),
   FN('rebuildNbr'),
   STUBS,
@@ -244,8 +273,17 @@ const body = [
   FNS('freeZones'),
   FNS('inTriangle'),
   FNS('inAnyZone'),
+  FNS('checkObjective'),
+  FNS('winOutcome'),
+  FNS('setHeirBoon'),
+  FNS('boonText'),
+  FNS('tickOpp'),
+  FNS('maybeSpawnOpp'),
+  FNS('maybeFireDilemma'),
+  FNS('resolveDilemma'),
   FNS('initGame'),
   FNS('act'),
+  FNS('endTurn'),
   CLICK_FN,
   API,
 ].join('\n');

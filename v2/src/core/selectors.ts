@@ -14,9 +14,8 @@ export function averageAwareness(s: Snapshot): number {
 }
 
 /**
- * Guided-objective check. Full campaign win/loss (thresh/winP mechanics) and
- * mural/witness objectives arrive with the endTurn port (Stage C); this covers
- * the deterministic objective types the demo needs today.
+ * Guided-objective check — a faithful port of production checkObjective (the
+ * per-type predicate; the D.pro guard lives at the call site in tick).
  */
 export function objectiveMet(s: GameState): boolean {
   const o = s.level.obj;
@@ -27,13 +26,13 @@ export function objectiveMet(s: GameState): boolean {
     case 'wins':
       return s.wins >= o.count;
     case 'muralaware':
-      return awareCountAt(s, o.lvl) >= o.count; // TODO(Stage C): require >=1 mural
+      return s.murals.length >= 1 && awareCountAt(s, o.lvl) >= o.count;
     case 'defect':
       return s.defected >= 1;
     case 'survive':
       return s.turn > o.turn && awareCountAt(s, o.lvl) >= o.count && !s.agents[s.player].gone;
     case 'witness':
-      return false; // TODO(Stage C): witnessed crackdown
+      return s.witnessedOnce;
   }
 }
 

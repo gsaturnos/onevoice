@@ -267,6 +267,16 @@ and **golden-master outputs** are captured in version control (under
 > sequence and can be compared field-for-field. This changes **only the test
 > oracle**; the shipped production game keeps `Math.random()` and is untouched.
 > The seam is the definition of "seeded-RNG behavior" in 7.3.
+>
+> **Stage C parity note (endTurn view-effect draws).** Inside `endTurn`,
+> production draws **animation** entropy (diffusion "pulse" timing,
+> `Math.random()*400`) from the *same* stream as its mechanics, and *before* the
+> win-pressure and crackdown rolls. To stay in lockstep the pure core `tick()`
+> must consume those draws too, so `GameState` carries a `pulseCount` (0–12,
+> matching production's `pulses.length` cap) solely to reproduce the draw
+> sequence — it is not a gameplay value. This is the one place the pure core
+> mirrors a production view artifact, and it is required by 7.3's
+> "action-order + seeded-RNG" equality.
 
 ### 7.4 Save data (read-only in Phase 2)
 Preserve compatibility with the existing save formats/keys (`ov8_*`, `ov11_*`,
