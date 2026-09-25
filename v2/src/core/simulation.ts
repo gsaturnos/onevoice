@@ -11,7 +11,7 @@
 // See docs/v2/ARCHITECTURE.md §7.3.
 
 import { makeRng, type Rng } from './rng';
-import type { Action, Agent, GameState } from './types';
+import type { Action, Agent, GameState, Opp, PendingDilemma } from './types';
 import { objectiveMet } from './selectors';
 
 function infBonus(s: GameState): number {
@@ -51,7 +51,8 @@ function orgRingSet(s: GameState): Set<number> {
   const ok = (j: number): boolean => !s.agents[j].inc && !s.agents[j].gone && !s.agents[j].betrayed;
   const ring = new Set<number>(s.neighbors[s.player].filter(ok));
   for (const j of [...ring]) for (const k of s.neighbors[j]) if (ok(k)) ring.add(k);
-  if (s.inf >= 40) {
+  // a third ring on high trust OR on market day
+  if (s.inf >= 40 || (s.opp && s.opp.id === 'market')) {
     for (const j of [...ring]) for (const k of s.neighbors[j]) if (ok(k)) ring.add(k);
   }
   return ring;
@@ -97,7 +98,7 @@ function triggerDefection(s: GameState, idx: number, chained: boolean, rng: Rng)
 /** Return a new state with one action applied. Never mutates the input. */
 export function applyAction(prev: GameState, action: Action): GameState {
   const s = clone(prev);
-  if (s.over || s.interrogated) return s;
+  if (s.over || s.interrogated || s.pendingDilemma) return s;
   if (action.kind === 'endTurn') return tick(s);
 
   const p = s.player;
@@ -106,7 +107,8 @@ export function applyAction(prev: GameState, action: Action): GameState {
   switch (action.kind) {
     case 'talk': {
       const t = action.target;
-      const cost = 1;
+      const gathering = !!s.opp && s.opp.id === 'gathering';
+      const cost = gathering ? 0 : 1;
       if (s.energy < cost) return s;
       if (t < 0 || t >= s.agents.length) return s;
       const q = s.agents[t];
@@ -118,6 +120,15 @@ export function applyAction(prev: GameState, action: Action): GameState {
       if (q.trait.id === 'wary' && s.inf >= 30) mul = 1.2;
       q.aw = Math.min(1, q.aw + (0.26 + 0.08 * infBonus(s)) * mul);
       s.inf = Math.min(100, s.inf + 2);
+      // a visiting elder turns one talk into a household-wide surge.
+      if (s.opp && s.opp.id === 'visitor' && s.opp.targetIdx === t) {
+        q.aw = 1;
+        s.neighbors[t].forEach((j) => {
+          const a = s.agents[j];
+          if (!a.inc && !a.gone) a.aw = Math.min(1, a.aw + 0.18);
+        });
+        s.opp = null;
+      }
       return s;
     }
     case 'org': {
@@ -125,7 +136,8 @@ export function applyAction(prev: GameState, action: Action): GameState {
       s.energy -= 2;
       s.risk = Math.min(1, s.risk + (0.13 + sp) * s.heirMul.risk);
       const ring = orgRingSet(s);
-      const mul2 = s.heirMul.org; // (market ? 1.5 : 1) * (has('deep') ? 1.3 : 1) — Stage C2/legacy
+      const market = !!s.opp && s.opp.id === 'market';
+      const mul2 = (market ? 1.5 : 1) * s.heirMul.org; // * (has('deep') ? 1.3 : 1) — legacy
       ring.forEach((j) => {
         const a = s.agents[j];
         a.aw = Math.min(1, a.aw + (0.12 + 0.04 * infBonus(s)) * a.trait.orgMul * mul2);
@@ -146,8 +158,9 @@ export function applyAction(prev: GameState, action: Action): GameState {
     case 'post': {
       if (s.energy < 1) return s;
       s.energy -= 1;
-      s.postTrail = 3; // no 'paper' opportunity yet (Stage C2)
-      const reachN = 14 + s.heirMul.postAdd; // (has('press') ? 20 : 14) + postAdd
+      const paper = !!s.opp && s.opp.id === 'paper';
+      if (!paper) s.postTrail = 3; // a sympathetic printer leaves no trail
+      const reachN = (paper ? 24 : 14) + s.heirMul.postAdd; // (has('press') ? 20 : 14)
       const rng = makeRng(s.rngState);
       const NN = s.agents.length;
       for (let t2 = 0; t2 < reachN; t2++) {
@@ -339,20 +352,221 @@ function tickOpp(s: GameState): void {
   }
 }
 
-/**
- * Stage C1 covers the guided ("pro") levels, where production returns early
- * (D.pro) from both of these, so they draw nothing. The campaign bodies — which
- * DO consume the turn-entropy stream — arrive in Stage C2 (opportunities) and
- * Stage C3 (dilemmas). Guarded so a premature campaign call is a visible no-op
- * rather than a silent parity drift.
- */
-function maybeSpawnOpp(s: GameState, _rng: Rng): void {
-  if (s.level.pro || s.opp || s.over) return;
-  // TODO(Stage C2): turn>=3 gate draw, pick OPPS, make() — campaign only.
+/** Civilians (not incumbent, not gone). */
+function civilians(s: GameState): number[] {
+  return s.agents.map((_, i) => i).filter((i) => !s.agents[i].inc && !s.agents[i].gone);
 }
-function maybeFireDilemma(s: GameState, _rng: Rng): void {
+
+/**
+ * Maybe open an opportunity window (port of maybeSpawnOpp — campaign only).
+ * Draw order: a 0.30 gate (only when turn>=3), then the OPPS pick, then the
+ * chosen opp's make() (gathering/visitor each draw once; market/paper don't).
+ */
+function maybeSpawnOpp(s: GameState, rng: Rng): void {
+  if (s.level.pro || s.opp || s.over) return;
+  if (s.turn < 3 || rng.next() > 0.3) return;
+  const OPP_IDS: Array<Opp['id']> = ['gathering', 'market', 'visitor', 'paper'];
+  const id = OPP_IDS[Math.floor(rng.range(0, OPP_IDS.length))];
+  let targetIdx: number | undefined;
+  if (id === 'gathering') {
+    const c = civilians(s);
+    rng.range(0, c.length); // host pick (label only — not carried)
+  } else if (id === 'visitor') {
+    const c = s.agents.map((_, i) => i).filter((i) => {
+      const a = s.agents[i];
+      return !a.inc && !a.gone && i !== s.player && !a.betrayed;
+    });
+    targetIdx = c[Math.floor(rng.range(0, c.length))];
+  }
+  s.opp = { id, turnsLeft: 2, label: '', targetIdx };
+}
+
+// --- dilemmas (campaign only). Each mirrors a production DILEMMAS entry: a
+// when() gate, a build() that may pick a subject (drawing entropy), and two
+// choice fx that transform state. Order matches production for pool indexing. ---
+
+interface DilemmaDef {
+  id: string;
+  when: (s: GameState) => boolean;
+  /** returns the pending dilemma, or null (no eligible subject). May draw. */
+  build: (s: GameState, rng: Rng) => PendingDilemma | null;
+}
+
+function neighboursDim(s: GameState, vi: number, delta: number): void {
+  s.neighbors[vi].forEach((j) => {
+    const a = s.agents[j];
+    if (!a.inc && !a.gone) a.aw = Math.max(s.floor, a.aw - delta);
+  });
+}
+
+const DILEMMAS: DilemmaDef[] = [
+  {
+    id: 'name',
+    when: (s) => s.risk > 0.45 && s.turn > 4,
+    build: (s, rng) => {
+      const cand = s.agents.map((_, i) => i).filter((i) => {
+        const a = s.agents[i];
+        return !a.inc && !a.gone && i !== s.player && a.aw > 0.4;
+      });
+      if (!cand.length) return null;
+      const vi = cand[Math.floor(rng.range(0, cand.length))];
+      return {
+        id: 'name',
+        a: {
+          fx: (st) => {
+            st.risk = Math.max(0, st.risk - 0.35);
+            const pp = st.agents[vi];
+            pp.aw = Math.max(st.floor, pp.aw * 0.3);
+            pp.betrayed = true;
+            st.inf = Math.max(0, st.inf - 15);
+            neighboursDim(st, vi, 0.08);
+          },
+        },
+        b: {
+          fx: (st) => {
+            st.risk = Math.min(1, st.risk + 0.12);
+            st.inf = Math.min(100, st.inf + 8);
+          },
+        },
+      };
+    },
+  },
+  {
+    id: 'shelter',
+    when: (s) => s.turn - s.lastCrackTurn <= 2 && s.turn > 3,
+    build: (s, rng) => {
+      const cand = s.agents.map((_, i) => i).filter((i) => {
+        const a = s.agents[i];
+        return !a.inc && !a.gone && i !== s.player && a.aw > 0.5;
+      });
+      if (!cand.length) return null;
+      const vi = cand[Math.floor(rng.range(0, cand.length))];
+      return {
+        id: 'shelter',
+        a: {
+          fx: (st) => {
+            st.shelterTurns = 3;
+            st.shelterIdx = vi;
+            const pp = st.agents[vi];
+            pp.aw = 0.95;
+            pp.sheltered = true;
+          },
+        },
+        b: {
+          fx: (st) => {
+            const pp = st.agents[vi];
+            pp.aw = Math.max(st.floor, pp.aw * 0.5);
+            st.inf = Math.max(0, st.inf - 6);
+            neighboursDim(st, vi, 0.05);
+          },
+        },
+      };
+    },
+  },
+  {
+    id: 'journalist',
+    when: (s) => s.inf >= 40 && s.turn > 6,
+    build: () => ({
+      id: 'journalist',
+      a: {
+        fx: (st) => {
+          st.agents.forEach((a) => {
+            if (!a.inc && !a.gone) a.aw = Math.min(1, a.aw + 0.08);
+          });
+          st.floor = Math.min(0.5, st.floor + 0.02);
+          st.risk = Math.min(1, st.risk + 0.25);
+          st.inf = Math.min(100, st.inf + 10);
+        },
+      },
+      b: { fx: (st) => { st.inf = Math.min(100, st.inf + 2); } },
+    }),
+  },
+  {
+    id: 'money',
+    when: (s) => s.turn > 8 && s.inf >= 20,
+    build: () => ({
+      id: 'money',
+      a: {
+        fx: (st) => {
+          st.boostTurns = 4;
+          st.inf = Math.max(0, st.inf - 10);
+        },
+      },
+      b: { fx: (st) => { st.inf = Math.min(100, st.inf + 6); } },
+    }),
+  },
+  {
+    id: 'traitor',
+    when: (s) => s.turn > 6,
+    build: (s, rng) => {
+      const cand = s.agents.map((_, i) => i).filter((i) => {
+        const a = s.agents[i];
+        return !a.inc && !a.gone && i !== s.player && a.met;
+      });
+      if (cand.length < 2) return null;
+      const vi = cand[Math.floor(rng.range(0, cand.length))];
+      return {
+        id: 'traitor',
+        a: {
+          fx: (st, r) => {
+            const guilty = r.next() < 0.5;
+            const pp = st.agents[vi];
+            if (guilty) {
+              pp.aw = Math.max(st.floor, pp.aw * 0.3);
+              pp.betrayed = true;
+              st.risk = Math.min(1, st.risk + 0.08);
+              st.floor = Math.min(0.5, st.floor + 0.015);
+              st.inf = Math.min(100, st.inf + 6);
+              st.neighbors[vi].forEach((j) => {
+                const a = st.agents[j];
+                if (!a.inc && !a.gone) a.aw = Math.min(1, a.aw + 0.06);
+              });
+            } else {
+              pp.aw = Math.max(st.floor, pp.aw * 0.4);
+              pp.betrayed = true;
+              st.inf = Math.max(0, st.inf - 14);
+              neighboursDim(st, vi, 0.1);
+            }
+          },
+        },
+        b: { fx: (st) => { st.freeLink = true; } },
+      };
+    },
+  },
+];
+
+/**
+ * Maybe present a dilemma (port of maybeFireDilemma — campaign only). Draw
+ * order: a 0.30 gate, then the pool pick, then build() (name/shelter/traitor
+ * each draw a subject). Sets pendingDilemma, which blocks act()/tick until
+ * resolveDilemma is called.
+ */
+function maybeFireDilemma(s: GameState, rng: Rng): void {
   if (s.level.pro || s.over || s.pendingDilemma) return;
-  // TODO(Stage C3): 0.30 gate draw, pick DILEMMAS, build() — campaign only.
+  if (rng.next() > 0.3) return;
+  const pool = DILEMMAS.filter((d) => !s.firedDilemmas.includes(d.id) && d.when(s));
+  if (!pool.length) return;
+  const d = pool[Math.floor(rng.range(0, pool.length))];
+  const b = d.build(s, rng);
+  if (!b) return;
+  s.firedDilemmas.push(d.id);
+  s.pendingDilemma = b;
+}
+
+/**
+ * Resolve the pending dilemma with choice 'a' or 'b' (port of resolveDilemma).
+ * The chosen fx transforms state; the traitor choice draws from the shared
+ * stream, so this threads s.rngState just like an action or turn.
+ */
+export function resolveDilemma(prev: GameState, which: 'a' | 'b'): GameState {
+  const s = clone(prev);
+  if (!s.pendingDilemma) return s;
+  const choice = which === 'a' ? s.pendingDilemma.a : s.pendingDilemma.b;
+  s.pendingDilemma = null;
+  const rng = makeRng(s.rngState);
+  choice.fx(s, rng);
+  s.rngState = rng.state();
+  return s;
 }
 
 /**

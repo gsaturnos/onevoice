@@ -1,5 +1,7 @@
 // Core domain types. No DOM, no Pixi — these describe the game, not its view.
 
+import type { Rng } from './rng';
+
 export type TraitId = 'talker' | 'gatherer' | 'artist' | 'online' | 'wary';
 
 export interface Trait {
@@ -135,8 +137,8 @@ export interface PendingDilemma {
   b: DilemmaChoice;
 }
 export interface DilemmaChoice {
-  /** apply this choice's effects to the state, in place */
-  fx: (s: GameState) => void;
+  /** apply this choice's effects to the state in place; may draw entropy (traitor). */
+  fx: (s: GameState, rng: Rng) => void;
 }
 
 /** Everything the simulation carries between turns. Pure data. */

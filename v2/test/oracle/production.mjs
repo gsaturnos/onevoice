@@ -231,6 +231,7 @@ return {
     return _snapshot();
   },
   snapshot: _snapshot,
+  markAllMet(){ ag.forEach(a=>{ a.met = true; }); return _snapshot(); },
   setRng(fn){ __rng = fn; },
   setTarget(i){ target = i; },
   setEnergy(n){ energy = n; },
