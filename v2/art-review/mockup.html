@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kitchen Table Art</title>
+<meta name="description" content="Art-direction review for One Voice V2 level 0 — a screen-print / inked-poster look, its palette, character and environment construction, three story states, and the asset-pipeline budget." />
+<style>
+  :root{
+    --bg:#0c0908; --panel:#161010; --edge:#2a2018;
+    --text:#f3e9d8; --muted:#c1b39d; --faint:#93866f;
+    --paper:#f2e6cf; --ink:#241812; --ink2:#3a2a1f;
+    --lamp:#f2b25a; --glow:#ffd98a; --ember:#ff9d4d;
+    --clarity:#86c9a0; --clarity2:#a8e6bf; --you:#f0c057;
+    --wood:#6b4a2e; --wood-d:#4a3120; --wood-l:#8a6238; --cloth:#b98a4e;
+  }
+  /* Intentionally a dark gallery in every mode; tokens kept explicit for both. */
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0c0908; } }
+  :root[data-theme="dark"]{ --bg:#0c0908; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.6 "Iowan Old Style",Palatino,Georgia,serif;-webkit-text-size-adjust:100%;}
+  body{padding:0 16px 64px;overflow-x:hidden;}
+  .wrap{max-width:1040px;margin:0 auto;}
+  header{text-align:center;padding:30px 0 6px;}
+  h1{font-weight:600;font-size:clamp(24px,4vw,34px);margin:0 0 6px;}
+  .sub{color:var(--muted);margin:0 auto;max-width:60ch;}
+  h2{font-weight:600;font-size:clamp(18px,3vw,22px);color:var(--you);
+    border-bottom:1px solid var(--edge);padding-bottom:8px;margin:44px 0 16px;}
+  .num{color:var(--faint);font-size:.7em;margin-right:.5em;letter-spacing:.1em;}
+  .frame{margin:0 0 26px;}
+  .frame svg{width:100%;height:auto;display:block;border-radius:10px;
+    box-shadow:0 16px 44px rgba(0,0,0,.5);background:#0c0908;}
+  .cap{font-size:14px;color:var(--muted);margin:10px 2px 0;}
+  .cap b{color:var(--you);}
+  .sheet{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:720px){ .sheet{grid-template-columns:1fr;} }
+  .card{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:16px 18px;}
+  .card h3{margin:0 0 8px;font-size:16px;color:var(--text);}
+  .card p{margin:0 0 8px;color:var(--muted);font-size:14.5px;}
+  .card ul{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:14.5px;}
+  .card li{margin:3px 0;}
+  .yes b{color:var(--clarity2);} .no b{color:#e08a6e;}
+  .swrap{display:flex;flex-wrap:wrap;gap:14px;}
+  .sgroup{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:14px 16px;flex:1 1 240px;}
+  .sgroup h3{margin:0 0 10px;font-size:15px;}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{width:38px;height:38px;border-radius:8px;border:1px solid rgba(0,0,0,.5);
+    position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);}
+  .chip span{position:absolute;left:0;right:0;bottom:-16px;font-size:9px;text-align:center;color:var(--faint);}
+  .swatch-row{display:flex;align-items:center;gap:10px;margin:7px 0;}
+  .swatch{width:26px;height:26px;border-radius:6px;flex:none;border:1px solid rgba(0,0,0,.5);}
+  .swatch-row code{font-size:12px;color:var(--faint);}
+  .swatch-row .nm{font-size:13.5px;color:var(--muted);min-width:88px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--edge);vertical-align:top;}
+  th{color:var(--you);font-weight:600;}
+  td.n{color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  td small{color:var(--faint);}
+  .budget{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;}
+  @media (max-width:720px){ .budget{grid-template-columns:1fr;} }
+  .kpi{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:14px 16px;}
+  .kpi h3{margin:0 0 10px;font-size:15px;color:var(--you);}
+  .kpi .row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--edge);font-size:14px;}
+  .kpi .row:last-child{border-bottom:0;}
+  .kpi .row span:last-child{color:var(--text);font-variant-numeric:tabular-nums;text-align:right;}
+  .note{color:var(--faint);font-size:13px;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>One Voice — “The kitchen table”</h1>
+  <p class="sub">Art-direction review for level 0 · original screen-print / inked-poster look · procedural pipeline mockup (no third-party art, no CDNs)</p>
+</header>
+
+<h2><span class="num">01</span>Art direction</h2>
+<div class="sheet">
+  <div class="card">
+    <h3>The feeling</h3>
+    <p>A late kitchen where frightened neighbours slowly find each other. It should read like a hand-pulled political print — warm, human, a little rough — not a UI or a cartoon.</p>
+    <p>One authored look that scales to every later district by swapping props, palette accents and the environment, never the system.</p>
+  </div>
+  <div class="card">
+    <h3>How the look is built</h3>
+    <ul>
+      <li><b>Ink line</b> with imperfect, displaced edges (screen-print misregistration).</li>
+      <li><b>Halftone</b> dots for shading instead of gradients.</li>
+      <li><b>Paper grain</b> multiplied over the whole frame.</li>
+      <li><b>Warm pools of light</b> from lamp, oil flame and windows; deep readable shadow elsewhere.</li>
+      <li><b>Limited palette</b> — a handful of inks and cloths, tinted per person.</li>
+    </ul>
+  </div>
+  <div class="card yes">
+    <h3>Do</h3>
+    <ul>
+      <li><b>Strong silhouettes</b>, visible faces and gestures.</li>
+      <li><b>Purposeful composition</b>: the table centres the eye, depth front-to-back.</li>
+      <li><b>State you can feel</b>: silent → awakening → acting reads at a glance.</li>
+      <li><b>Restrained texture</b> — grain supports, never shouts.</li>
+    </ul>
+  </div>
+  <div class="card no">
+    <h3>Avoid</h3>
+    <ul>
+      <li><b>Generic vector icons</b>, glossy cards, drop-shadow UI.</li>
+      <li><b>Photorealism, neon, military</b> aesthetics.</li>
+      <li><b>Excessive detail</b> that fights readability at speed.</li>
+      <li><b>Off-the-shelf game art</b> or any remote asset dependency.</li>
+    </ul>
+  </div>
+</div>
+
+<h2><span class="num">02</span>Palette</h2>
+<div id="palette" class="swrap"></div>
+
+<h2><span class="num">03</span>Story states</h2>
+<div class="frame"><div id="silent"></div><div class="cap"><b>Silent</b> — closed windows, isolated people, heavy shadow. No one has spoken yet.</div></div>
+<div class="frame"><div id="awakening"></div><div class="cap"><b>Awakening</b> — courtyard windows warm, conversations begin, people turn toward one another and lean in.</div></div>
+<div class="frame"><div id="acting"></div><div class="cap"><b>Acting together</b> — the room is lit, the courtyard wakes, clarity spreads; a persistent trace lantern remains.</div></div>
+
+<h2><span class="num">04</span>Character construction</h2>
+<div class="frame"><div id="construct"></div><div class="cap"><b>Modular parts</b> — one silhouette, tinted garment, tinted head, a hair style, then prop &amp; face — assemble into distinct, expressive neighbours; posture and expression shift with awareness (afraid → listening → clear).</div></div>
+
+<h2><span class="num">05</span>Environment layers</h2>
+<div class="frame"><div id="layers"></div><div class="cap"><b>Layered composition</b> — the scene stacks back-to-front (walls &amp; floor → windows &amp; courtyard → shelf, lamp &amp; table → cast, near rim, light &amp; paper), so any later district reskins the same slots.</div></div>
+
+<h2><span class="num">06</span>Asset count &amp; performance budget</h2>
+<div id="budget"></div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+const W=720,H=440;
+
+// ---------- shared defs (filters, gradients, halftone) ----------
+function defs(warm){
+  return `<defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${mix('#1a1310','#3a2717',warm)}"/>
+      <stop offset="1" stop-color="${mix('#120c09','#1d130c',warm)}"/>
+    </linearGradient>
+    <radialGradient id="lampglow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffd98a" stop-opacity="${0.5+0.4*warm}"/>
+      <stop offset="0.5" stop-color="#f2b25a" stop-opacity="${0.16+0.2*warm}"/>
+      <stop offset="1" stop-color="#f2b25a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="winglow" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#ffd98a" stop-opacity="${0.1+0.5*warm}"/>
+      <stop offset="1" stop-color="#ffd98a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.46" r="0.75">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.5"/>
+    </radialGradient>
+    <pattern id="halftone" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+      <circle cx="3" cy="3" r="1.15" fill="#000"/>
+    </pattern>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <filter id="rough2"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="1" seed="19" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.04 0.09" numOctaves="3" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>`;
+}
+
+// ---------- colour helpers ----------
+function hx(n){return '#'+n.toString(16).padStart(6,'0');}
+function mix(a,b,t){
+  if(typeof a==='string')a=parseInt(a.slice(1),16);
+  if(typeof b==='string')b=parseInt(b.slice(1),16);
+  t=Math.max(0,Math.min(1,t));
+  const ar=(a>>16)&255,ag=(a>>8)&255,ab=a&255,br=(b>>16)&255,bg=(b>>8)&255,bb=b&255;
+  return hx(((Math.round(ar+(br-ar)*t))<<16)|((Math.round(ag+(bg-ag)*t))<<8)|Math.round(ab+(bb-ab)*t));
+}
+const GARMENTS=['#c56a4a','#cf9b52','#5f7488','#7d4f63','#7c7b4a','#a2483d','#4f7061','#9a6b3f','#86556e','#557089','#b07a3e','#6d6b8a'];
+const SKINS=['#e6b98f','#c98f63','#a86c44','#e0aa80','#bb865a','#915832','#d9a373','#cf9a6c','#b07a4e','#e3b487','#a9713f','#c38a5b'];
+const HAIRS=['#2a1c12','#4a2f1c','#6b4a2a','#3a3a3f','#836b52','#1e1512','#5a3a22','#2f2622','#7a6650','#3d2a1c','#25201e','#55381f'];
+const PROPS=['care','apron','book','music','brim','cap','scarf','plain','care','book','cap','plain'];
+
+// ---------- one neighbour, composed from parts ----------
+function person(p, aw, sel){
+  const g=GARMENTS[p.g], sk=SKINS[p.s], hr=HAIRS[p.h];
+  const clarity = aw>=0.5;
+  const lean = (1-Math.min(1,aw*1.15));           // 0 upright .. 1 slumped
+  const warmth = 0.4+0.6*aw;
+  const gW = mix('#6a6d75', g, Math.min(1,0.35+aw));   // garment cools when afraid
+  const sw = 26 + p.v*3;                                 // shoulder half-width
+  const rot = (lean*7).toFixed(1);
+  let s = `<g transform="translate(${p.x},${p.y}) scale(${p.sc})">`;
+  // soft seated shadow
+  s += `<ellipse cx="0" cy="46" rx="${sw}" ry="9" fill="#000" opacity="0.28"/>`;
+  s += `<g transform="rotate(${rot}) translate(0,${(lean*6).toFixed(1)})" filter="url(#rough)">`;
+  // torso / coat
+  s += `<path d="M ${-sw} 8 C ${-sw-4} -20 -14 -34 0 -34 C 14 -34 ${sw+4} -20 ${sw} 8 L ${sw-2} 50 L ${-(sw-2)} 50 Z" fill="${gW}" stroke="${'#241812'}" stroke-width="2.4"/>`;
+  // garment shading (halftone in the lower/shadow side)
+  s += `<path d="M 2 -8 C ${sw-6} -8 ${sw-2} 20 ${sw-4} 50 L 2 50 Z" fill="url(#halftone)" opacity="0.14"/>`;
+  // off-register accent (screen-print misregistration)
+  s += `<path d="M ${-sw+2} 8 C ${-sw-2} -18 -13 -31 1 -31" fill="none" stroke="${mix(g,'#ffd98a',0.5)}" stroke-width="1.4" opacity="0.35" transform="translate(-1.4,0.6)"/>`;
+  // prop layers on torso
+  s += prop(p.pr, g, sw);
+  // neck + head
+  s += `<rect x="-6" y="-46" width="12" height="15" rx="3" fill="${mix(sk,'#241812',0.18)}"/>`;
+  s += `<circle cx="0" cy="-58" r="15" fill="${sk}" stroke="#241812" stroke-width="2.2"/>`;
+  // cheek warmth
+  s += `<circle cx="0" cy="-55" r="11" fill="${mix(sk,'#ff9d4d',0.25*warmth)}" opacity="${0.5*warmth}"/>`;
+  s += hair(p.hair, hr, p.pr);
+  s += face(aw);
+  s += `</g>`; // end lean
+  if(clarity){ // clarity halo (shape, not just colour)
+    s += `<circle cx="0" cy="-58" r="22" fill="none" stroke="#a8e6bf" stroke-width="2" opacity="0.6"/>`;
+    s += `<circle cx="0" cy="-58" r="27" fill="none" stroke="#a8e6bf" stroke-width="1" opacity="0.28"/>`;
+  }
+  if(sel){ s += `<ellipse cx="0" cy="-30" rx="40" ry="52" fill="none" stroke="#f0c057" stroke-width="2.4" opacity="0.9"/>`; }
+  if(p.you){ s += `<circle cx="0" cy="-58" r="30" fill="url(#winglow)" opacity="0.5"/>`; }
+  s += `</g>`;
+  return s;
+}
+function prop(kind,g,sw){
+  const d=mix(g,'#241812',0.5);
+  switch(kind){
+    case 'care': return `<rect x="-13" y="-74" width="26" height="8" fill="#f3ece0" stroke="#241812" stroke-width="1.2"/><rect x="-3" y="-20" width="6" height="16" fill="#f3ece0"/><rect x="-8" y="-14" width="16" height="5" fill="#c0503f"/><rect x="-2.5" y="-18" width="5" height="12" fill="#c0503f"/>`;
+    case 'apron': return `<path d="M -16 -6 L 16 -6 L 13 50 L -13 50 Z" fill="${mix(g,'#f3ece0',0.6)}" opacity="0.92"/><path d="M -16 -6 L -6 -26 M 16 -6 L 6 -26" stroke="#241812" stroke-width="1.6" opacity="0.5" fill="none"/>`;
+    case 'book': return `<rect x="-15" y="20" width="30" height="13" rx="1.5" fill="${d}" stroke="#241812" stroke-width="1.4"/><path d="M0 20 L0 33" stroke="#ffd98a" stroke-width="1.4" opacity="0.6"/>`;
+    case 'music': return `<ellipse cx="${sw-2}" cy="22" rx="10" ry="13" fill="${d}" stroke="#241812" stroke-width="1.4"/><path d="M ${sw+5} 14 L ${sw+17} -20" stroke="#3a2a1f" stroke-width="3"/>`;
+    case 'brim': return `<ellipse cx="0" cy="-70" rx="27" ry="7" fill="${d}" stroke="#241812" stroke-width="1.4"/><rect x="-12" y="-80" width="24" height="12" rx="3" fill="${d}"/>`;
+    case 'cap': return `<path d="M -14 -70 C -14 -83 14 -83 14 -70 Z" fill="${d}" stroke="#241812" stroke-width="1.4"/><ellipse cx="7" cy="-69" rx="12" ry="4" fill="${d}"/>`;
+    case 'scarf': return `<path d="M -13 -44 C -6 -32 6 -32 13 -44 L 9 -30 C 3 -24 -3 -24 -9 -30 Z" fill="${mix(g,'#ffd98a',0.4)}" stroke="#241812" stroke-width="1.4"/>`;
+    default: return '';
+  }
+}
+function hair(style,hr,propKind){
+  if(propKind==='brim'||propKind==='cap'||propKind==='care'){
+    return `<path d="M -15 -58 C -17 -50 -15 -46 -11 -46 M 15 -58 C 17 -50 15 -46 11 -46" fill="none" stroke="${hr}" stroke-width="4"/>`;
+  }
+  if(style===0) return `<path d="M -16 -56 C -18 -74 18 -74 16 -56 C 12 -66 -12 -66 -16 -56 Z" fill="${hr}"/>`;
+  if(style===1) return `<path d="M -16 -55 C -20 -80 20 -80 16 -55 C 16 -70 -16 -70 -16 -55 Z" fill="${hr}"/><circle cx="-13" cy="-66" r="7" fill="${hr}"/><circle cx="13" cy="-66" r="7" fill="${hr}"/><circle cx="0" cy="-74" r="8" fill="${hr}"/>`;
+  if(style===2) return `<path d="M -15 -56 C -16 -72 16 -72 15 -56 C 10 -64 -10 -64 -15 -56 Z" fill="${hr}"/><path d="M -15 -56 C -20 -48 -19 -40 -16 -36" stroke="${hr}" stroke-width="5" fill="none"/><path d="M 15 -56 C 20 -48 19 -40 16 -36" stroke="${hr}" stroke-width="5" fill="none"/>`;
+  return `<path d="M -15 -57 C -14 -70 14 -70 15 -57 C 8 -64 -8 -64 -15 -57 Z" fill="${hr}"/>`;
+}
+function face(aw){
+  const ey=-60, my=-50;
+  let s='';
+  const drop = aw<0.35?1.2:0;
+  const r = aw<0.35?1.5:1.9;
+  s += `<circle cx="-6" cy="${ey+drop}" r="${r}" fill="#241812"/><circle cx="6" cy="${ey+drop}" r="${r}" fill="#241812"/>`;
+  if(aw>0.7) s += `<circle cx="-6.6" cy="${ey-0.7}" r="0.7" fill="#ffd98a"/><circle cx="5.4" cy="${ey-0.7}" r="0.7" fill="#ffd98a"/>`;
+  if(aw<0.35){
+    s += `<path d="M -9 ${ey-3} L -3 ${ey-6} M 9 ${ey-3} L 3 ${ey-6}" stroke="#3a2a1f" stroke-width="1.5"/>`;
+    s += `<path d="M -5 ${my+1} C 0 ${my-2} 0 ${my-2} 5 ${my+1}" stroke="#3a2a1f" stroke-width="2" fill="none"/>`;
+  } else if(aw<0.7){
+    s += `<path d="M -6 ${my} C 0 ${my+2} 0 ${my+2} 6 ${my}" stroke="#3a2a1f" stroke-width="2" fill="none"/>`;
+  } else {
+    s += `<path d="M -7 ${my-1} C 0 ${my+4} 0 ${my+4} 7 ${my-1}" stroke="#3a2a1f" stroke-width="2.4" fill="none"/>`;
+  }
+  return s;
+}
+
+// ---------- environment ----------
+function environment(warm, phase){
+  const lit = phase==='silent'?0:phase==='awakening'?0.5:1;
+  let s='';
+  // wall + floor
+  s += `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#wall)"/>`;
+  s += `<rect x="0" y="372" width="${W}" height="${H-372}" fill="${mix('#4a3120',mix('#120c09','#1d130c',warm),0.4)}"/>`;
+  for(let x=40;x<W;x+=70) s+=`<path d="M ${x} 372 L ${x-18} ${H}" stroke="#241812" stroke-width="1" opacity="0.25"/>`;
+  // window
+  s += `<g filter="url(#rough2)"><rect x="62" y="62" width="166" height="136" fill="${mix('#4a3120','#6b4a2e',0.5)}" stroke="#241812" stroke-width="2"/>`;
+  s += `<rect x="70" y="70" width="150" height="120" fill="${mix('#11151f','#3a2a20',warm)}"/>`;
+  s += `<rect x="70" y="70" width="150" height="120" fill="#ffd98a" opacity="${0.05+0.35*warm}"/>`;
+  s += `<path d="M145 70 L145 190 M70 130 L220 130" stroke="${mix('#4a3120','#6b4a2e',0.5)}" stroke-width="3"/></g>`;
+  s += `<circle cx="100" cy="96" r="1.3" fill="#dfe6ff" opacity="${0.6*(1-warm)}"/><circle cx="178" cy="110" r="1" fill="#dfe6ff" opacity="${0.6*(1-warm)}"/>`;
+  // courtyard windows
+  const spots=[[520,60],[572,60],[520,108],[612,92],[560,120]];
+  spots.forEach(([x,y],i)=>{ const on = lit>0 && (i/spots.length)<=lit+0.05;
+    s+=`<rect x="${x}" y="${y}" width="30" height="34" fill="${on?mix('#2a1d13','#ffd98a',0.5+0.4*warm):'#1a140f'}" stroke="#241812" stroke-width="1.4"/><path d="M ${x+15} ${y} L ${x+15} ${y+34} M ${x} ${y+17} L ${x+30} ${y+17}" stroke="#241812" stroke-width="1" opacity="0.4"/>`;
+  });
+  // shelves + jars
+  s += `<rect x="250" y="150" width="150" height="7" fill="#6b4a2e" stroke="#241812" stroke-width="1.4"/>`;
+  [[262,'#c96a3a',22],[286,'#a98a4e',30],[312,'#8a6238',18],[340,'#6c6b3a',26],[366,'#4f6478',20]].forEach(([x,c,h])=>{
+    s+=`<rect x="${x}" y="${150-h}" width="16" height="${h}" fill="${c}" stroke="#241812" stroke-width="1.2"/><rect x="${x-1}" y="${150-h-3}" width="18" height="4" fill="${mix(c,'#241812',0.4)}"/>`;
+  });
+  // hanging lamp
+  s += `<path d="M360 0 L360 150" stroke="#241812" stroke-width="2"/><path d="M330 176 L390 176 L378 150 L342 150 Z" fill="${mix('#4a3120','#241812',0.2)}" stroke="#241812" stroke-width="2"/>`;
+  s += `<circle cx="360" cy="250" r="240" fill="url(#lampglow)"/>`;
+  s += `<circle cx="360" cy="168" r="30" fill="url(#winglow)"/><circle cx="360" cy="168" r="6" fill="${mix('#f2b25a','#fff',0.4)}"/>`;
+  // table
+  s += `<ellipse cx="360" cy="292" rx="250" ry="104" fill="#6b4a2e" stroke="#241812" stroke-width="3"/>`;
+  s += `<ellipse cx="360" cy="292" rx="165" ry="62" fill="${mix('#b98a4e','#6b4a2e',0.2)}"/>`;
+  s += `<ellipse cx="360" cy="292" rx="165" ry="62" fill="url(#halftone)" opacity="0.08"/>`;
+  // table props
+  s += `<ellipse cx="240" cy="300" rx="26" ry="12" fill="${mix('#8a6238','#ff9d4d',0.4)}" stroke="#241812" stroke-width="1.4"/>`; // bread board
+  s += `<ellipse cx="456" cy="298" rx="9" ry="5" fill="#e8ddc9" stroke="#241812" stroke-width="1.2"/><ellipse cx="510" cy="284" rx="9" ry="5" fill="#c1cbd4" stroke="#241812" stroke-width="1.2"/><ellipse cx="300" cy="276" rx="9" ry="5" fill="#e0a58c" stroke="#241812" stroke-width="1.2"/>`;
+  s += `<path d="M400 306 L434 312 L430 322 L396 316 Z" fill="#e9ddc4" stroke="#241812" stroke-width="1"/>`;
+  // central oil lamp + flame
+  s += `<rect x="351" y="286" width="18" height="16" fill="${mix('#8a6238','#ffd98a',0.3)}" stroke="#241812" stroke-width="1.4"/>`;
+  s += `<path d="M353 286 L356 272 L364 272 L367 286 Z" fill="#f0e4c8" opacity="0.85" stroke="#241812" stroke-width="1"/>`;
+  const fh=6+12*warm;
+  s += `<circle cx="360" cy="272" r="${18*(0.5+warm)}" fill="url(#winglow)"/>`;
+  s += `<path d="M360 ${272-fh} Q365 272 360 276 Q355 272 360 ${272-fh} Z" fill="#ff9d4d"/><path d="M360 ${272-fh*0.6} Q362 272 360 276 Q358 272 360 ${272-fh*0.6} Z" fill="${mix('#f2b25a','#fff',0.5)}"/>`;
+  // persistent trace lantern (acting only)
+  if(phase==='acting'){
+    s += `<path d="M360 176 L360 200" stroke="#241812" stroke-width="1.5"/><rect x="348" y="200" width="24" height="30" fill="${mix('#4a3120','#ffd98a',0.2)}" stroke="#241812" stroke-width="2"/><rect x="352" y="204" width="16" height="22" fill="#ffd98a" opacity="0.85"/><circle cx="360" cy="214" r="40" fill="url(#winglow)"/>`;
+  }
+  return s;
+}
+function tableFront(){
+  return `<g filter="url(#rough)"><path d="M 110 292 C 110 414 610 414 610 292 L 610 306 C 610 434 110 434 110 306 Z" fill="#4a3120" stroke="#241812" stroke-width="3"/>
+    <path d="M 118 390 C 240 410 480 410 602 390" stroke="${mix('#6b4a2e','#ffd98a',0.3)}" stroke-width="2" opacity="0.3" fill="none"/></g>`;
+}
+
+// ---------- the cast (stable seats around the table) ----------
+// seats: front row (near, large) to back row (far, small)
+const SEATS=[
+  {x:360,y:392,sc:1.18,you:true},{x:250,y:378,sc:1.12},{x:470,y:378,sc:1.12},
+  {x:150,y:344,sc:1.0},{x:570,y:344,sc:1.0},{x:600,y:250,sc:0.86},{x:120,y:250,sc:0.86},
+  {x:250,y:214,sc:0.8},{x:470,y:214,sc:0.8},{x:360,y:200,sc:0.78},{x:180,y:214,sc:0.82},{x:540,y:214,sc:0.82},
+];
+const CAST=SEATS.map((s,i)=>({...s,g:i,s:(i*5)%12,h:i%4,hair:i%4,pr:PROPS[i],v:i%3}));
+
+// awareness per state (12 people)
+const STATE_AW={
+  silent:  [0.75,0.12,0.16,0.10,0.14,0.09,0.12,0.08,0.15,0.10,0.13,0.11],
+  awakening:[0.85,0.58,0.52,0.34,0.40,0.22,0.30,0.18,0.44,0.20,0.36,0.26],
+  acting:  [0.92,0.86,0.80,0.72,0.78,0.55,0.66,0.5,0.82,0.6,0.7,0.64],
+};
+const SEL={silent:2,awakening:1,acting:null};
+
+function frame(phase){
+  const warm = phase==='silent'?0.14:phase==='awakening'?0.5:0.95;
+  const aw=STATE_AW[phase];
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">${defs(warm)}`;
+  svg+=environment(warm,phase);
+  // back-to-front people (sort by y)
+  const order=CAST.map((c,i)=>({c,i})).sort((a,b)=>a.c.y-b.c.y);
+  for(const {c,i} of order) if(c.y<=292) svg+=person(c,aw[i],SEL[phase]===i);
+  svg+=tableFront();
+  for(const {c,i} of order) if(c.y>292) svg+=person(c,aw[i],SEL[phase]===i);
+  // light + atmosphere
+  svg+=`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#vignette)"/>`;
+  svg+=`<rect x="0" y="0" width="${W}" height="${H}" filter="url(#paper)" opacity="0.5" style="mix-blend-mode:multiply"/>`;
+  svg+=`</svg>`;
+  return svg;
+}
+
+document.getElementById('silent').innerHTML=frame('silent');
+document.getElementById('awakening').innerHTML=frame('awakening');
+document.getElementById('acting').innerHTML=frame('acting');
+
+// ---------- construction strip ----------
+function constructStrip(){
+  const steps=[
+    {label:'silhouette',parts:['body']},{label:'+ garment',parts:['body','shade']},
+    {label:'+ head',parts:['body','shade','head']},{label:'+ hair',parts:['body','shade','head','hair']},
+    {label:'+ prop & face',parts:['all']},
+  ];
+  let svg=`<svg viewBox="0 0 720 240" xmlns="${NS}">${defs(0.6)}<rect width="720" height="240" fill="${mix('#1a1310','#2a1d15',0.5)}"/>`;
+  const demo={x:0,y:0,sc:1.15,g:0,s:0,h:1,hair:1,pr:'apron',v:1,you:false};
+  steps.forEach((st,k)=>{
+    const cx=80+k*140;
+    svg+=`<g transform="translate(${cx},170)">`;
+    // build partial by awareness fixed 0.7
+    svg+=personPartial(demo,0.7,st.parts);
+    svg+=`</g><text x="${cx}" y="222" fill="#c9bba6" font-size="13" text-anchor="middle" font-family="Georgia">${st.label}</text>`;
+  });
+  // three awareness poses of the finished figure
+  [0.12,0.5,0.85].forEach((a,k)=>{
+    const cx=80+(k)*140; // reuse? no, place after — instead overlay row2
+  });
+  svg+=`</svg>`;
+  return svg;
+}
+function personPartial(p,aw,parts){
+  const all=parts.includes('all');
+  const g=GARMENTS[p.g], sk=SKINS[p.s], hr=HAIRS[p.h];
+  const sw=26+p.v*3;
+  let s=`<g transform="scale(${p.sc})" filter="url(#rough)">`;
+  if(all||parts.includes('body')){
+    const gW=parts.includes('body')&&!parts.includes('shade')&&!all?'#3a2f2a':g;
+    s+=`<path d="M ${-sw} 8 C ${-sw-4} -20 -14 -34 0 -34 C 14 -34 ${sw+4} -20 ${sw} 8 L ${sw-2} 50 L ${-(sw-2)} 50 Z" fill="${gW}" stroke="#241812" stroke-width="2.4"/>`;
+  }
+  if(all||parts.includes('shade')) s+=`<path d="M 2 -8 C ${sw-6} -8 ${sw-2} 20 ${sw-4} 50 L 2 50 Z" fill="url(#halftone)" opacity="0.16"/>`;
+  if(all) s+=prop(p.pr,g,sw);
+  if(all||parts.includes('head')){ s+=`<rect x="-6" y="-46" width="12" height="15" rx="3" fill="${mix(sk,'#241812',0.18)}"/><circle cx="0" cy="-58" r="15" fill="${sk}" stroke="#241812" stroke-width="2.2"/>`; }
+  if(all||parts.includes('hair')) s+=hair(p.hair,hr,all?p.pr:'plain');
+  if(all) s+=face(aw);
+  s+=`</g>`;
+  return s;
+}
+document.getElementById('construct').innerHTML=poseAndConstruct();
+function poseAndConstruct(){
+  const VW=880, VH=284;
+  let svg=`<svg viewBox="0 0 ${VW} ${VH}" xmlns="${NS}">${defs(0.6)}<rect width="${VW}" height="${VH}" fill="${mix('#1a1310','#2a1d15',0.5)}"/>`;
+  const demo={g:0,s:0,h:1,hair:1,pr:'apron',v:1,sc:1.1};
+  const steps=[['body'],['body','shade'],['body','shade','head'],['body','shade','head','hair'],['all']];
+  const labels=['silhouette','garment','head','hair','face + prop'];
+  steps.forEach((parts,k)=>{ const cx=68+k*88;
+    svg+=`<g transform="translate(${cx},150)">${personPartial(demo,0.7,parts)}</g><text x="${cx}" y="238" fill="#c9bba6" font-size="13" text-anchor="middle">${labels[k]}</text>`;
+  });
+  // divider
+  svg+=`<line x1="540" y1="60" x2="540" y2="210" stroke="#3a2c20" stroke-width="1"/>`;
+  // three awareness poses of the finished figure
+  const poses=[[0.12,'afraid'],[0.5,'listening'],[0.85,'clear']];
+  poses.forEach(([a,l],k)=>{ const cx=610+k*88;
+    svg+=`<g transform="translate(${cx},150)">${personPartial(demo,a,['all'])}</g><text x="${cx}" y="238" fill="#c9bba6" font-size="13" text-anchor="middle">${l}</text>`;
+  });
+  svg+=`<text x="68" y="35" fill="#f0c057" font-size="15" font-family="Georgia">Modular construction</text><text x="610" y="35" fill="#f0c057" font-size="15" font-family="Georgia">Awareness poses</text>`;
+  svg+=`</svg>`;
+  return svg;
+}
+
+// ---------- exploded layers ----------
+document.getElementById('layers').innerHTML=layersView();
+function layersView(){
+  const warm=0.72;
+  // Environment drawn back-to-front, split into named layer groups so the
+  // composition can be shown building up cumulatively (as the renderer stacks it).
+  function wall(){
+    let s=`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#wall)"/>`;
+    s+=`<rect x="0" y="372" width="${W}" height="${H-372}" fill="${mix('#4a3120',mix('#120c09','#1d130c',warm),0.4)}"/>`;
+    for(let x=40;x<W;x+=70) s+=`<path d="M ${x} 372 L ${x-18} ${H}" stroke="#241812" stroke-width="1" opacity="0.25"/>`;
+    return s;
+  }
+  function openings(){
+    let s=`<g filter="url(#rough2)"><rect x="62" y="62" width="166" height="136" fill="${mix('#4a3120','#6b4a2e',0.5)}" stroke="#241812" stroke-width="2"/>`;
+    s+=`<rect x="70" y="70" width="150" height="120" fill="${mix('#11151f','#3a2a20',warm)}"/><rect x="70" y="70" width="150" height="120" fill="#ffd98a" opacity="${0.05+0.35*warm}"/>`;
+    s+=`<path d="M145 70 L145 190 M70 130 L220 130" stroke="${mix('#4a3120','#6b4a2e',0.5)}" stroke-width="3"/></g>`;
+    [[520,60],[572,60],[520,108],[612,92],[560,120]].forEach(([x,y])=>s+=`<rect x="${x}" y="${y}" width="30" height="34" fill="${mix('#2a1d13','#ffd98a',0.5+0.4*warm)}" stroke="#241812" stroke-width="1.4"/><path d="M ${x+15} ${y} L ${x+15} ${y+34} M ${x} ${y+17} L ${x+30} ${y+17}" stroke="#241812" stroke-width="1" opacity="0.4"/>`);
+    return s;
+  }
+  function fittings(){
+    let s=`<rect x="250" y="150" width="150" height="7" fill="#6b4a2e" stroke="#241812" stroke-width="1.4"/>`;
+    [[262,'#c96a3a',22],[286,'#a98a4e',30],[312,'#8a6238',18],[340,'#6c6b3a',26],[366,'#4f6478',20]].forEach(([x,c,h])=>s+=`<rect x="${x}" y="${150-h}" width="16" height="${h}" fill="${c}" stroke="#241812" stroke-width="1.2"/><rect x="${x-1}" y="${150-h-3}" width="18" height="4" fill="${mix(c,'#241812',0.4)}"/>`);
+    s+=`<path d="M360 0 L360 150" stroke="#241812" stroke-width="2"/><path d="M330 176 L390 176 L378 150 L342 150 Z" fill="${mix('#4a3120','#241812',0.2)}" stroke="#241812" stroke-width="2"/>`;
+    s+=`<circle cx="360" cy="250" r="240" fill="url(#lampglow)"/><circle cx="360" cy="168" r="30" fill="url(#winglow)"/><circle cx="360" cy="168" r="6" fill="${mix('#f2b25a','#fff',0.4)}"/>`;
+    return s;
+  }
+  function table(){
+    let s=`<ellipse cx="360" cy="292" rx="250" ry="104" fill="#6b4a2e" stroke="#241812" stroke-width="3"/><ellipse cx="360" cy="292" rx="165" ry="62" fill="${mix('#b98a4e','#6b4a2e',0.2)}"/><ellipse cx="360" cy="292" rx="165" ry="62" fill="url(#halftone)" opacity="0.08"/>`;
+    s+=`<ellipse cx="240" cy="300" rx="26" ry="12" fill="${mix('#8a6238','#ff9d4d',0.4)}" stroke="#241812" stroke-width="1.4"/><ellipse cx="456" cy="298" rx="9" ry="5" fill="#e8ddc9" stroke="#241812" stroke-width="1.2"/><ellipse cx="510" cy="284" rx="9" ry="5" fill="#c1cbd4" stroke="#241812" stroke-width="1.2"/>`;
+    s+=`<rect x="351" y="286" width="18" height="16" fill="${mix('#8a6238','#ffd98a',0.3)}" stroke="#241812" stroke-width="1.4"/><path d="M353 286 L356 272 L364 272 L367 286 Z" fill="#f0e4c8" opacity="0.85" stroke="#241812" stroke-width="1"/><circle cx="360" cy="272" r="16" fill="url(#winglow)"/><path d="M360 260 Q365 272 360 276 Q355 272 360 260 Z" fill="#ff9d4d"/>`;
+    return s;
+  }
+  function cast(){
+    let s='';const aw=STATE_AW.awakening;
+    const order=CAST.map((c,i)=>({c,i})).sort((a,b)=>a.c.y-b.c.y);
+    for(const {c,i} of order) if(c.y<=292) s+=person(c,aw[i],false);
+    s+=tableFront();
+    for(const {c,i} of order) if(c.y>292) s+=person(c,aw[i],false);
+    return s;
+  }
+  function grade(){ return `<rect width="${W}" height="${H}" fill="url(#vignette)"/><rect width="${W}" height="${H}" filter="url(#paper)" opacity="0.5" style="mix-blend-mode:multiply"/>`; }
+
+  const stages=[
+    ['1 · walls & floor',[wall]],
+    ['2 · + windows & courtyard',[wall,openings]],
+    ['3 · + shelf, lamp & table',[wall,openings,fittings,table]],
+    ['4 · + cast, rim, light & paper',[wall,openings,fittings,table,cast,grade]],
+  ];
+  const cols=2, cw=430, sc=cw/W, ch=Math.round(H*sc), pad=18, labelH=30;
+  const rows=Math.ceil(stages.length/cols);
+  const VW=cols*cw+(cols+1)*pad, VH=rows*(ch+labelH)+(rows+1)*pad;
+  let clips='';
+  stages.forEach((_,k)=>{ clips+=`<clipPath id="lc${k}"><rect width="${cw}" height="${ch}" rx="6"/></clipPath>`; });
+  let svg=`<svg viewBox="0 0 ${VW} ${VH}" xmlns="${NS}">${defs(warm)}<defs>${clips}</defs><rect width="100%" height="100%" fill="#0c0908"/>`;
+  stages.forEach(([label,fns],k)=>{
+    const cx=pad+(k%cols)*(cw+pad), cy=pad+Math.floor(k/cols)*(ch+labelH+pad);
+    let inner=fns.map(f=>f()).join('');
+    svg+=`<g transform="translate(${cx},${cy})"><g clip-path="url(#lc${k})"><rect width="${cw}" height="${ch}" fill="${mix('#1a1310','#2a1d15',0.4)}"/><g transform="scale(${sc})">${inner}</g></g><rect width="${cw}" height="${ch}" fill="none" stroke="#3a2c20" stroke-width="1" rx="6"/><text x="4" y="${ch+21}" fill="#c9bba6" font-size="15" font-family="Georgia">${label}</text></g>`;
+  });
+  svg+=`</svg>`;
+  return svg;
+}
+
+// ---------- palette ----------
+(function palette(){
+  const named=[
+    ['Structure',[['ink','#241812'],['ink 2','#3a2a1f'],['paper','#f2e6cf'],['wall dark','#1a1310'],['wall warm','#3a2717']]],
+    ['Light',[['lamp','#f2b25a'],['glow','#ffd98a'],['ember','#ff9d4d']]],
+    ['Signals',[['clarity','#86c9a0'],['clarity+','#a8e6bf'],['you','#f0c057']]],
+    ['Wood & cloth',[['wood','#6b4a2e'],['wood dk','#4a3120'],['wood lt','#8a6238'],['cloth','#b98a4e']]],
+  ];
+  let h='';
+  for(const [title,rows] of named){
+    h+=`<div class="sgroup"><h3>${title}</h3>`;
+    for(const [nm,hex] of rows) h+=`<div class="swatch-row"><span class="swatch" style="background:${hex}"></span><span class="nm">${nm}</span><code>${hex}</code></div>`;
+    h+=`</div>`;
+  }
+  const ramp=(title,arr)=>{
+    let c=`<div class="sgroup"><h3>${title} <span style="color:var(--faint);font-weight:400">· ${arr.length}, tinted at runtime</span></h3><div class="chips">`;
+    arr.forEach(hex=>c+=`<span class="chip" style="background:${hex}"></span>`);
+    return c+`</div></div>`;
+  };
+  h+=ramp('Garments',GARMENTS)+ramp('Skin tones',SKINS)+ramp('Hair',HAIRS);
+  document.getElementById('palette').innerHTML=h;
+})();
+
+// ---------- asset count & performance budget ----------
+(function budget(){
+  const assets=[
+    ['Environment (kitchen · level 0)','walls/floor, window (+night/dawn tint), courtyard-window sheet, shelf &amp; jars, hanging lamp, table top + front rim, table-prop sheet, trace lantern, light/glow masks','~11 sources','1 atlas + 1 mask sheet'],
+    ['Characters (modular)','1 body silhouette (12 garment tints), garment halftone overlay, 1 head (12 skin tints), 5 hair styles, 8 props, 1 face sheet (afraid/steady/clear)','~17 sources','1 atlas'],
+    ['Textures','paper grain, halftone dot, ink edge, soft spark — generated, dependency-free','4 PNG','standalone (tileable)'],
+    ['Effects','talk signal, propagation shimmer, cascade bloom — stay procedural, reuse spark','0 new','—'],
+    ['Portrait / bust','reuse character parts at larger scale','0 new','—'],
+  ];
+  let rows=assets.map(([a,b,c,d])=>`<tr><td><b>${a}</b><br><small>${b}</small></td><td class="n">${c}</td><td class="n">${d}</td></tr>`).join('');
+  const kpis=[
+    ['Payload','Total art (WebP + PNG), gzip','≤ 700 KB'],
+    ['Current textures','already generated','~40 KB'],
+    ['Atlas size','max per atlas','≤ 2048²'],
+    ['Draw calls','static scene, batched','≤ 5 / frame'],
+    ['Resolution','1× / 2× by devicePixelRatio','manifest-driven'],
+    ['Loading','per-level manifest, lazy','replaces preload'],
+    ['Frame rate','desktop / mid mobile','60 / ≥30 fps'],
+    ['Fallback','any asset 404 →','procedural, no break'],
+  ];
+  let kpiA=kpis.slice(0,4), kpiB=kpis.slice(4);
+  const kbox=(title,list)=>`<div class="kpi"><h3>${title}</h3>${list.map(([k,d,v])=>`<div class="row"><span>${k} <small style="color:var(--faint)">· ${d}</small></span><span>${v}</span></div>`).join('')}</div>`;
+  document.getElementById('budget').innerHTML=
+    `<table><thead><tr><th>Group</th><th>Source pieces</th><th>Packed as</th></tr></thead><tbody>${rows}
+     <tr><td><b>Total</b></td><td class="n">~32 sources</td><td class="n">2 atlases · 1 mask · 4 tiles</td></tr></tbody></table>
+     <div class="budget">${kbox('Payload &amp; rendering',kpiA)}${kbox('Loading &amp; safety',kpiB)}</div>
+     <p class="note">Estimates for the kitchen-table set only. The same slots reskin for later districts, so per-district cost stays roughly flat. Numbers to be confirmed once the atlases are packed.</p>`;
+})();
+</script>
+</div>
+</body>
+</html>
