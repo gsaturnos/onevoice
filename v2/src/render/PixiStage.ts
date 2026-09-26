@@ -15,6 +15,10 @@ import { Fx, type Pt } from './Fx';
 import { buildScene, envState, type SceneModel } from './scene';
 import { tween, type Motion } from './anim';
 import { STAGE_W, STAGE_H } from './scene';
+import type { AtlasDiagnostics } from './assets/characterAtlas';
+
+// The resting camera crops a little empty wall off the top and frames the cast.
+const HOME = { cx: 360, cy: 262, z: 1.02 };
 
 export class PixiStage {
   readonly app: Application;
@@ -35,7 +39,7 @@ export class PixiStage {
     this.app = new Application();
   }
 
-  async init(host: HTMLElement, reduceMotion = false): Promise<void> {
+  async init(host: HTMLElement, reduceMotion = false, opts: { forceFallback?: boolean } = {}): Promise<void> {
     this.motion.reduced = reduceMotion;
     await this.app.init({
       width: STAGE_W,
@@ -47,14 +51,21 @@ export class PixiStage {
     });
     host.appendChild(this.app.canvas);
     // Load the authored character atlas; failure is graceful (procedural fallback)
-    // and never blocks the first frame.
-    this.atlas = await CharacterAtlas.load();
+    // and never blocks the first frame. ?noatlas forces the fallback for review.
+    this.atlas = await CharacterAtlas.load(undefined, opts.forceFallback ? { force: 'fallback' } : {});
     this.charLayer.sortableChildren = true;
+    // Layer order: room backdrop & lighting → relationship threads → the CAST →
+    // the low table rim (occludes only the base) → transient signal/bloom effects.
+    // Persistent lighting sits behind the cast so nothing crosses faces.
     this.world.addChild(this.room.back, this.fx.threads, this.charLayer, this.room.front, this.fx.overlay);
     this.app.stage.addChild(this.world);
+    this.applyCam(HOME.cx, HOME.cy, HOME.z);
     this.ready = true;
     this.app.ticker.add(() => this.tick());
   }
+
+  /** Dev-only: how the authored atlas resolved (atlas vs procedural fallback). */
+  get diagnostics(): AtlasDiagnostics { return this.atlas.diagnostics; }
 
   setReduceMotion(on: boolean): void { this.motion.reduced = on; }
   setSpeed(n: number): void { this.motion.speed = n; }
@@ -102,15 +113,17 @@ export class PixiStage {
   }
 
   private drawThreads(s: Snapshot): void {
+    // Relationship lines show SELECTIVELY — only the selected person's links, as a
+    // reading/action preview. At rest the network stays hidden so faces read clean.
     const focus = new Set<number>();
     if (this.selected != null) {
       focus.add(this.selected);
       for (const j of s.neighbors[this.selected] || []) focus.add(j);
     }
     this.fx.drawThreads(s.links, this.posMap(), focus);
-    // reduce unrelated visual noise while someone is selected
+    // dim the unrelated cast slightly while someone is selected, to spotlight the tie
     for (const [idx, c] of this.chars) {
-      c.alpha = this.selected == null || focus.has(idx) ? c.alpha : Math.min(c.alpha, 0.5);
+      c.setDim(this.selected != null && !focus.has(idx));
     }
   }
 
@@ -118,9 +131,9 @@ export class PixiStage {
     this.sync(s, idx);
     if (idx != null && !this.motion.reduced) {
       const p = this.scene?.byIdx.get(idx);
-      if (p) void this.cameraTo(p.x, p.y - 20, 1.06);
+      if (p) void this.cameraTo(p.x, p.y - 40, 1.22);
     } else {
-      void this.cameraTo(STAGE_W / 2, STAGE_H / 2, 1);
+      void this.cameraTo(HOME.cx, HOME.cy, HOME.z);
     }
   }
 
@@ -130,7 +143,7 @@ export class PixiStage {
     const a = this.scene?.byIdx.get(from);
     const b = this.scene?.byIdx.get(to);
     if (!a || !b) return;
-    await this.cameraTo((a.x + b.x) / 2, (a.y + b.y) / 2 - 20, 1.08);
+    await this.cameraTo((a.x + b.x) / 2, (a.y + b.y) / 2 - 30, HOME.z + 0.12);
     await this.fx.signal(a, b);
     this.chars.get(to)?.playReact();
     await this.fx.pause(160);
@@ -155,12 +168,12 @@ export class PixiStage {
   async playCascade(joined: number[], trace: boolean): Promise<void> {
     const pos = this.posMap();
     const pts = joined.map((i) => pos.get(i)).filter((p): p is Pt => !!p);
-    const center = { x: STAGE_W / 2, y: 270 };
-    await this.cameraTo(center.x, center.y, 1.12);
+    const center = { x: HOME.cx, y: 280 };
+    await this.cameraTo(center.x, center.y, HOME.z + 0.08);
     await this.fx.cascade(center, pts);
     if (trace) this.room.setTrace(true);
     for (const i of joined) this.chars.get(i)?.playReact();
-    await this.cameraTo(STAGE_W / 2, STAGE_H / 2, 1);
+    await this.cameraTo(HOME.cx, HOME.cy, HOME.z);
   }
 
   private async cameraTo(cx: number, cy: number, z: number): Promise<void> {

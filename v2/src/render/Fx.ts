@@ -16,25 +16,27 @@ export class Fx {
 
   constructor(private readonly motion: Motion) {}
 
-  /** Redraw relationship threads; those touching `focus` are brought forward. */
+  /**
+   * Redraw relationship threads SELECTIVELY: only the ties touching `focus` (the
+   * selected person and their neighbours) are drawn, as a warm action-preview. With
+   * no focus the layer is cleared, so the resting scene shows no web across faces.
+   */
   drawThreads(links: Array<[number, number, number]>, pos: Map<number, Pt>, focus: Set<number>): void {
     const g = this.threads;
     g.removeChildren();
-    const base = new Graphics();
+    if (focus.size === 0) return;
     const hot = new Graphics();
     for (const [i, j] of links) {
+      if (!focus.has(i) && !focus.has(j)) continue;
       const a = pos.get(i);
       const b = pos.get(j);
       if (!a || !b) continue;
-      const lit = focus.size > 0 && (focus.has(i) || focus.has(j));
-      const gg = lit ? hot : base;
       const mx = (a.x + b.x) / 2;
-      const my = (a.y + b.y) / 2 + 10; // slight sag, like a shared thread
-      gg.moveTo(a.x, a.y - 30).quadraticCurveTo(mx, my, b.x, b.y - 30);
+      const my = (a.y + b.y) / 2 + 12; // slight sag, like a shared thread
+      hot.moveTo(a.x, a.y - 24).quadraticCurveTo(mx, my, b.x, b.y - 24);
     }
-    base.stroke({ width: 1, color: 0xe8e4d8, alpha: focus.size > 0 ? 0.05 : 0.11 });
-    hot.stroke({ width: 2, color: GLOW, alpha: 0.5 });
-    g.addChild(base, hot);
+    hot.stroke({ width: 2.4, color: GLOW, alpha: 0.55 });
+    g.addChild(hot);
   }
 
   /** A warm mote travels from the speaker to the listener. */

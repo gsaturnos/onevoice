@@ -23,19 +23,23 @@ function civilians(s: GameState): number[] {
 describe('scene view-model — kitchen table layout', () => {
   const s = createGame(0);
 
-  it('seats every civilian exactly once, the player at the front-centre seat', () => {
+  it('seats every civilian exactly once, the player front-centre and largest', () => {
     const scene = buildScene(s);
     expect(scene.agents.length).toBe(s.agents.length); // level 0 has no incumbents
     const player = scene.agents.find((a) => a.isPlayer)!;
-    expect(player.seat).toBe(0);
-    expect(player.depth).toBeGreaterThan(0.9); // nearest the viewer
+    // front-centre: nearest the viewer (largest depth/scale), horizontally centred,
+    // and the front-most figure on screen.
+    expect(player.depth).toBeGreaterThan(0.9);
+    expect(Math.abs(player.x - STAGE_W / 2)).toBeLessThan(30);
+    expect(player.scale).toBe(Math.max(...scene.agents.map((a) => a.scale)));
+    expect(player.y).toBe(Math.max(...scene.agents.map((a) => a.y)));
     const idxs = new Set(scene.agents.map((a) => a.idx));
     expect(idxs.size).toBe(scene.agents.length);
     const seats = new Set(scene.agents.map((a) => a.seat));
-    expect(seats.size).toBe(scene.agents.length);
+    expect(seats.size).toBe(scene.agents.length); // globally unique seats
   });
 
-  it('places everyone inside the stage with sane depth/scale', () => {
+  it('places everyone inside the stage, larger figures with sane depth/scale', () => {
     for (const a of buildScene(s).agents) {
       expect(a.x).toBeGreaterThanOrEqual(0);
       expect(a.x).toBeLessThanOrEqual(STAGE_W);
@@ -43,8 +47,9 @@ describe('scene view-model — kitchen table layout', () => {
       expect(a.y).toBeLessThanOrEqual(STAGE_H);
       expect(a.depth).toBeGreaterThanOrEqual(0);
       expect(a.depth).toBeLessThanOrEqual(1);
-      expect(a.scale).toBeGreaterThan(0.6);
-      expect(a.scale).toBeLessThan(1.4);
+      // the cast is deliberately large now (readable at gameplay scale)
+      expect(a.scale).toBeGreaterThan(1.2);
+      expect(a.scale).toBeLessThanOrEqual(2.0);
     }
   });
 

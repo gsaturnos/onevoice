@@ -82,12 +82,30 @@ body {
 .card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
 .card .cue { margin: 0; color: var(--muted); font-size: 14px; }
 .card .cue.soft { font-size: 13px; }
-.chead { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.portrait { width: 40px; height: 40px; border-radius: 50%; flex: 0 0 auto;
-  background: radial-gradient(circle at 40% 35%, var(--glow), var(--lamp) 55%, #7a5427 100%);
-  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.35); }
-.cname { font-size: 18px; font-weight: 600; color: var(--ink); }
+.chead { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
+/* authored bust portrait (sized inline from the atlas frame) */
+.portrait { flex: 0 0 auto; display: inline-block; border-radius: 10px;
+  background-color: #1a130d;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
+  align-self: center; vertical-align: top; }
+.portrait.bust {
+  background-image:
+    radial-gradient(120% 90% at 50% 24%, rgba(255,217,138,0.18), rgba(255,217,138,0) 62%),
+    linear-gradient(180deg, #241a12 0%, #171009 100%);
+  border: 1px solid var(--line);
+}
+/* the warm backing lifts a touch as the person comes to clarity */
+.portrait.bust.afraid { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.45), 0 6px 16px rgba(0,0,0,0.45); }
+.portrait.bust.clear { box-shadow: inset 0 0 0 1px rgba(168,230,191,0.25), 0 6px 20px rgba(0,0,0,0.4); }
+/* graceful fallback tile (no atlas) — a quiet initial, never the old glowing dot */
+.portrait.fallback { width: 64px; height: 80px; display: flex; align-items: center; justify-content: center;
+  font-size: 30px; font-weight: 600; color: #f0dcae; letter-spacing: 0;
+  background: linear-gradient(180deg, #3a2a1c, #241811); border: 1px solid var(--line); }
+.cname { font-size: 19px; font-weight: 600; color: var(--ink); }
 .crole { font-size: 13px; color: var(--muted); }
+.cmood { margin-top: 4px; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.cmood.clear { color: var(--clarity); }
+.cmood.listening { color: var(--lamp); }
 .stake { margin: 4px 0 10px; color: #e7dccb; font-size: 14px; font-style: italic; }
 
 .awrow { display: flex; align-items: center; gap: 10px; margin: 8px 0; }

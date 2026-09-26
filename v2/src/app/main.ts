@@ -13,7 +13,9 @@ import { previewTalk, newlyClear, propagationFlows, clearThreshold } from '@core
 import { nearReady } from '@render/scene';
 import { PixiStage } from '@render/PixiStage';
 import { Hud } from '@ui/Hud';
+import { disablePortraits, applyPortrait } from '@ui/portrait';
 import { AudioController } from '@audio/AudioController';
+import { showArtDiagnostic } from './diag';
 
 const prefersReduced =
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,13 +24,30 @@ async function boot(): Promise<void> {
   const stageHost = document.getElementById('stage')!;
   const hudHost = document.getElementById('hud')!;
 
+  // Dev-only review switches (never affect gameplay):
+  //   ?noatlas → force the procedural fallback (for the fallback comparison)
+  //   ?diag    → show an on-screen atlas-load report + window.__ONEVOICE_ART__
+  const params = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
+  const forceFallback = params.has('noatlas');
+  const wantDiag = params.has('diag');
+  if (forceFallback) disablePortraits();
+
   let state: GameState = createGame(0);
   let selected: number | null = null;
   let busy = false;
 
   const audio = new AudioController();
   const stage = new PixiStage();
-  await stage.init(stageHost, prefersReduced);
+  await stage.init(stageHost, prefersReduced, { forceFallback });
+
+  // expose the load report so a headless review can read it conclusively
+  try { (window as unknown as { __ONEVOICE_ART__?: unknown }).__ONEVOICE_ART__ = stage.diagnostics; } catch { /* ignore */ }
+  if (wantDiag) {
+    showArtDiagnostic(stage.diagnostics);
+    // dev-only: render the real card-portrait component at an arbitrary state, so a
+    // review can show each face in afraid/listening/clear without playing turns.
+    try { (window as unknown as { __ONEVOICE_PORTRAIT__?: unknown }).__ONEVOICE_PORTRAIT__ = applyPortrait; } catch { /* ignore */ }
+  }
 
   const hud = new Hud(hudHost, {
     onSelect: (idx) => select(idx),

@@ -75,6 +75,7 @@ export class Character extends Container {
   private selected = false;
   private selLift = 0;
   private reactT = 0;
+  private dim = false; // faded slightly while another person is the focus
   private readonly phase: number;
 
   constructor(
@@ -314,15 +315,22 @@ export class Character extends Container {
     }
   }
 
+  /** Fade slightly when another person is the focus (spotlights the selected tie). */
+  setDim(on: boolean): void { this.dim = on; }
+
   setSelected(on: boolean): void {
     this.selected = on;
     const r = this.ring;
     r.clear();
     if (on) {
-      r.ellipse(0, -30, 40, 52).stroke({ width: 2.5, color: YOU, alpha: 0.9 });
-      r.ellipse(0, -30, 46, 58).stroke({ width: 1.5, color: YOU, alpha: 0.3 });
+      // a soft ground-ring beneath the figure reads as "chosen" without crossing the face
+      const cy = this.useSprite ? 46 : -18;
+      const rx = this.useSprite ? 40 : 40;
+      const ry = this.useSprite ? 16 : 24;
+      r.ellipse(0, cy, rx, ry).stroke({ width: 3, color: YOU, alpha: 0.9 });
+      r.ellipse(0, cy, rx + 6, ry + 4).stroke({ width: 1.5, color: YOU, alpha: 0.3 });
     }
-    this.zIndex = on ? 1000 : 0;
+    this.zIndex = on ? 1000 : Math.round((this.y || 0));
   }
 
   playReact(): void {
@@ -370,6 +378,10 @@ export class Character extends Container {
     }
     const s = this.baseScale * (1 + this.selLift * 0.06 + react * 0.03);
     this.scale.set(s);
-    this.alpha = 0.62 + 0.38 * Math.min(1, 0.4 + this.aw) + this.selLift * 0.0;
+    // Authored sprites carry their own state (posture/expression/warmth), so they
+    // stay at full presence; the procedural fallback dims when afraid. Either way a
+    // non-focused person fades a little while someone else is selected.
+    const base = this.useSprite ? 1 : 0.66 + 0.34 * Math.min(1, 0.45 + this.aw);
+    this.alpha = base * (this.dim ? 0.5 : 1);
   }
 }

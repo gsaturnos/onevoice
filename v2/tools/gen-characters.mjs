@@ -33,30 +33,41 @@ const sc = CELL_W / LOCAL.w;                 // 0.8333 local→cell
 const gx = -LOCAL.x0 * sc, gy = -LOCAL.y0 * sc;
 
 const frames = {};
-const cells = [];
 let i = 0;
 for (const spec of CAST) {
   for (const state of STATES) {
     const col = i % COLS, row = Math.floor(i / COLS);
-    const x = col * CELL_W, y = row * CELL_H;
-    frames[`${spec.id}.${state}`] = { x, y, w: CELL_W, h: CELL_H };
-    cells.push(`<div style="position:absolute;left:${x}px;top:${y}px;width:${CELL_W}px;height:${CELL_H}px">
-      <svg width="${CELL_W}" height="${CELL_H}" viewBox="0 0 ${CELL_W} ${CELL_H}">${defs()}<g transform="translate(${gx} ${gy}) scale(${sc})">${buildBust(spec, state)}</g></svg></div>`);
+    frames[`${spec.id}.${state}`] = { x: col * CELL_W, y: row * CELL_H, w: CELL_W, h: CELL_H };
     i++;
   }
 }
 const ROWS = Math.ceil(i / COLS);
 const PAGE_W = COLS * CELL_W, PAGE_H = ROWS * CELL_H;
 
-const html = `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent}
-#atlas{position:relative;width:${PAGE_W}px;height:${PAGE_H}px}</style>
-<div id="atlas">${cells.join('')}</div>`;
+// Build the atlas grid at an explicit pixel scale (deviceScaleFactor stays 1). Each
+// page is therefore an EXACT multiple of the base layout, so a frame rect scaled by
+// the page's `scale` lines up perfectly — the 2× page is a true 2× of the 1× page.
+function buildHtml(scale) {
+  const cw = CELL_W * scale, ch = CELL_H * scale;
+  let j = 0, cells = '';
+  for (const spec of CAST) {
+    for (const state of STATES) {
+      const col = j % COLS, row = Math.floor(j / COLS);
+      cells += `<div style="position:absolute;left:${col * cw}px;top:${row * ch}px;width:${cw}px;height:${ch}px">
+        <svg width="${cw}" height="${ch}" viewBox="0 0 ${CELL_W} ${CELL_H}">${defs()}<g transform="translate(${gx} ${gy}) scale(${sc})">${buildBust(spec, state)}</g></svg></div>`;
+      j++;
+    }
+  }
+  return `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent}
+#atlas{position:relative;width:${PAGE_W * scale}px;height:${PAGE_H * scale}px}</style>
+<div id="atlas">${cells}</div>`;
+}
 
 const browser = await chromium.launch({ executablePath: EXE, args: ['--no-sandbox'] });
-for (const [tag, dsf] of [['1x', 1], ['2x', 2]]) {
-  const ctx = await browser.newContext({ viewport: { width: PAGE_W, height: PAGE_H }, deviceScaleFactor: dsf });
+for (const [tag, scale] of [['1x', 1], ['2x', 2]]) {
+  const ctx = await browser.newContext({ viewport: { width: PAGE_W * scale, height: PAGE_H * scale }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
-  await page.goto('data:text/html;charset=utf-8,' + encodeURIComponent(html), { waitUntil: 'networkidle' });
+  await page.goto('data:text/html;charset=utf-8,' + encodeURIComponent(buildHtml(scale)), { waitUntil: 'networkidle' });
   await new Promise((r) => setTimeout(r, 400));
   // capture as transparent PNG, then re-encode to WebP in-page (keeps payload small)
   const pngBuf = await page.locator('#atlas').screenshot({ omitBackground: true });
@@ -72,7 +83,7 @@ for (const [tag, dsf] of [['1x', 1], ['2x', 2]]) {
   const webpBuf = Buffer.from(webpDataUrl.split(',')[1], 'base64');
   writeFileSync(join(OUT, `characters@${tag}.webp`), webpBuf);
   await ctx.close();
-  console.log(`characters@${tag}.webp  ${PAGE_W * dsf}x${PAGE_H * dsf}  ${(webpBuf.length / 1024).toFixed(0)} KB`);
+  console.log(`characters@${tag}.webp  ${PAGE_W * scale}x${PAGE_H * scale}  ${(webpBuf.length / 1024).toFixed(0)} KB`);
 }
 await browser.close();
 

@@ -16,8 +16,21 @@ import { clearThreshold } from '@core/insight';
 export const STAGE_W = 720;
 export const STAGE_H = 440;
 
-// The table ellipse the cast is seated around.
-const TABLE = { cx: 360, cy: 292, rx: 250, ry: 104 };
+// The near "kitchen table" is a low foreground element the cast sits behind, so
+// figures can be drawn large without the table covering faces, hands or props.
+// (Room draws it from these numbers; scene only needs it for lookups.)
+export const TABLE = { cx: 360, cy: 366, rx: 336, ry: 52 };
+
+// Staged two-row seating tuned so all twelve neighbours read at gameplay scale.
+// The nearest people (BFS-closest to the player) sit big in the front row; the
+// player anchors front-centre. Edges sit slightly farther (higher, a touch
+// smaller) so the group reads with depth without shrinking anyone.
+const ROW = {
+  front: { y: 342, lift: 26, xL: 72, xR: 648, sMid: 1.82, sEdge: 1.56 },
+  back: { y: 238, lift: 14, xL: 150, xR: 570, sMid: 1.44, sEdge: 1.28 },
+};
+const S_MIN = ROW.back.sEdge;
+const S_MAX = ROW.front.sMid;
 
 /** How close (below the clarity threshold) counts as "near ready" for the turn-end beat. */
 export const NEAR_BAND = 0.12;
@@ -75,44 +88,51 @@ export function orderAroundPlayer(s: Snapshot): number[] {
 }
 
 /**
- * Priority slot pattern: 0 (front centre), then alternating right/left and
- * working toward the back, so BFS-nearest people flank the player and distant
- * acquaintances recede to the far edge.
+ * Physical slot order for a row, centre-first: rank 0 → centre seat, then it
+ * radiates outward (…, centre-1, centre+1, …). Feeding BFS-nearest people in
+ * rank order seats the player dead centre and their closest neighbours beside
+ * them, with distant acquaintances at the edges.
  */
-function slotAngles(n: number): number[] {
-  const base = Math.PI / 2; // bottom of the ellipse, nearest the viewer
-  const step = (Math.PI * 2) / n;
-  const out: number[] = [];
-  let k = 0;
-  let side = 1;
-  for (let placed = 0; placed < n; placed++) {
-    out.push(base + k * step * side);
-    if (placed === 0) {
-      k = 1;
-      side = 1;
-    } else if (side === 1) {
-      side = -1;
-    } else {
-      side = 1;
-      k++;
-    }
-  }
-  return out;
+function centreOut(count: number): number[] {
+  const mid = (count - 1) / 2;
+  return [...Array(count).keys()].sort(
+    (a, b) => Math.abs(a - mid) - Math.abs(b - mid) || a - b,
+  );
 }
 
-/** Compose the full seating layout (stable across turns in level 0). */
+interface Row { y: number; lift: number; xL: number; xR: number; sMid: number; sEdge: number; }
+
+/** Place `members` (nearness order) along one arced row; returns per-idx seats. */
+function seatRow(members: number[], row: Row, player: number, out: SceneAgent[]): void {
+  const c = members.length;
+  const slots = centreOut(c);
+  const bySlot: number[] = [];
+  members.forEach((idx, rank) => { bySlot[slots[rank]] = idx; });
+  for (let slot = 0; slot < c; slot++) {
+    const idx = bySlot[slot];
+    const t = c > 1 ? slot / (c - 1) : 0.5; // 0 left … 1 right
+    const dc = Math.abs(t - 0.5) * 2; // 0 centre … 1 edge
+    const x = row.xL + t * (row.xR - row.xL);
+    const y = row.y - row.lift * dc;
+    const scale = row.sMid - (row.sMid - row.sEdge) * dc;
+    const depth = (scale - S_MIN) / (S_MAX - S_MIN || 1);
+    out.push({ idx, x, y, depth, scale, isPlayer: idx === player, seat: out.length });
+  }
+}
+
+/** Compose the full staged layout (stable across turns in level 0). */
 export function buildScene(s: Snapshot): SceneModel {
   const order = orderAroundPlayer(s);
   const n = order.length;
-  const angles = slotAngles(n);
-  const agents: SceneAgent[] = order.map((idx, seat) => {
-    const theta = angles[seat];
-    const x = TABLE.cx + TABLE.rx * Math.cos(theta);
-    const y = TABLE.cy + TABLE.ry * Math.sin(theta);
-    const depth = (y - (TABLE.cy - TABLE.ry)) / (2 * TABLE.ry); // 0 far .. 1 near
-    const scale = 0.74 + 0.52 * depth;
-    return { idx, x, y, depth, scale, isPlayer: idx === s.player, seat };
-  });
+  // Roughly 40% of the (non-player) cast sit in the back row; the player and the
+  // closest neighbours fill the larger front row.
+  const backN = n <= 1 ? 0 : Math.min(n - 1, Math.round((n - 1) * 0.42));
+  const frontN = n - backN;
+  const front = order.slice(0, frontN);
+  const back = order.slice(frontN);
+  const agents: SceneAgent[] = [];
+  seatRow(front, ROW.front, s.player, agents);
+  if (back.length) seatRow(back, ROW.back, s.player, agents);
   const byIdx = new Map<number, SceneAgent>();
   for (const a of agents) byIdx.set(a.idx, a);
   return { agents, byIdx, table: TABLE };

@@ -7,6 +7,7 @@
 import type { Snapshot } from '@core/types';
 import { objectiveProgress, talkableTargets } from '@core/selectors';
 import { previewTalk, clearThreshold } from '@core/insight';
+import { applyPortrait } from './portrait';
 
 export interface HudCallbacks {
   onSelect: (idx: number) => void;
@@ -133,10 +134,11 @@ export class Hud {
 
     card.innerHTML = `
       <div class="chead">
-        <span class="portrait" aria-hidden="true"></span>
+        <span class="portrait" id="portrait" aria-hidden="true"></span>
         <div>
           <div class="cname">${a.nm}${selected === s.player ? ' · you' : ''}</div>
           <div class="crole">${a.role}</div>
+          <div class="cmood ${awWord(a.aw)}">${awWord(a.aw)}</div>
         </div>
       </div>
       <p class="stake">${a.stake}.</p>
@@ -148,6 +150,9 @@ export class Hud {
       ${selected === s.player ? '' : previewHtml}
       ${selected === s.player ? '' : `<button id="talk" class="primary" ${canTalk ? '' : 'disabled'}>Talk with ${a.nm}</button>`}
     `;
+
+    const portrait = card.querySelector('#portrait') as HTMLElement | null;
+    if (portrait) applyPortrait(portrait, selected, a.aw, a.nm);
 
     const talk = card.querySelector('#talk') as HTMLButtonElement | null;
     if (talk) {
