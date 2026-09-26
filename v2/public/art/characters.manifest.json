@@ -1,0 +1,440 @@
+{
+  "version": 1,
+  "generated": "2026-09-26",
+  "cell": {
+    "w": 120,
+    "h": 150
+  },
+  "local": {
+    "x0": -72,
+    "y0": -116,
+    "w": 144,
+    "h": 180
+  },
+  "anchor": {
+    "x": 0.5,
+    "y": 0.6444444444444445
+  },
+  "pages": {
+    "1x": {
+      "src": "characters@1x.webp",
+      "scale": 1
+    },
+    "2x": {
+      "src": "characters@2x.webp",
+      "scale": 2
+    }
+  },
+  "states": [
+    "afraid",
+    "listening",
+    "clear"
+  ],
+  "frames": {
+    "nurse.afraid": {
+      "x": 0,
+      "y": 0,
+      "w": 120,
+      "h": 150
+    },
+    "nurse.listening": {
+      "x": 120,
+      "y": 0,
+      "w": 120,
+      "h": 150
+    },
+    "nurse.clear": {
+      "x": 240,
+      "y": 0,
+      "w": 120,
+      "h": 150
+    },
+    "postman.afraid": {
+      "x": 360,
+      "y": 0,
+      "w": 120,
+      "h": 150
+    },
+    "postman.listening": {
+      "x": 480,
+      "y": 0,
+      "w": 120,
+      "h": 150
+    },
+    "postman.clear": {
+      "x": 600,
+      "y": 0,
+      "w": 120,
+      "h": 150
+    },
+    "bookseller.afraid": {
+      "x": 0,
+      "y": 150,
+      "w": 120,
+      "h": 150
+    },
+    "bookseller.listening": {
+      "x": 120,
+      "y": 150,
+      "w": 120,
+      "h": 150
+    },
+    "bookseller.clear": {
+      "x": 240,
+      "y": 150,
+      "w": 120,
+      "h": 150
+    },
+    "baker.afraid": {
+      "x": 360,
+      "y": 150,
+      "w": 120,
+      "h": 150
+    },
+    "baker.listening": {
+      "x": 480,
+      "y": 150,
+      "w": 120,
+      "h": 150
+    },
+    "baker.clear": {
+      "x": 600,
+      "y": 150,
+      "w": 120,
+      "h": 150
+    },
+    "student.afraid": {
+      "x": 0,
+      "y": 300,
+      "w": 120,
+      "h": 150
+    },
+    "student.listening": {
+      "x": 120,
+      "y": 300,
+      "w": 120,
+      "h": 150
+    },
+    "student.clear": {
+      "x": 240,
+      "y": 300,
+      "w": 120,
+      "h": 150
+    },
+    "mechanic.afraid": {
+      "x": 360,
+      "y": 300,
+      "w": 120,
+      "h": 150
+    },
+    "mechanic.listening": {
+      "x": 480,
+      "y": 300,
+      "w": 120,
+      "h": 150
+    },
+    "mechanic.clear": {
+      "x": 600,
+      "y": 300,
+      "w": 120,
+      "h": 150
+    },
+    "gardener.afraid": {
+      "x": 0,
+      "y": 450,
+      "w": 120,
+      "h": 150
+    },
+    "gardener.listening": {
+      "x": 120,
+      "y": 450,
+      "w": 120,
+      "h": 150
+    },
+    "gardener.clear": {
+      "x": 240,
+      "y": 450,
+      "w": 120,
+      "h": 150
+    },
+    "farmer.afraid": {
+      "x": 360,
+      "y": 450,
+      "w": 120,
+      "h": 150
+    },
+    "farmer.listening": {
+      "x": 480,
+      "y": 450,
+      "w": 120,
+      "h": 150
+    },
+    "farmer.clear": {
+      "x": 600,
+      "y": 450,
+      "w": 120,
+      "h": 150
+    },
+    "musician.afraid": {
+      "x": 0,
+      "y": 600,
+      "w": 120,
+      "h": 150
+    },
+    "musician.listening": {
+      "x": 120,
+      "y": 600,
+      "w": 120,
+      "h": 150
+    },
+    "musician.clear": {
+      "x": 240,
+      "y": 600,
+      "w": 120,
+      "h": 150
+    },
+    "carpenter.afraid": {
+      "x": 360,
+      "y": 600,
+      "w": 120,
+      "h": 150
+    },
+    "carpenter.listening": {
+      "x": 480,
+      "y": 600,
+      "w": 120,
+      "h": 150
+    },
+    "carpenter.clear": {
+      "x": 600,
+      "y": 600,
+      "w": 120,
+      "h": 150
+    },
+    "librarian.afraid": {
+      "x": 0,
+      "y": 750,
+      "w": 120,
+      "h": 150
+    },
+    "librarian.listening": {
+      "x": 120,
+      "y": 750,
+      "w": 120,
+      "h": 150
+    },
+    "librarian.clear": {
+      "x": 240,
+      "y": 750,
+      "w": 120,
+      "h": 150
+    },
+    "florist.afraid": {
+      "x": 360,
+      "y": 750,
+      "w": 120,
+      "h": 150
+    },
+    "florist.listening": {
+      "x": 480,
+      "y": 750,
+      "w": 120,
+      "h": 150
+    },
+    "florist.clear": {
+      "x": 600,
+      "y": 750,
+      "w": 120,
+      "h": 150
+    }
+  },
+  "characters": [
+    {
+      "id": "nurse",
+      "role": "nurse",
+      "age": "adult",
+      "mobility": "none",
+      "build": {
+        "h": 1,
+        "girth": 0.98,
+        "sh": 0.5,
+        "neck": 1
+      },
+      "head": "round",
+      "headwear": "none",
+      "prop": "stethoscope"
+    },
+    {
+      "id": "postman",
+      "role": "retired postman",
+      "age": "elder",
+      "mobility": "cane",
+      "build": {
+        "h": 1.08,
+        "girth": 0.9,
+        "sh": 0.35,
+        "neck": 1.15
+      },
+      "head": "long",
+      "headwear": "flatcap",
+      "prop": "satchel"
+    },
+    {
+      "id": "bookseller",
+      "role": "bookseller",
+      "age": "adult",
+      "mobility": "wheelchair",
+      "build": {
+        "h": 0.94,
+        "girth": 0.9,
+        "sh": 0.55,
+        "neck": 1
+      },
+      "head": "oval",
+      "headwear": "none",
+      "prop": "books"
+    },
+    {
+      "id": "baker",
+      "role": "baker",
+      "age": "adult",
+      "mobility": "none",
+      "build": {
+        "h": 0.98,
+        "girth": 1.22,
+        "sh": 0.6,
+        "neck": 0.8
+      },
+      "head": "round",
+      "headwear": "bakerHat",
+      "prop": "bread"
+    },
+    {
+      "id": "student",
+      "role": "student",
+      "age": "young",
+      "mobility": "none",
+      "build": {
+        "h": 0.92,
+        "girth": 0.88,
+        "sh": 0.5,
+        "neck": 1.05
+      },
+      "head": "soft",
+      "headwear": "headphones",
+      "prop": "notebook"
+    },
+    {
+      "id": "mechanic",
+      "role": "mechanic",
+      "age": "adult",
+      "mobility": "none",
+      "build": {
+        "h": 1.02,
+        "girth": 1.12,
+        "sh": 0.62,
+        "neck": 0.85
+      },
+      "head": "square",
+      "headwear": "cap",
+      "prop": "wrench"
+    },
+    {
+      "id": "gardener",
+      "role": "market gardener",
+      "age": "adult",
+      "mobility": "none",
+      "build": {
+        "h": 0.9,
+        "girth": 1.18,
+        "sh": 0.66,
+        "neck": 0.85
+      },
+      "head": "round",
+      "headwear": "headscarf",
+      "prop": "crate"
+    },
+    {
+      "id": "farmer",
+      "role": "old farmer",
+      "age": "elder",
+      "mobility": "none",
+      "build": {
+        "h": 1.12,
+        "girth": 0.9,
+        "sh": 0.4,
+        "neck": 1.1
+      },
+      "head": "long",
+      "headwear": "strawHat",
+      "prop": "pitchfork"
+    },
+    {
+      "id": "musician",
+      "role": "musician",
+      "age": "young",
+      "mobility": "none",
+      "build": {
+        "h": 1,
+        "girth": 0.92,
+        "sh": 0.5,
+        "neck": 1.05
+      },
+      "head": "oval",
+      "headwear": "none",
+      "prop": "guitar"
+    },
+    {
+      "id": "carpenter",
+      "role": "carpenter",
+      "age": "adult",
+      "mobility": "none",
+      "build": {
+        "h": 1.04,
+        "girth": 1.06,
+        "sh": 0.6,
+        "neck": 0.9
+      },
+      "head": "square",
+      "headwear": "cap",
+      "prop": "tools"
+    },
+    {
+      "id": "librarian",
+      "role": "retired librarian",
+      "age": "elder",
+      "mobility": "none",
+      "build": {
+        "h": 0.9,
+        "girth": 0.98,
+        "sh": 0.55,
+        "neck": 0.95
+      },
+      "head": "soft",
+      "headwear": "none",
+      "prop": "booksSatchel"
+    },
+    {
+      "id": "florist",
+      "role": "florist",
+      "age": "elder",
+      "mobility": "none",
+      "build": {
+        "h": 0.92,
+        "girth": 1.05,
+        "sh": 0.62,
+        "neck": 0.9
+      },
+      "head": "round",
+      "headwear": "headwrap",
+      "prop": "flowers"
+    }
+  ],
+  "attribution": {
+    "title": "One Voice — kitchen-table cast",
+    "author": "One Voice project (original, generated)",
+    "license": "CC0-1.0 (project-internal original art)",
+    "source": "tools/lib/cast.mjs via tools/gen-characters.mjs",
+    "thirdParty": "none"
+  }
+}

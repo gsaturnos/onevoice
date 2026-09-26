@@ -5,13 +5,17 @@
 // shape and light, not colour alone. Pure view object: it holds no game state and
 // is told everything through setAwareness / setSelected / playReact.
 
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import { INK, INK_SOFT, GARMENTS, SKINS, HAIRS, GLOW, CLARITY_BRIGHT, YOU, mix, pick } from './palette';
+import type { CharacterAtlas } from './assets/characterAtlas';
+import type { AwarenessState } from './assets/atlasMath';
+import { castIdFor } from './castIds';
 
 export type PropKind =
   | 'care' | 'apron' | 'book' | 'music' | 'brim' | 'cap' | 'scarf' | 'plain';
 
 export interface Identity {
+  castId: string; // stable neighbour id → sprite-atlas frames + fallback shape
   garment: number;
   skin: number;
   hair: number;
@@ -41,6 +45,7 @@ export function identityFor(idx: number, name: string, role: string, isPlayer: b
   let prop: PropKind = 'plain';
   for (const [re, kind] of PROP_BY_ROLE) if (re.test(role)) { prop = kind; break; }
   return {
+    castId: castIdFor(idx),
     garment: pick(GARMENTS, idx),
     skin: pick(SKINS, (seed >>> 3) ^ idx),
     hair: pick(HAIRS, (seed >>> 7) + idx),
@@ -59,6 +64,9 @@ export class Character extends Container {
   private halo = new Graphics();
   private ring = new Graphics(); // selection ring
   private sparks = new Container();
+  private sprite?: Sprite;       // authored atlas bust, when available
+  private ghost?: Sprite;        // outgoing frame during a state crossfade
+  private readonly useSprite: boolean;
 
   private aw = 0;
   private clear = false;
@@ -74,8 +82,10 @@ export class Character extends Container {
     private readonly id: Identity,
     private readonly baseScale: number,
     private readonly reduceMotion: boolean,
+    private readonly atlas?: CharacterAtlas,
   ) {
     super();
+    this.useSprite = !!atlas && atlas.has(id.castId);
     this.phase = (idx * 1.7) % (Math.PI * 2);
     this.scale.set(baseScale);
     this.addChild(this.ring);
@@ -90,7 +100,48 @@ export class Character extends Container {
     // a generous hit area (centred on the bust) so canvas taps stay easy; the
     // HUD roster provides the guaranteed >=44 CSS px controls for touch/keyboard.
     this.hitArea = { contains: (x: number, y: number) => x * x + (y + 32) * (y + 32) < 50 * 50 };
-    this.build();
+    if (this.useSprite) this.buildSprite();
+    else this.build();
+  }
+
+  /** Authored path: one atlas bust whose texture swaps with awareness state. */
+  private buildSprite(): void {
+    const a = this.atlas!;
+    const s = new Sprite();
+    s.anchor.set(a.anchor.x, a.anchor.y);
+    this.sprite = s;
+    this.applySpriteState('afraid', true);
+    this.lean.addChild(s);
+    if (this.id.isPlayer) {
+      const aura = new Graphics();
+      aura.circle(0, -58, 30).fill({ color: YOU, alpha: 0.12 });
+      this.addChildAt(aura, 0);
+    }
+  }
+
+  private applySpriteState(state: AwarenessState, instant: boolean): void {
+    const a = this.atlas!;
+    const tex = a.texture(this.id.castId, state);
+    if (!this.sprite || !tex) return;
+    if (!instant && !this.reduceMotion && this.sprite.texture !== tex) {
+      // gentle crossfade: keep the old frame as a fading ghost above the new one
+      this.ghost?.destroy();
+      const g = new Sprite(this.sprite.texture);
+      g.anchor.set(this.sprite.anchor.x, this.sprite.anchor.y);
+      g.scale.copyFrom(this.sprite.scale);
+      this.lean.addChild(g);
+      this.ghost = g;
+      const born = performance.now();
+      const fade = (): void => {
+        const k = Math.min(1, (performance.now() - born) / 260);
+        g.alpha = 1 - k;
+        if (k < 1) requestAnimationFrame(fade);
+        else { g.destroy(); if (this.ghost === g) this.ghost = undefined; }
+      };
+      requestAnimationFrame(fade);
+    }
+    this.sprite.texture = tex;
+    this.sprite.scale.set(a.localScaleFor(tex));
   }
 
   /** Draw the fixed silhouette once. */
@@ -236,11 +287,20 @@ export class Character extends Container {
     this.aw = aw;
     this.clear = clear;
     this.leanTarget = 1 - Math.min(1, aw * 1.15); // upright as awareness rises
-    // warmth tint: cool/dim when afraid, natural when awake
-    this.lean.tint = mix(0x9fa2ab, 0xffffff, Math.min(1, 0.35 + aw));
-    if (changed) {
-      this.drawFace();
-      this.drawHalo();
+    if (this.useSprite) {
+      // posture, expression and warmth are baked per state frame; halo still tracks
+      // the real in-game clarity threshold, not the sprite bucket.
+      if (changed) {
+        this.applySpriteState(this.atlas!.state(aw), false);
+        this.drawHalo();
+      }
+    } else {
+      // warmth tint: cool/dim when afraid, natural when awake
+      this.lean.tint = mix(0x9fa2ab, 0xffffff, Math.min(1, 0.35 + aw));
+      if (changed) {
+        this.drawFace();
+        this.drawHalo();
+      }
     }
   }
 
@@ -297,10 +357,17 @@ export class Character extends Container {
     const react = this.reactT > 0 ? this.reactT : 0;
     if (this.reactT > 0) this.reactT = Math.max(0, this.reactT - 0.04);
 
-    // slump: lean forward and drop the head; awake: sit tall
-    this.lean.rotation = this.leanNow * 0.12 - react * 0.05;
-    this.lean.y = this.leanNow * 6 + breath - this.selLift * 6 - react * 3;
-    this.head.y = this.leanNow * 4;
+    if (this.useSprite) {
+      // posture is baked per state frame — keep only breathing, selection lift, react
+      this.lean.rotation = -react * 0.04;
+      this.lean.y = breath - this.selLift * 6 - react * 3;
+      this.head.y = 0;
+    } else {
+      // slump: lean forward and drop the head; awake: sit tall
+      this.lean.rotation = this.leanNow * 0.12 - react * 0.05;
+      this.lean.y = this.leanNow * 6 + breath - this.selLift * 6 - react * 3;
+      this.head.y = this.leanNow * 4;
+    }
     const s = this.baseScale * (1 + this.selLift * 0.06 + react * 0.03);
     this.scale.set(s);
     this.alpha = 0.62 + 0.38 * Math.min(1, 0.4 + this.aw) + this.selLift * 0.0;

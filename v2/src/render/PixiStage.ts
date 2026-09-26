@@ -10,6 +10,7 @@ import type { Snapshot } from '@core/types';
 import { clearThreshold } from '@core/insight';
 import { Room } from './Room';
 import { Character, identityFor } from './Character';
+import { CharacterAtlas } from './assets/characterAtlas';
 import { Fx, type Pt } from './Fx';
 import { buildScene, envState, type SceneModel } from './scene';
 import { tween, type Motion } from './anim';
@@ -23,6 +24,7 @@ export class PixiStage {
   private motion: Motion = { reduced: false, speed: 1 };
   private fx = new Fx(this.motion);
   private chars = new Map<number, Character>();
+  private atlas: CharacterAtlas = CharacterAtlas.unavailable();
   private scene: SceneModel | null = null;
   private ready = false;
   private selected: number | null = null;
@@ -44,6 +46,9 @@ export class PixiStage {
       autoDensity: true,
     });
     host.appendChild(this.app.canvas);
+    // Load the authored character atlas; failure is graceful (procedural fallback)
+    // and never blocks the first frame.
+    this.atlas = await CharacterAtlas.load();
     this.charLayer.sortableChildren = true;
     this.world.addChild(this.room.back, this.fx.threads, this.charLayer, this.room.front, this.fx.overlay);
     this.app.stage.addChild(this.world);
@@ -63,7 +68,7 @@ export class PixiStage {
     for (const sa of this.scene.agents) {
       const ag = s.agents[sa.idx];
       const id = identityFor(sa.idx, ag.nm, ag.role, sa.isPlayer);
-      const c = new Character(sa.idx, id, sa.scale, this.motion.reduced);
+      const c = new Character(sa.idx, id, sa.scale, this.motion.reduced, this.atlas);
       c.position.set(sa.x, sa.y);
       c.zIndex = Math.round(sa.y);
       c.on('pointertap', () => this.selectCb(sa.idx));
