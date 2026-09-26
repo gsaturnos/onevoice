@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "figureCanvas": {
+    "w": 480,
+    "h": 600
+  },
+  "portraitCanvas": {
+    "w": 440,
+    "h": 560
+  },
+  "anchor": {
+    "x": 0.5,
+    "y": 0.6444
+  },
+  "states": [
+    "afraid",
+    "listening",
+    "clear"
+  ],
+  "characters": [
+    {
+      "id": "nurse",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "postman",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "bookseller",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "baker",
+      "status": "placeholder",
+      "figure": {
+        "afraid": {
+          "1x": "baker.figure.afraid@1x.webp",
+          "2x": "baker.figure.afraid@2x.webp"
+        },
+        "listening": {
+          "1x": "baker.figure.listening@1x.webp",
+          "2x": "baker.figure.listening@2x.webp"
+        },
+        "clear": {
+          "1x": "baker.figure.clear@1x.webp",
+          "2x": "baker.figure.clear@2x.webp"
+        }
+      },
+      "portrait": {
+        "afraid": {
+          "1x": "baker.portrait.afraid@1x.webp",
+          "2x": "baker.portrait.afraid@2x.webp"
+        },
+        "listening": {
+          "1x": "baker.portrait.listening@1x.webp",
+          "2x": "baker.portrait.listening@2x.webp"
+        },
+        "clear": {
+          "1x": "baker.portrait.clear@1x.webp",
+          "2x": "baker.portrait.clear@2x.webp"
+        }
+      }
+    },
+    {
+      "id": "student",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "mechanic",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "gardener",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "farmer",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "musician",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "carpenter",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "librarian",
+      "figure": {},
+      "portrait": {}
+    },
+    {
+      "id": "florist",
+      "figure": {},
+      "portrait": {}
+    }
+  ],
+  "attribution": {
+    "title": "One Voice — kitchen-table cast (authored)",
+    "source": "external illustration, approved reference direction",
+    "thirdParty": "none"
+  }
+}

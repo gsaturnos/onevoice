@@ -10,6 +10,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["vitest/globals"],
@@ -18,7 +19,8 @@
       "@core/*": ["src/core/*"],
       "@content/*": ["src/content/*"],
       "@render/*": ["src/render/*"],
-      "@ui/*": ["src/ui/*"]
+      "@ui/*": ["src/ui/*"],
+      "@audio/*": ["src/audio/*"]
     }
   },
   "include": ["src", "test"]

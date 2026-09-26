@@ -11,6 +11,7 @@ export default defineConfig({
       '@content': fileURLToPath(new URL('./src/content', import.meta.url)),
       '@render': fileURLToPath(new URL('./src/render', import.meta.url)),
       '@ui': fileURLToPath(new URL('./src/ui', import.meta.url)),
+      '@audio': fileURLToPath(new URL('./src/audio', import.meta.url)),
     },
   },
   build: {
