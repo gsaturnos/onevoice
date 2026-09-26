@@ -83,10 +83,12 @@ body {
 .card .cue { margin: 0; color: var(--muted); font-size: 14px; }
 .card .cue.soft { font-size: 13px; }
 .chead { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
-/* authored bust portrait (sized inline from the atlas frame) */
-.portrait { flex: 0 0 auto; display: inline-block; border-radius: 10px;
+/* the portrait — substantially larger than the roster thumbnails, and one of the
+   strongest emotional elements in the card. Sized inline in JS from whichever
+   tier supplied it (authored raster > SVG-atlas bust > initial tile). */
+.portrait { position: relative; flex: 0 0 auto; display: inline-block; border-radius: 10px;
   background-color: #1a130d;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4), 0 8px 20px rgba(0,0,0,0.45);
   align-self: center; vertical-align: top; }
 .portrait.bust {
   background-image:
@@ -95,9 +97,18 @@ body {
   border: 1px solid var(--line);
 }
 /* the warm backing lifts a touch as the person comes to clarity */
-.portrait.bust.afraid { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.45), 0 6px 16px rgba(0,0,0,0.45); }
-.portrait.bust.clear { box-shadow: inset 0 0 0 1px rgba(168,230,191,0.25), 0 6px 20px rgba(0,0,0,0.4); }
-/* graceful fallback tile (no atlas) — a quiet initial, never the old glowing dot */
+.portrait.bust.afraid, .portrait.authored.afraid { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.45), 0 8px 20px rgba(0,0,0,0.5); }
+.portrait.bust.clear, .portrait.authored.clear { box-shadow: inset 0 0 0 1px rgba(168,230,191,0.3), 0 8px 24px rgba(0,0,0,0.45); }
+/* authored raster portrait — a plain frame; the image itself carries the mood */
+.portrait.authored { background: linear-gradient(180deg, #241a12 0%, #171009 100%); border: 1px solid var(--line); }
+/* dev-only: unmistakable even at a glance, per the asset spec's placeholder rule */
+.portrait.placeholder { outline: 2px dashed var(--danger); outline-offset: -2px; }
+.portrait.placeholder::after {
+  content: "PLACEHOLDER"; position: absolute; left: 0; right: 0; bottom: 0;
+  font: 700 9px/1.7 ui-monospace, Menlo, monospace; letter-spacing: 0.6px; text-align: center;
+  color: #1a130d; background: var(--danger); border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;
+}
+/* graceful fallback tile (no art tier available) — a quiet initial, never a placeholder claim */
 .portrait.fallback { width: 64px; height: 80px; display: flex; align-items: center; justify-content: center;
   font-size: 30px; font-weight: 600; color: #f0dcae; letter-spacing: 0;
   background: linear-gradient(180deg, #3a2a1c, #241811); border: 1px solid var(--line); }

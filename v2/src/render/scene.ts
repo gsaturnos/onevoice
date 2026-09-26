@@ -26,8 +26,8 @@ export const TABLE = { cx: 360, cy: 366, rx: 336, ry: 52 };
 // player anchors front-centre. Edges sit slightly farther (higher, a touch
 // smaller) so the group reads with depth without shrinking anyone.
 const ROW = {
-  front: { y: 342, lift: 26, xL: 72, xR: 648, sMid: 1.82, sEdge: 1.56 },
-  back: { y: 238, lift: 14, xL: 150, xR: 570, sMid: 1.44, sEdge: 1.28 },
+  front: { y: 344, lift: 24, xL: 54, xR: 666, sMid: 1.72, sEdge: 1.48 },
+  back: { y: 232, lift: 12, xL: 148, xR: 572, sMid: 1.36, sEdge: 1.24 },
 };
 const S_MIN = ROW.back.sEdge;
 const S_MAX = ROW.front.sMid;

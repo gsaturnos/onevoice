@@ -5,11 +5,25 @@
 // shape and light, not colour alone. Pure view object: it holds no game state and
 // is told everything through setAwareness / setSelected / playReact.
 
-import { Container, Graphics, Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import { INK, INK_SOFT, GARMENTS, SKINS, HAIRS, GLOW, CLARITY_BRIGHT, YOU, mix, pick } from './palette';
 import type { CharacterAtlas } from './assets/characterAtlas';
-import type { AwarenessState } from './assets/atlasMath';
+import type { AuthoredCast } from './assets/authoredCast';
+import { stateForAwareness, type AwarenessState } from './assets/atlasMath';
 import { castIdFor } from './castIds';
+
+/**
+ * A source of state-swappable sprite textures — either the authored raster tier
+ * or the procedural SVG-atlas tier. Character doesn't care which; this is what
+ * lets the two tiers share one crossfade/posture code path, and lets each
+ * character independently be authored, atlas, or fully procedural.
+ */
+interface SpriteSource {
+  kind: 'authored' | 'atlas';
+  texture(state: AwarenessState): Texture | null;
+  anchor: { x: number; y: number };
+  localScaleFor(tex: Texture): number;
+}
 
 export type PropKind =
   | 'care' | 'apron' | 'book' | 'music' | 'brim' | 'cap' | 'scarf' | 'plain';
@@ -64,8 +78,9 @@ export class Character extends Container {
   private halo = new Graphics();
   private ring = new Graphics(); // selection ring
   private sparks = new Container();
-  private sprite?: Sprite;       // authored atlas bust, when available
+  private sprite?: Sprite;       // raster bust (authored or SVG-atlas), when available
   private ghost?: Sprite;        // outgoing frame during a state crossfade
+  private readonly src?: SpriteSource;
   private readonly useSprite: boolean;
 
   private aw = 0;
@@ -83,10 +98,30 @@ export class Character extends Container {
     private readonly id: Identity,
     private readonly baseScale: number,
     private readonly reduceMotion: boolean,
-    private readonly atlas?: CharacterAtlas,
+    atlas?: CharacterAtlas,
+    authored?: AuthoredCast,
   ) {
     super();
-    this.useSprite = !!atlas && atlas.has(id.castId);
+    // Tiered visual source: authored raster art first, then the SVG cast atlas,
+    // then the fully procedural bust. Picked once per character at construction —
+    // identity (and which tier drew it) stays fixed for the character's lifetime.
+    if (authored?.has(id.castId)) {
+      const a = authored;
+      this.src = {
+        kind: 'authored',
+        texture: (state) => a.figureTexture(id.castId, state),
+        anchor: a.anchorFor(id.castId),
+        localScaleFor: (tex) => a.localScaleFor(tex),
+      };
+    } else if (atlas?.has(id.castId)) {
+      this.src = {
+        kind: 'atlas',
+        texture: (state) => atlas.texture(id.castId, state),
+        anchor: atlas.anchor,
+        localScaleFor: (tex) => atlas.localScaleFor(tex),
+      };
+    }
+    this.useSprite = !!this.src;
     this.phase = (idx * 1.7) % (Math.PI * 2);
     this.scale.set(baseScale);
     this.addChild(this.ring);
@@ -105,11 +140,11 @@ export class Character extends Container {
     else this.build();
   }
 
-  /** Authored path: one atlas bust whose texture swaps with awareness state. */
+  /** Raster path (authored or SVG-atlas): one bust whose texture swaps with state. */
   private buildSprite(): void {
-    const a = this.atlas!;
+    const src = this.src!;
     const s = new Sprite();
-    s.anchor.set(a.anchor.x, a.anchor.y);
+    s.anchor.set(src.anchor.x, src.anchor.y);
     this.sprite = s;
     this.applySpriteState('afraid', true);
     this.lean.addChild(s);
@@ -121,8 +156,8 @@ export class Character extends Container {
   }
 
   private applySpriteState(state: AwarenessState, instant: boolean): void {
-    const a = this.atlas!;
-    const tex = a.texture(this.id.castId, state);
+    const src = this.src!;
+    const tex = src.texture(state);
     if (!this.sprite || !tex) return;
     if (!instant && !this.reduceMotion && this.sprite.texture !== tex) {
       // gentle crossfade: keep the old frame as a fading ghost above the new one
@@ -142,7 +177,7 @@ export class Character extends Container {
       requestAnimationFrame(fade);
     }
     this.sprite.texture = tex;
-    this.sprite.scale.set(a.localScaleFor(tex));
+    this.sprite.scale.set(src.localScaleFor(tex));
   }
 
   /** Draw the fixed silhouette once. */
@@ -292,7 +327,7 @@ export class Character extends Container {
       // posture, expression and warmth are baked per state frame; halo still tracks
       // the real in-game clarity threshold, not the sprite bucket.
       if (changed) {
-        this.applySpriteState(this.atlas!.state(aw), false);
+        this.applySpriteState(stateForAwareness(aw), false);
         this.drawHalo();
       }
     } else {

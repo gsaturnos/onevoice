@@ -13,7 +13,7 @@ import { previewTalk, newlyClear, propagationFlows, clearThreshold } from '@core
 import { nearReady } from '@render/scene';
 import { PixiStage } from '@render/PixiStage';
 import { Hud } from '@ui/Hud';
-import { disablePortraits, applyPortrait } from '@ui/portrait';
+import { disablePortraits, disableAuthoredPortraits, applyPortrait } from '@ui/portrait';
 import { AudioController } from '@audio/AudioController';
 import { showArtDiagnostic } from './diag';
 
@@ -25,12 +25,15 @@ async function boot(): Promise<void> {
   const hudHost = document.getElementById('hud')!;
 
   // Dev-only review switches (never affect gameplay):
-  //   ?noatlas → force the procedural fallback (for the fallback comparison)
-  //   ?diag    → show an on-screen atlas-load report + window.__ONEVOICE_ART__
+  //   ?noatlas     → force full procedural fallback (both raster tiers off)
+  //   ?noauthored  → force the authored raster tier off (compare against the SVG atlas)
+  //   ?diag        → show an on-screen tiered load report + window.__ONEVOICE_ART__
   const params = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
   const forceFallback = params.has('noatlas');
+  const forceNoAuthored = params.has('noauthored');
   const wantDiag = params.has('diag');
   if (forceFallback) disablePortraits();
+  if (forceNoAuthored) disableAuthoredPortraits();
 
   let state: GameState = createGame(0);
   let selected: number | null = null;
@@ -38,7 +41,7 @@ async function boot(): Promise<void> {
 
   const audio = new AudioController();
   const stage = new PixiStage();
-  await stage.init(stageHost, prefersReduced, { forceFallback });
+  await stage.init(stageHost, prefersReduced, { forceFallback, forceNoAuthored });
 
   // expose the load report so a headless review can read it conclusively
   try { (window as unknown as { __ONEVOICE_ART__?: unknown }).__ONEVOICE_ART__ = stage.diagnostics; } catch { /* ignore */ }
@@ -47,6 +50,10 @@ async function boot(): Promise<void> {
     // dev-only: render the real card-portrait component at an arbitrary state, so a
     // review can show each face in afraid/listening/clear without playing turns.
     try { (window as unknown as { __ONEVOICE_PORTRAIT__?: unknown }).__ONEVOICE_PORTRAIT__ = applyPortrait; } catch { /* ignore */ }
+    // dev-only: select any seat by index directly (bypassing the talkable-only
+    // roster), so a review can inspect a specific character's card/sprite even
+    // when they aren't a current conversation target.
+    try { (window as unknown as { __ONEVOICE_SELECT__?: unknown }).__ONEVOICE_SELECT__ = (idx: number) => select(idx); } catch { /* ignore */ }
   }
 
   const hud = new Hud(hudHost, {

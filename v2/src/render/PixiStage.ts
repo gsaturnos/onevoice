@@ -11,14 +11,16 @@ import { clearThreshold } from '@core/insight';
 import { Room } from './Room';
 import { Character, identityFor } from './Character';
 import { CharacterAtlas } from './assets/characterAtlas';
+import { AuthoredCast } from './assets/authoredCast';
 import { Fx, type Pt } from './Fx';
 import { buildScene, envState, type SceneModel } from './scene';
 import { tween, type Motion } from './anim';
 import { STAGE_W, STAGE_H } from './scene';
 import type { AtlasDiagnostics } from './assets/characterAtlas';
+import type { AuthoredDiagnostics } from './assets/authoredCast';
 
 // The resting camera crops a little empty wall off the top and frames the cast.
-const HOME = { cx: 360, cy: 262, z: 1.02 };
+const HOME = { cx: 360, cy: 276, z: 1.1 };
 
 export class PixiStage {
   readonly app: Application;
@@ -29,6 +31,7 @@ export class PixiStage {
   private fx = new Fx(this.motion);
   private chars = new Map<number, Character>();
   private atlas: CharacterAtlas = CharacterAtlas.unavailable();
+  private authored: AuthoredCast = AuthoredCast.unavailable();
   private scene: SceneModel | null = null;
   private ready = false;
   private selected: number | null = null;
@@ -39,7 +42,11 @@ export class PixiStage {
     this.app = new Application();
   }
 
-  async init(host: HTMLElement, reduceMotion = false, opts: { forceFallback?: boolean } = {}): Promise<void> {
+  async init(
+    host: HTMLElement,
+    reduceMotion = false,
+    opts: { forceFallback?: boolean; forceNoAuthored?: boolean } = {},
+  ): Promise<void> {
     this.motion.reduced = reduceMotion;
     await this.app.init({
       width: STAGE_W,
@@ -50,9 +57,16 @@ export class PixiStage {
       autoDensity: true,
     });
     host.appendChild(this.app.canvas);
-    // Load the authored character atlas; failure is graceful (procedural fallback)
-    // and never blocks the first frame. ?noatlas forces the fallback for review.
-    this.atlas = await CharacterAtlas.load(undefined, opts.forceFallback ? { force: 'fallback' } : {});
+    // Load both raster tiers in parallel; each is independently graceful — a
+    // missing/broken manifest or image never blocks the first frame, and a
+    // character with no authored art simply renders from the SVG atlas instead
+    // (and one with neither renders the fully procedural bust). ?noatlas forces
+    // both off (full procedural fallback); ?noauthored forces just the authored
+    // tier off, so the SVG atlas is what's compared against.
+    [this.atlas, this.authored] = await Promise.all([
+      CharacterAtlas.load(undefined, opts.forceFallback ? { force: 'fallback' } : {}),
+      AuthoredCast.load(undefined, (opts.forceFallback || opts.forceNoAuthored) ? { force: 'off' } : {}),
+    ]);
     this.charLayer.sortableChildren = true;
     // Layer order: room backdrop & lighting → relationship threads → the CAST →
     // the low table rim (occludes only the base) → transient signal/bloom effects.
@@ -64,8 +78,10 @@ export class PixiStage {
     this.app.ticker.add(() => this.tick());
   }
 
-  /** Dev-only: how the authored atlas resolved (atlas vs procedural fallback). */
-  get diagnostics(): AtlasDiagnostics { return this.atlas.diagnostics; }
+  /** Dev-only: how each raster tier resolved (authored / SVG-atlas / procedural). */
+  get diagnostics(): { atlas: AtlasDiagnostics; authored: AuthoredDiagnostics } {
+    return { atlas: this.atlas.diagnostics, authored: this.authored.diagnostics };
+  }
 
   setReduceMotion(on: boolean): void { this.motion.reduced = on; }
   setSpeed(n: number): void { this.motion.speed = n; }
@@ -79,7 +95,7 @@ export class PixiStage {
     for (const sa of this.scene.agents) {
       const ag = s.agents[sa.idx];
       const id = identityFor(sa.idx, ag.nm, ag.role, sa.isPlayer);
-      const c = new Character(sa.idx, id, sa.scale, this.motion.reduced, this.atlas);
+      const c = new Character(sa.idx, id, sa.scale, this.motion.reduced, this.atlas, this.authored);
       c.position.set(sa.x, sa.y);
       c.zIndex = Math.round(sa.y);
       c.on('pointertap', () => this.selectCb(sa.idx));
@@ -137,6 +153,19 @@ export class PixiStage {
     }
   }
 
+  // Keep the camera's focal point far enough from the room's own edges that a
+  // zoomed-in pan never uncovers the canvas's bare background past STAGE_W/H —
+  // a character seated near the row's edge would otherwise leave a dead void
+  // on one side once the camera follows their selection.
+  private clampFocus(cx: number, cy: number, z: number): { cx: number; cy: number } {
+    const halfW = STAGE_W / (2 * z);
+    const halfH = STAGE_H / (2 * z);
+    return {
+      cx: Math.min(Math.max(cx, halfW), STAGE_W - halfW),
+      cy: Math.min(Math.max(cy, halfH), STAGE_H - halfH),
+    };
+  }
+
   // ---- animated sequences (called after the app commits the action) ----
 
   async playTalk(from: number, to: number): Promise<void> {
@@ -176,7 +205,8 @@ export class PixiStage {
     await this.cameraTo(HOME.cx, HOME.cy, HOME.z);
   }
 
-  private async cameraTo(cx: number, cy: number, z: number): Promise<void> {
+  private async cameraTo(cx0: number, cy0: number, z: number): Promise<void> {
+    const { cx, cy } = this.clampFocus(cx0, cy0, z);
     if (this.motion.reduced) { this.applyCam(cx, cy, z); return; }
     const s0 = { ...this.cam };
     const tx = STAGE_W / 2 - cx * z;
@@ -190,7 +220,8 @@ export class PixiStage {
     }, this.motion);
   }
 
-  private applyCam(cx: number, cy: number, z: number): void {
+  private applyCam(cx0: number, cy0: number, z: number): void {
+    const { cx, cy } = this.clampFocus(cx0, cy0, z);
     this.cam = { x: STAGE_W / 2 - cx * z, y: STAGE_H / 2 - cy * z, z };
     this.world.position.set(this.cam.x, this.cam.y);
     this.world.scale.set(this.cam.z);
