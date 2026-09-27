@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'node:url';
+import { resolve } from 'node:path';
 
 // Isolated V2 app. Base is relative so the built bundle can be served from any
 // sub-path (e.g. a /v2 preview route) without touching the production game.
@@ -17,5 +18,13 @@ export default defineConfig({
     target: 'es2020',
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      // Multi-page build: the existing simulation prototype (index.html) is
+      // untouched; card.html is the isolated card-prototype entry point.
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        card: resolve(__dirname, 'card.html'),
+      },
+    },
   },
 });
