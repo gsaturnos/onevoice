@@ -6,6 +6,13 @@ import { resolve } from 'node:path';
 // sub-path (e.g. a /v2 preview route) without touching the production game.
 export default defineConfig({
   base: './',
+  server: {
+    fs: {
+      // Allows importing the card-art handoff package from ../docs/v2/card-assets
+      // (the repo's single source of truth for those PNGs — no duplicate copies).
+      allow: ['..'],
+    },
+  },
   resolve: {
     alias: {
       '@core': fileURLToPath(new URL('./src/core', import.meta.url)),
@@ -24,6 +31,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         card: resolve(__dirname, 'card.html'),
+        cardGallery: resolve(__dirname, 'card-gallery.html'),
       },
     },
   },
