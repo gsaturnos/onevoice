@@ -41,7 +41,7 @@ function leaderCard(): HTMLElement {
     <div class="portrait-frame"><img src="${juliaPortrait}" alt="Julia" /></div>
     <h3>Julia</h3>
     <div class="role">the teacher — Leader</div>
-    <div class="ability"><b>Set the Tone</b> — once per Evening, free: name a neighbour. The next card that affects them this Evening is stronger.</div>
+    <div class="ability"><b>Set the Tone</b> — once per Evening, before your first card, name one neighbour. After that card's trait multiplier is applied, add a flat +5 Understanding to that neighbour.</div>
   `;
   return el;
 }
@@ -77,7 +77,7 @@ function actionCard(): HTMLElement {
     <span class="stamp">Talk</span>
     <span class="cost">1</span>
     <h3>Ask Directly</h3>
-    <div class="effect">Sit down with one neighbour, one on one. They understand a little more. Trust grows.</div>
+    <div class="effect">Choose one neighbour; gain 13–18 Understanding scaled by Trust and the applicable talk-style trait multiplier; then gain 2 Trust.</div>
     <div class="flavor">Some things are easier said across a kitchen table.</div>
   `;
   return el;
@@ -91,7 +91,7 @@ function dilemmaCard(): HTMLElement {
     <div class="body-text">She wants to read the real consequences of the closure aloud, tonight.</div>
     <div class="choices">
       <button class="choice" type="button"><b>Push forward now</b> — Trust +5, but tomorrow starts with only 2 Moments.</button>
-      <button class="choice" type="button"><b>Hold it for later</b> — Rosa's growth is cut tonight, but she gets a certain +10 tomorrow.</button>
+      <button class="choice" type="button"><b>Hold it for later</b> — Rosa's Understanding gains are reduced to 30% this Evening.</button>
     </div>
   `;
   return el;

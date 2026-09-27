@@ -60,11 +60,15 @@ html, body {
 .tabletop {
   background: var(--table);
   border-radius: 16px;
-  padding: 24px;
+  padding: 32px;
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  align-items: flex-start;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
 }
 
 /* --- shared card shell --- */
@@ -88,7 +92,7 @@ html, body {
 
 /* --- Leader card (Julia) --- */
 .leader-card {
-  width: 190px;
+  width: 230px;
   background: var(--panel);
   border: 1px solid #4a3f30;
   padding: 12px;
@@ -132,7 +136,7 @@ html, body {
 
 /* --- Neighbour card (portrait-led, ~4:5) --- */
 .neighbour-card {
-  width: 220px;
+  width: 260px;
   background: var(--panel);
   border: 2px solid var(--guarded);
   display: flex;
@@ -215,8 +219,8 @@ html, body {
 
 /* --- Action card (light paper) --- */
 .action-card {
-  width: 170px;
-  min-height: 190px;
+  width: 200px;
+  min-height: 220px;
   background-color: var(--paper);
   color: var(--ink);
   padding: 10px;
@@ -300,7 +304,7 @@ html, body {
 
 /* --- Card back --- */
 .card-back {
-  width: 170px;
+  width: 200px;
   aspect-ratio: 5 / 7;
   border-radius: 10px;
   overflow: hidden;
@@ -312,9 +316,17 @@ html, body {
 @media (max-width: 600px) {
   .tabletop {
     flex-wrap: nowrap;
+    justify-content: flex-start;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 24px;
+    /* end padding so the last card doesn't sit flush against the edge,
+       plus a fade so a clipped next card visibly signals more to scroll */
+    padding-inline: 24px 40px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 56px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 56px), transparent 100%);
   }
-  .leader-card, .neighbour-card, .action-card, .card-back { flex: 0 0 auto; }
+  .leader-card, .neighbour-card, .action-card, .card-back { flex: 0 0 auto; scroll-snap-align: start; }
+  .tabletop { scroll-snap-type: x proximity; }
   .dilemma-card { max-width: 100%; }
 }
