@@ -68,8 +68,11 @@ export function render(root: HTMLElement, state: CardGameState, toneAvailable: b
       <span class="player-marker">You</span>
       <div class="portrait-frame"><img src="${juliaPortrait}" alt="Julia" /></div>
       <div class="leader-body">
-        <h3>Julia</h3>
-        <div class="role">the teacher — Leader</div>
+        <div class="leader-name-row">
+          <h3>Julia</h3>
+          <div class="role">the teacher — Leader</div>
+        </div>
+        <div class="tone-status">${toneMode ? 'Choose a neighbour…' : toneAvailable ? 'Tone ready' : 'Tone used'}</div>
         <div class="ability"><b>Set the Tone</b> — ${JULIA_ABILITY}</div>
         <button class="btn secondary" id="tone-btn" ${!toneAvailable ? 'disabled' : ''}>
           ${toneMode ? 'Choose who to focus on…' : 'Set the Tone'}

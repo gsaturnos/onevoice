@@ -31,12 +31,12 @@ html, body {
 }
 
 #cardgame {
-  max-width: 1100px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 20px 16px 32px;
+  padding: 20px 32px 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   min-height: 100vh;
 }
 
@@ -52,68 +52,81 @@ html, body {
 
 .scene-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
   flex-wrap: wrap;
+  flex: 0 0 auto;
 }
 
-/* --- Leader card (Julia) --- */
+/* --- Leader card (Julia) — compact top-rail strip --- */
 .leader-card {
-  width: 320px;
-  max-width: 100%;
+  flex: 1 1 560px;
+  max-width: 680px;
   background: var(--panel);
   border: 1px solid #4a3f30;
-  border-radius: 14px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 8px 12px;
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   position: relative;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 .leader-card .player-marker {
   position: absolute;
-  top: 8px;
+  top: 6px;
   right: 8px;
   background: var(--lamplight);
   color: var(--ink);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: 999px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .leader-card .portrait-frame {
-  width: 88px;
+  width: 52px;
+  height: 52px;
   flex: 0 0 auto;
-  aspect-ratio: 4 / 5;
-  border-radius: 8px;
+  border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--lamplight);
 }
-.leader-card .portrait-frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
-.leader-card .leader-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.leader-card h3 { font-family: var(--serif); margin: 0; font-size: 1.1rem; }
-.leader-card .role { font-size: 0.8rem; color: #cfc3b3; }
+.leader-card .portrait-frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
+.leader-card .leader-body { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.leader-card .leader-name-row { display: flex; flex-direction: column; flex: 0 0 auto; }
+.leader-card h3 { font-family: var(--serif); margin: 0; font-size: 1rem; line-height: 1.2; }
+.leader-card .role { font-size: 0.72rem; color: #cfc3b3; }
+.leader-card .tone-status { display: none; }
 .leader-card .ability {
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.74rem;
+  line-height: 1.3;
   background: rgba(214, 155, 62, 0.12);
   border: 1px solid rgba(214, 155, 62, 0.4);
   border-radius: 6px;
-  padding: 5px 7px;
-  margin-top: 2px;
+  padding: 4px 7px;
+  flex: 1;
+  min-width: 0;
 }
 .leader-card .ability b { color: var(--lamplight); }
+.leader-card .btn { flex: 0 0 auto; padding: 7px 12px; font-size: 0.85rem; }
 
 .status-strip {
   display: flex;
   align-items: center;
+  justify-content: space-around;
   gap: 16px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #cfc3b3;
   font-family: var(--serif);
+  flex: 1 1 320px;
+  max-width: 620px;
+  background: var(--panel);
+  border: 1px solid #4a3f30;
+  border-radius: 12px;
+  padding: 10px 20px;
 }
 .status-strip b { color: var(--warm-white); }
 .deck-indicator {
@@ -133,14 +146,19 @@ html, body {
 
 /* --- Neighbour cards --- */
 .neighbours {
+  flex: 1;
   display: flex;
-  gap: 18px;
+  align-items: center;
+  gap: 28px;
   justify-content: center;
   flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .neighbour-card {
-  width: 220px;
+  width: 210px;
   background: var(--panel);
   border: 2px solid var(--guarded);
   border-radius: 14px;
@@ -229,7 +247,7 @@ html, body {
 
 /* --- Hand: action cards (light paper) --- */
 .hand-area {
-  margin-top: auto;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -241,6 +259,9 @@ html, body {
   overflow-x: auto;
   padding: 6px 6px 12px;
   scroll-padding-inline: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .card {
@@ -386,21 +407,85 @@ html, body {
 .dilemma-card .choice:hover { border-color: var(--lamplight); }
 .dilemma-card .choice:focus-visible { outline: 3px solid var(--lamplight); outline-offset: 2px; }
 
-/* --- responsive --- */
+/* --- responsive: compact persistent leader strip + target rail + hand rail --- */
 @media (max-width: 600px) {
-  .scene-header { flex-direction: column; align-items: stretch; }
-  .leader-card { width: 100%; }
-  .status-strip { font-size: 0.85rem; gap: 12px; flex-wrap: wrap; }
+  #cardgame { padding: 12px 0 10px; gap: 10px; }
 
+  .scene-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  /* Julia: compact single-row strip, not a large card */
+  .leader-card {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  .leader-card .portrait-frame { width: 40px; height: 40px; }
+  .leader-card .leader-body { gap: 8px; }
+  .leader-card h3 { font-size: 0.9rem; }
+  .leader-card .role { display: none; }
+  .leader-card .ability { display: none; }
+  .leader-card .tone-status {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--lamplight);
+    white-space: nowrap;
+  }
+  .leader-card .btn { padding: 6px 10px; font-size: 0.78rem; white-space: nowrap; }
+
+  /* Evening / Trust / Moments / deck: one compact row */
+  .status-strip {
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 6px 12px;
+    max-width: 100%;
+  }
+  .deck-indicator img { width: 18px; height: 26px; }
+
+  /* Neighbours: compact horizontal target rail, not most of the screen */
   .neighbours {
+    flex: 0 0 auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scroll-padding-inline: 20px;
-    padding-inline: 20px 36px;
+    padding-inline: 12px 36px;
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
     mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+    gap: 10px;
+    width: 100%;
+    margin: 0;
   }
-  .neighbour-card { width: 180px; flex: 0 0 auto; }
+  .neighbour-card {
+    width: 128px;
+    flex: 0 0 auto;
+  }
+  .neighbour-card .portrait-frame { aspect-ratio: 1 / 1; }
+  .neighbour-card .portrait-frame img { height: 100%; }
+  .neighbour-card .body { padding: 6px 8px 8px; gap: 3px; }
+  .neighbour-card h3 { font-size: 0.85rem; }
+  .neighbour-card .role { display: none; }
+  .neighbour-card .trait-tag { font-size: 0.66rem; padding: 0 4px; }
+  .neighbour-card .meter-label { font-size: 0.68rem; }
+  .neighbour-card .state-badge { font-size: 9px; padding: 1px 6px; }
+
+  /* Hand: bottom horizontally-scrollable rail */
+  .hand-area { padding-inline: 12px; gap: 8px; }
+  .hand-row {
+    width: 100%;
+    justify-content: flex-start;
+    padding-inline: 0 24px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+  }
+  .card { width: 138px; min-height: 150px; }
 }
