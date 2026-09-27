@@ -87,6 +87,7 @@ export function render(root: HTMLElement, state: CardGameState, toneAvailable: b
         <img src="${cardBack}" alt="" />
         <span>${state.deck.length}</span>
       </div>
+      <button class="btn end-evening-rail">End Evening</button>
     </div>
   `;
   root.appendChild(header);
@@ -179,12 +180,15 @@ export function render(root: HTMLElement, state: CardGameState, toneAvailable: b
   handArea.appendChild(handRow);
 
   const endBtn = document.createElement('button');
-  endBtn.className = 'btn';
+  endBtn.className = 'btn end-evening-bottom';
   endBtn.textContent = 'End Evening';
   endBtn.addEventListener('click', () => cb.onEndEvening());
   handArea.appendChild(endBtn);
 
   root.appendChild(handArea);
+
+  const endBtnRail = header.querySelector('.end-evening-rail');
+  endBtnRail?.addEventListener('click', () => cb.onEndEvening());
 
   const toneBtn = header.querySelector('#tone-btn');
   toneBtn?.addEventListener('click', () => {

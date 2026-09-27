@@ -143,6 +143,7 @@ html, body {
   border-radius: 3px;
   border: 1px solid #4a3f30;
 }
+.end-evening-rail { display: none; }
 
 /* --- Neighbour cards --- */
 .neighbours {
@@ -439,9 +440,13 @@ html, body {
   }
   .leader-card .btn { padding: 6px 10px; font-size: 0.78rem; white-space: nowrap; }
 
-  /* Evening / Trust / Moments / deck: one compact row */
+  /* Evening / Trust / Moments / deck: one compact row, with the round
+     control reserved on its own row inside the same panel so it can never
+     overlap a neighbour card, hand card, choice, or button below it. */
   .status-strip {
     flex: 0 0 auto;
+    flex-wrap: wrap;
+    row-gap: 6px;
     font-size: 0.78rem;
     gap: 10px;
     justify-content: space-between;
@@ -449,6 +454,15 @@ html, body {
     max-width: 100%;
   }
   .deck-indicator img { width: 18px; height: 26px; }
+  .end-evening-rail {
+    display: block;
+    flex: 1 1 100%;
+    order: 99;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+  .end-evening-bottom { display: none; }
 
   /* Neighbours: compact horizontal target rail, not most of the screen */
   .neighbours {

@@ -9,13 +9,35 @@ export const NEIGHBOUR_COPY: Record<NeighbourId, { name: string; role: string; t
 export const JULIA_ABILITY =
   "Once per Evening, before your first card, name one neighbour. After that card's trait multiplier is applied, add a flat +5 Understanding to that neighbour.";
 
-// Exact mechanical text for cards where it has been approved to replace
-// atmosphere-only copy. Cards without an entry here keep their flavor text
-// as the primary line (Phase 1, already approved) — this is additive, not a
-// mechanics change.
+// Exact mechanical text for every card, verified against the engine's actual
+// numbers (v2/src/cardgame/engine/engine.ts and content.ts — the locked
+// rules doc's own §7, its declared source of truth). Cards' multiplierClass
+// stamp (Talk/Broadcast) reflects the trait tag; the multiplier itself is
+// only actually computed in engine code for Ask Directly and Spread the
+// Word, so it is named here only where the code applies it.
 export const CARD_EFFECT: Partial<Record<CardId, string>> = {
   ask_directly:
     'Choose one neighbour; gain 13–18 Understanding scaled by Trust and the applicable talk-style trait multiplier; then gain 2 Trust.',
+  open_circle:
+    'All three neighbours gain 4.5–6 Understanding, scaling with Trust. Gain 4 Trust.',
+  spread_word:
+    "Choose one neighbour; gain 5.5 Understanding, ×2.2 if they're Online. Gain 2 Trust.",
+  build_on_known:
+    "Choose one neighbour; gain 13 Understanding if they're already Listening or Clear, otherwise 4. Gain 1 Trust.",
+  press_point:
+    'Choose one neighbour; gain 13 Understanding. Lose 3 Trust.',
+  hold_space:
+    'Choose one neighbour; gain 5 Understanding. Gain 6 Trust.',
+  bring_together:
+    'Requires Trust 40. All three neighbours gain 4.5 Understanding. Gain 5 Trust.',
+  quiet_confidence:
+    'Requires Trust 30. Choose one neighbour; gain 16 Understanding. Gain 2 Trust.',
+  second_thoughts:
+    'Draw 2 cards.',
+  think_it_over:
+    'Discard this card to retain up to 2 cards into next Evening, instead of 1.',
+  speak_your_piece:
+    "Costs all 3 Moments. All three neighbours gain 8 Understanding; gain 8 Trust. Added at Evening 3; may be retained once into Evening 4 — if still unplayed after that it's discarded for good. Exhausts once played.",
 };
 
 export const CARD_FLAVOR: Record<CardId, string> = {
