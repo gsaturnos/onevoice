@@ -117,11 +117,13 @@ function advanceEvening() {
 function showDilemma(id: string, onDone: () => void) {
   const copy = DILEMMA_COPY[id];
   const overlay = showOverlay(
-    `<h2>${copy.title}</h2>
-     <p>${copy.body}</p>
-     <div class="choices">
-       <button class="btn" id="opt-a">${copy.a}</button>
-       <button class="btn secondary" id="opt-b">${copy.b}</button>
+    `<div class="dilemma-card">
+       <h2>${copy.title}</h2>
+       <p>${copy.body}</p>
+       <div class="choices">
+         <button class="choice" id="opt-a">${copy.a}</button>
+         <button class="choice" id="opt-b">${copy.b}</button>
+       </div>
      </div>`,
     () => {},
   );
