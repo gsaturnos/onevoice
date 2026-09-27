@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "direction": "lamplit-table",
+  "portraits": {
+    "julia": {
+      "src": "portraits/julia-portrait-v1.png",
+      "sourceMaster": "../reference-art/principals/julia-character-master-v1.png",
+      "role": "player-leader",
+      "focalPoint": "50% 37%"
+    },
+    "rosa": {
+      "src": "portraits/rosa-portrait-v1.png",
+      "sourceMaster": "../reference-art/principals/rosa-character-master-v1.png",
+      "role": "neighbour",
+      "focalPoint": "50% 37%"
+    },
+    "ines": {
+      "src": "portraits/ines-portrait-v1.png",
+      "sourceMaster": "../reference-art/principals/ines-character-master-v1.png",
+      "role": "neighbour",
+      "focalPoint": "50% 36%"
+    },
+    "hugo": {
+      "src": "portraits/hugo-portrait-v1.png",
+      "sourceMaster": "../reference-art/principals/hugo-character-master-v1.png",
+      "role": "neighbour",
+      "focalPoint": "50% 36%"
+    }
+  },
+  "decorative": {
+    "cardBack": "card-backs/one-voice-card-back-v1.png",
+    "actionPaper": "textures/action-paper-v1.png",
+    "dilemmaPaper": "textures/dilemma-paper-v1.png"
+  },
+  "states": {
+    "guarded": { "filter": "saturate(.55) brightness(.72)", "accent": "#726b70" },
+    "listening": { "filter": "saturate(.88) brightness(.92)", "accent": "#c6954b" },
+    "clear": { "filter": "saturate(1.08) brightness(1.04)", "accent": "#72aa8d" }
+  },
+  "rules": {
+    "regeneratePortraits": false,
+    "stateArtMode": "css-treatment",
+    "preserveOriginalPngs": true
+  }
+}
