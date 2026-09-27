@@ -2,7 +2,7 @@
 
 Branch: `claude/onevoice-v2-card-prototype`. Implementation lives in `v2/src/cardgame/` (isolated, does not import from `v2/src/core`, `render`, `ui`, or touch PR #12). Playable at `card.html` (a second Vite entry point, alongside the untouched `index.html`).
 
-This is the exact-numbers amendment to the Revision 2 design proposal, resolving the 10 specification gaps Giorgio flagged before Phase 1. Source of truth for every number here is `v2/src/cardgame/engine/`.
+This is the exact-numbers amendment to the Revision 2 design proposal, resolving the 10 specification gaps Giorgio flagged before Phase 1. Source of truth for every number here is `v2/src/cardgame/engine/` — where §4's own summary table contradicted §7 and the code, §4 has been corrected to match (2026-09-27); see §4 for detail. `test/cardgame/ruleConsistency.test.ts` guards against this happening silently again.
 
 ## 1. The starting deck — exactly 12 cards
 
@@ -32,21 +32,23 @@ Free, once per Evening, no target cost. Effect: **+5, flat, applied AFTER the ta
 
 ## 4. Trait multipliers, per card — explicit, not implicit
 
-| Card | Multiplier class | Talker / Wary (talk) applies? | Online (broadcast) applies? |
-|---|---|---|---|
-| Ask Directly | talk | Yes | No |
-| Open the Circle | none | No | No |
-| Spread the Word | broadcast | No | Yes (×2.2 on Rosa) |
-| Build on What You Know | talk | Yes | No |
-| Press the Point | talk | Yes | No |
-| Hold Space | talk | Yes | No |
-| Bring the Room Together | none | No | No |
-| Quiet Confidence | talk | Yes | No |
-| Second Thoughts | none (draws 2 cards) | — | — |
-| Think It Over | none (utility) | — | — |
-| Speak Your Piece | none (one-time) | No | No |
+**"UI stamp" and "multiplier actually applied" are two different things.** Every card's `multiplierClass` in `content.ts` drives the Talk/Broadcast stamp shown on its face, but the engine (`engine.ts`) only actually calls the multiplier function for two cards: Ask Directly (talk) and Spread the Word (broadcast). Hold Space, Build on What You Know, Press the Point, and Quiet Confidence carry the "Talk" stamp but resolve to a flat, trait-independent number — this was a real contradiction in an earlier revision of this table (corrected here 2026-09-27) and is now guarded by `test/cardgame/ruleConsistency.test.ts`, which plays each card against a talker/online vs. a neutral-trait target and fails if the observed behavior ever stops matching the `MULTIPLIER_APPLIED` declaration in `src/cardgame/content/mechanics.ts`.
 
-Talker (Inés): ×1.6. Wary (Hugo): ×0.55, rising to ×1.2 once shared Trust ≥ 30. Online (Rosa): ×2.2, broadcast-class only.
+| Card | UI stamp (`multiplierClass`) | Multiplier actually applied in effect? |
+|---|---|---|
+| Ask Directly | talk | Talk (×1.6 Talker / ×0.55–1.2 Wary) |
+| Open the Circle | none | None |
+| Spread the Word | broadcast | Broadcast (×2.2 Online) |
+| Build on What You Know | talk | **None** — flat +13 / +4 regardless of trait |
+| Press the Point | talk | **None** — flat +13 regardless of trait |
+| Hold Space | talk | **None** — flat +5 regardless of trait |
+| Bring the Room Together | none | None |
+| Quiet Confidence | talk | **None** — flat +16 regardless of trait |
+| Second Thoughts | none (draws 2 cards) | — |
+| Think It Over | none (utility) | — |
+| Speak Your Piece | none (one-time) | None |
+
+Talker (Inés): ×1.6. Wary (Hugo): ×0.55, rising to ×1.2 once shared Trust ≥ 30. Online (Rosa): ×2.2, broadcast-class only. These only ever apply where the "Multiplier actually applied" column above says so — the numbers in §7 below are exact and already reflect this.
 
 ## 5. Think It Over (replaces "A Moment to Breathe")
 
