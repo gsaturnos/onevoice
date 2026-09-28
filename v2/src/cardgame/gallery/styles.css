@@ -1,0 +1,332 @@
+/* "Lamplit Table" visual system — component gallery only (not yet wired into
+   the game loop). Tokens and rules ported from docs/v2/card-assets/visual-style-spec.md. */
+:root {
+  --night: #120f0d;
+  --table: #211712;
+  --panel: #2a211b;
+  --paper: #f5ecd9;
+  --ink: #2e241c;
+  --lamplight: #d69b3e;
+  --teal: #5d9b8c;
+  --rust: #9d5741;
+  --guarded: #726b70;
+  --listening: #c6954b;
+  --clear: #72aa8d;
+  --warm-white: #f7ead5;
+
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--night);
+  color: var(--warm-white);
+  font-family: var(--sans);
+}
+
+#gallery {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.gallery-header h1 {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  margin: 0 0 4px;
+}
+.gallery-header p {
+  color: #cfc3b3;
+  margin: 0 0 28px;
+  max-width: 60ch;
+}
+
+.gallery-section {
+  margin-bottom: 40px;
+}
+.gallery-section h2 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  border-bottom: 1px solid #4a3f30;
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+}
+
+/* the tabletop surface every card sits on */
+.tabletop {
+  background: var(--table);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+/* --- shared card shell --- */
+.card-shell {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  transition: transform 160ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-shell { transition: opacity 160ms ease; }
+}
+.card-shell:hover { transform: translateY(-6px); }
+@media (prefers-reduced-motion: reduce) {
+  .card-shell:hover { transform: none; opacity: 0.92; }
+}
+.card-shell:focus-within {
+  outline: 3px solid var(--lamplight);
+  outline-offset: 2px;
+}
+
+/* --- Leader card (Julia) --- */
+.leader-card {
+  width: 230px;
+  background: var(--panel);
+  border: 1px solid #4a3f30;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.leader-card .player-marker {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--lamplight);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.leader-card .portrait-frame {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--lamplight);
+}
+.leader-card .portrait-frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.leader-card h3 { font-family: var(--serif); margin: 0; font-size: 1.15rem; }
+.leader-card .role { font-size: 0.85rem; color: #cfc3b3; margin-top: -6px; }
+.leader-card .ability {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  background: rgba(214, 155, 62, 0.12);
+  border: 1px solid rgba(214, 155, 62, 0.4);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.leader-card .ability b { color: var(--lamplight); }
+
+/* --- Neighbour card (portrait-led, ~4:5) --- */
+.neighbour-card {
+  width: 260px;
+  background: var(--panel);
+  border: 2px solid var(--guarded);
+  display: flex;
+  flex-direction: column;
+}
+.neighbour-card .portrait-frame {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+}
+.neighbour-card .portrait-frame img {
+  width: 100%;
+  height: 58%;
+  min-height: 100%;
+  object-fit: cover;
+  object-position: 50% 37%;
+  display: block;
+  transition: filter 180ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .neighbour-card .portrait-frame img { transition: none; }
+}
+.neighbour-card .state-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(20, 16, 12, 0.7);
+  border: 1px solid currentColor;
+}
+.neighbour-card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.neighbour-card h3 { font-family: var(--serif); margin: 0; font-size: 1.15rem; }
+.neighbour-card .role { font-size: 0.85rem; color: #cfc3b3; margin-top: -4px; }
+.neighbour-card .stake { font-size: 0.9rem; color: var(--warm-white); font-style: italic; }
+.neighbour-card .trait-tag {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.neighbour-card .meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: #1a1410;
+  overflow: hidden;
+  border: 1px solid #4a3f30;
+}
+.neighbour-card .meter > span { display: block; height: 100%; transition: width 200ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .neighbour-card .meter > span { transition: none; }
+}
+.neighbour-card .meter-label { font-size: 0.82rem; color: #cfc3b3; }
+
+.neighbour-card[data-state="guarded"] { border-color: var(--guarded); }
+.neighbour-card[data-state="listening"] { border-color: var(--listening); }
+.neighbour-card[data-state="clear"] {
+  border-color: var(--clear);
+  box-shadow: 0 0 0 1px var(--clear), 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+.neighbour-card[data-state="guarded"] .state-badge { color: var(--guarded); }
+.neighbour-card[data-state="listening"] .state-badge { color: var(--listening); }
+.neighbour-card[data-state="clear"] .state-badge { color: var(--clear); }
+.neighbour-card[data-state="guarded"] .meter > span { background: var(--guarded); }
+.neighbour-card[data-state="listening"] .meter > span { background: var(--listening); }
+.neighbour-card[data-state="clear"] .meter > span { background: var(--clear); }
+.neighbour-card[data-state="guarded"] .portrait-frame img { filter: saturate(0.55) brightness(0.72); }
+.neighbour-card[data-state="listening"] .portrait-frame img { filter: saturate(0.88) brightness(0.92); }
+.neighbour-card[data-state="clear"] .portrait-frame img { filter: saturate(1.08) brightness(1.04); }
+
+/* --- Action card (light paper) --- */
+.action-card {
+  width: 200px;
+  min-height: 220px;
+  background-color: var(--paper);
+  color: var(--ink);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  border: 1px solid #d8c9a3;
+  isolation: isolate;
+}
+.action-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--action-paper-texture);
+  background-size: cover;
+  opacity: 0.06; /* quiet paper-fiber texture, per visual-style-spec: ~4-8% strength */
+  z-index: -1;
+}
+.action-card .cost {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--lamplight);
+  color: var(--ink);
+  font-weight: bold;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.action-card .stamp {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  padding: 1px 5px;
+  opacity: 0.7;
+}
+.action-card h3 { font-family: var(--serif); margin: 8px 0 0; font-size: 1.15rem; padding-right: 24px; }
+.action-card .effect { font-size: 1rem; line-height: 1.4; }
+.action-card .flavor { font-size: 0.85rem; font-style: italic; opacity: 0.8; margin-top: auto; }
+
+/* --- Dilemma card (wide, document-like) --- */
+.dilemma-card {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--rust);
+  background-image: linear-gradient(rgba(15, 10, 8, 0.55), rgba(15, 10, 8, 0.55)), var(--dilemma-paper-texture);
+  background-size: cover;
+  color: var(--warm-white);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.dilemma-card h3 { font-family: var(--serif); margin: 0; font-size: 1.15rem; }
+.dilemma-card .body-text { font-size: 1rem; line-height: 1.45; }
+.dilemma-card .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.dilemma-card .choice {
+  text-align: left;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--warm-white);
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+.dilemma-card .choice:hover { border-color: var(--lamplight); }
+.dilemma-card .choice:focus-visible { outline: 3px solid var(--lamplight); outline-offset: 2px; }
+.dilemma-card .choice b { color: var(--lamplight); }
+
+/* --- Card back --- */
+.card-back {
+  width: 200px;
+  aspect-ratio: 5 / 7;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #4a3f30;
+}
+.card-back img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* --- responsive: hand-rail scroller, no page overflow --- */
+@media (max-width: 600px) {
+  .tabletop {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 24px;
+    /* end padding so the last card doesn't sit flush against the edge,
+       plus a fade so a clipped next card visibly signals more to scroll */
+    padding-inline: 24px 40px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 56px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 56px), transparent 100%);
+  }
+  .leader-card, .neighbour-card, .action-card, .card-back { flex: 0 0 auto; scroll-snap-align: start; }
+  .tabletop { scroll-snap-type: x proximity; }
+  .dilemma-card { max-width: 100%; }
+}

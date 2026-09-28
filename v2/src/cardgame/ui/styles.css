@@ -1,0 +1,795 @@
+/* "Lamplit Table" visual system, wired into the playable prototype.
+   Tokens and card treatments ported from docs/v2/card-assets/visual-style-spec.md
+   (kept in sync with src/cardgame/gallery/styles.css, the standalone reference). */
+:root {
+  color-scheme: dark;
+  --night: #120f0d;
+  --table: #211712;
+  --panel: #2a211b;
+  --paper: #f5ecd9;
+  --ink: #2e241c;
+  --lamplight: #d69b3e;
+  --teal: #5d9b8c;
+  --rust: #9d5741;
+  --guarded: #726b70;
+  --listening: #c6954b;
+  --clear: #72aa8d;
+  --warm-white: #f7ead5;
+
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--night);
+  color: var(--warm-white);
+  font-family: var(--sans);
+  overscroll-behavior: none;
+}
+
+/* The page itself never scrolls — only `.game-scroll` does. This is what
+   keeps the action footer (End Evening) permanently on-screen: it's a flex
+   sibling of the scroll region, not part of the document's own scroll. */
+#cardgame {
+  max-width: 1500px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.game-scroll-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0; /* required for a flex child to actually be allowed to scroll */
+  display: flex;
+  flex-direction: column;
+}
+
+.game-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 32px 28px;
+}
+
+/* "More below" cue (item 4): only shown while the card region actually has
+   unseen content past the fold, and hidden again once scrolled to the end. */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  background: var(--lamplight);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: bold;
+  font-size: 0.74rem;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+.scroll-cue.visible { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue { transition: none; }
+}
+
+/* Persistent progression control (items 1-2): a separate flex sibling below
+   `.game-scroll-wrap`, so it can never be scrolled away and never overlaps
+   neighbour cards, hand cards, dilemma choices, tooltips, or tutorial
+   content, all of which live inside the scroll region above it. */
+.action-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  background: var(--panel);
+  border-top: 2px solid var(--lamplight);
+  padding: 10px 32px calc(10px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.35);
+}
+.end-evening-btn { min-width: 220px; }
+
+/* --- shared card shell (focus/hover/motion) --- */
+.card-shell { transition: transform 160ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .card-shell { transition: opacity 160ms ease; }
+}
+.card-shell:focus-visible {
+  outline: 3px solid var(--lamplight);
+  outline-offset: 2px;
+}
+
+/* --- Persistent objective banner (item 1) --- */
+.objective-banner {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  background: rgba(214, 155, 62, 0.1);
+  border: 1px solid rgba(214, 155, 62, 0.4);
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+}
+.objective-banner .objective-progress {
+  font-weight: bold;
+  color: var(--lamplight);
+  white-space: nowrap;
+}
+.objective-banner .consequence-reminder {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--rust);
+  width: 100%;
+}
+
+.scene-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+/* --- Leader card (Julia) — compact top-rail strip --- */
+.leader-card {
+  flex: 1 1 560px;
+  max-width: 680px;
+  background: var(--panel);
+  border: 1px solid #4a3f30;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+.leader-card .player-marker {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: var(--lamplight);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.leader-card .portrait-frame {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--lamplight);
+}
+.leader-card .portrait-frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
+.leader-card .leader-body { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.leader-card .leader-name-row { display: flex; flex-direction: column; flex: 0 0 auto; }
+.leader-card h3 { font-family: var(--serif); margin: 0; font-size: 1rem; line-height: 1.2; }
+.leader-card .role { font-size: 0.72rem; color: #cfc3b3; }
+.leader-card .tone-status { display: none; }
+.leader-card .ability {
+  font-size: 0.74rem;
+  line-height: 1.3;
+  background: rgba(214, 155, 62, 0.12);
+  border: 1px solid rgba(214, 155, 62, 0.4);
+  border-radius: 6px;
+  padding: 4px 7px;
+  flex: 1;
+  min-width: 0;
+}
+.leader-card .ability b { color: var(--lamplight); }
+.leader-card .btn { flex: 0 0 auto; padding: 7px 12px; font-size: 0.85rem; }
+
+.status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 16px;
+  font-size: 1rem;
+  color: #cfc3b3;
+  font-family: var(--serif);
+  flex: 1 1 320px;
+  max-width: 620px;
+  background: var(--panel);
+  border: 1px solid #4a3f30;
+  border-radius: 12px;
+  padding: 10px 20px;
+}
+.status-strip b { color: var(--warm-white); }
+.deck-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+}
+.deck-indicator img {
+  width: 24px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid #4a3f30;
+}
+/* --- Neighbour cards --- */
+.neighbours {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.neighbour-card {
+  width: 210px;
+  background: var(--panel);
+  border: 2px solid var(--guarded);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+.neighbour-card.targetable { cursor: pointer; }
+.neighbour-card.targetable:hover { transform: translateY(-4px); }
+@media (prefers-reduced-motion: reduce) {
+  .neighbour-card.targetable:hover { transform: none; opacity: 0.92; }
+}
+.neighbour-card:not(.targetable) { opacity: 0.92; }
+
+.neighbour-card .portrait-frame {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+}
+.neighbour-card .portrait-frame img {
+  width: 100%;
+  height: 58%;
+  min-height: 100%;
+  object-fit: cover;
+  object-position: 50% 37%;
+  display: block;
+  transition: filter 180ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .neighbour-card .portrait-frame img { transition: none; }
+}
+.neighbour-card .state-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(20, 16, 12, 0.7);
+  border: 1px solid currentColor;
+}
+.neighbour-card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.neighbour-card h3 { font-family: var(--serif); margin: 0; font-size: 1.1rem; }
+.neighbour-card .role { font-size: 0.82rem; color: #cfc3b3; margin-top: -4px; }
+.neighbour-card .trait-tag {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  border-radius: 4px;
+  padding: 1px 6px;
+  line-height: 1.3;
+}
+.neighbour-card .resolution-note {
+  font-size: 0.72rem;
+  color: var(--lamplight);
+  background: rgba(214, 155, 62, 0.12);
+  border-radius: 4px;
+  padding: 3px 5px;
+  line-height: 1.3;
+}
+.neighbour-card.dimmed { opacity: 0.5; }
+.neighbour-card.armed {
+  border-color: var(--lamplight);
+  box-shadow: 0 0 0 2px var(--lamplight), 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+.neighbour-card .meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: #1a1410;
+  overflow: hidden;
+  border: 1px solid #4a3f30;
+}
+.neighbour-card .meter > span { display: block; height: 100%; transition: width 200ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .neighbour-card .meter > span { transition: none; }
+}
+.neighbour-card .meter-label { font-size: 0.78rem; color: #cfc3b3; }
+
+.neighbour-card[data-state="guarded"] { border-color: var(--guarded); }
+.neighbour-card[data-state="listening"] { border-color: var(--listening); }
+.neighbour-card[data-state="clear"] { border-color: var(--clear); box-shadow: 0 0 0 1px var(--clear), 0 8px 20px rgba(0, 0, 0, 0.4); }
+.neighbour-card[data-state="guarded"] .state-badge { color: var(--guarded); }
+.neighbour-card[data-state="listening"] .state-badge { color: var(--listening); }
+.neighbour-card[data-state="clear"] .state-badge { color: var(--clear); }
+.neighbour-card[data-state="guarded"] .meter > span { background: var(--guarded); }
+.neighbour-card[data-state="listening"] .meter > span { background: var(--listening); }
+.neighbour-card[data-state="clear"] .meter > span { background: var(--clear); }
+.neighbour-card[data-state="guarded"] .portrait-frame img { filter: saturate(0.55) brightness(0.72); }
+.neighbour-card[data-state="listening"] .portrait-frame img { filter: saturate(0.88) brightness(0.92); }
+.neighbour-card[data-state="clear"] .portrait-frame img { filter: saturate(1.08) brightness(1.04); }
+
+/* --- Hand: action cards (light paper) --- */
+.hand-area {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hand-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 6px 6px 12px;
+  scroll-padding-inline: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  flex: 0 0 auto;
+  width: 168px;
+  min-height: 170px;
+  background-color: var(--paper);
+  color: var(--ink);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid #d8c9a3;
+  isolation: isolate;
+  cursor: pointer;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--action-paper-texture);
+  background-size: cover;
+  opacity: 0.06;
+  z-index: -1;
+  border-radius: inherit;
+}
+.card:hover:not(.unaffordable) { transform: translateY(-4px); }
+@media (prefers-reduced-motion: reduce) {
+  .card:hover:not(.unaffordable) { transform: none; }
+}
+.card.unaffordable { opacity: 0.45; cursor: not-allowed; }
+.card.selected { outline: 3px solid var(--lamplight); outline-offset: 1px; }
+.card.exhausts { border-color: var(--rust); }
+
+.card .stamp {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  padding: 1px 5px;
+  opacity: 0.7;
+}
+.card .cost {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--lamplight);
+  color: var(--ink);
+  font-weight: bold;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card h3 { font-family: var(--serif); margin: 6px 0 0; font-size: 1.02rem; padding-right: 22px; }
+.card .requirement { font-size: 0.72rem; opacity: 0.75; }
+.card .lock-text { color: var(--rust); opacity: 1; font-weight: bold; }
+.card .syp-timing { color: var(--rust); opacity: 1; font-weight: bold; }
+.card .effect { font-size: 0.82rem; line-height: 1.35; }
+.card .flavor { font-size: 0.76rem; font-style: italic; opacity: 0.75; margin-top: auto; }
+.card .flavor.primary { font-size: 0.82rem; font-style: normal; opacity: 0.95; margin-top: 2px; }
+
+/* --- Outcome preview + confirm bar (item 3) --- */
+.play-action-bar {
+  background: var(--panel);
+  border: 2px solid var(--lamplight);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 auto;
+  max-width: 640px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--sans);
+}
+.play-instruction { font-weight: bold; color: var(--lamplight); font-size: 0.85rem; }
+.play-preview { font-size: 0.85rem; color: var(--warm-white); }
+.play-trait-note { font-size: 0.8rem; color: var(--teal); }
+.play-action-buttons { display: flex; gap: 8px; margin-top: 4px; }
+.play-action-buttons .btn { padding: 7px 14px; font-size: 0.85rem; }
+
+/* --- Meeting log (item 7) --- */
+.meeting-log {
+  margin: 0 auto;
+  max-width: 640px;
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: #cfc3b3;
+}
+.meeting-log h4 { margin: 0 0 2px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #cfc3b3; }
+.meeting-log ul { margin: 0; padding-left: 16px; }
+.meeting-log li { margin: 1px 0; }
+
+.btn {
+  background: var(--lamplight);
+  color: var(--ink);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-weight: bold;
+  font-family: var(--sans);
+  cursor: pointer;
+}
+.btn:focus-visible { outline: 3px solid var(--warm-white); outline-offset: 2px; }
+.btn.secondary { background: transparent; border: 1px solid #cfc3b3; color: var(--warm-white); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- Overlays: dilemmas, retain picker, result --- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 8, 5, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.overlay-panel {
+  background: var(--panel);
+  border: 1px solid #4a3f30;
+  border-radius: 14px;
+  padding: 20px;
+  max-width: 460px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--serif);
+}
+
+.overlay-panel h2 { margin: 0; font-size: 1.2rem; text-wrap: balance; }
+.overlay-panel p { margin: 0; font-family: var(--sans); font-size: 0.92rem; line-height: 1.4; }
+.overlay-panel .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.overlay-panel .choices .btn { text-align: left; font-family: var(--sans); font-weight: normal; }
+
+/* --- Dilemma card (rust, document-like) inside its overlay panel --- */
+.dilemma-card {
+  background-color: var(--rust);
+  background-image: linear-gradient(rgba(15, 10, 8, 0.55), rgba(15, 10, 8, 0.55)), var(--dilemma-paper-texture);
+  background-size: cover;
+  color: var(--warm-white);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: -20px -20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.dilemma-card h2 { font-family: var(--serif); margin: 0; font-size: 1.15rem; }
+.dilemma-card p { font-family: var(--sans); font-size: 0.95rem; line-height: 1.4; margin: 0; }
+.dilemma-card .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.dilemma-card .choice {
+  text-align: left;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--warm-white);
+  font: inherit;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+.dilemma-card .choice:hover { border-color: var(--lamplight); }
+.dilemma-card .choice:focus-visible { outline: 3px solid var(--lamplight); outline-offset: 2px; }
+.dilemma-card .choice-label { font-weight: bold; margin-bottom: 4px; }
+.dilemma-card .choice-detail { font-size: 0.82rem; opacity: 0.9; line-height: 1.35; }
+.dilemma-card .choice-detail b { color: var(--lamplight); font-weight: bold; }
+
+/* --- accessibility utility --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- glossary term disclosures --- */
+.glossary-term {
+  background: none;
+  border: none;
+  border-bottom: 1px dotted currentColor;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.glossary-term:focus-visible {
+  outline: 2px solid var(--lamplight);
+  outline-offset: 2px;
+}
+.glossary-tip {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+  z-index: 20;
+  width: max-content;
+  max-width: 240px;
+  background: var(--ink);
+  color: var(--warm-white);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--lamplight);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  text-align: left;
+}
+
+/* --- non-modal tutorial callouts --- */
+.tutorial-callout {
+  background: var(--panel);
+  border: 2px solid var(--lamplight);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0 auto;
+  max-width: 640px;
+  font-family: var(--serif);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+.tutorial-callout h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--lamplight); }
+.tutorial-callout p { margin: 0; font-family: var(--sans); font-size: 0.88rem; line-height: 1.4; color: var(--warm-white); }
+.tutorial-state-key {
+  margin-top: 6px !important;
+  font-size: 0.78rem !important;
+  color: #cfc3b3 !important;
+}
+.tutorial-callout-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.tutorial-prompt {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--lamplight);
+}
+.tutorial-skip { flex: 0 0 auto; padding: 6px 12px; font-size: 0.78rem; }
+
+/* spotlight glow on the control the active tutorial step refers to */
+[data-tutorial-stage="moments"] .hand-row,
+[data-tutorial-stage="moments"] .status-strip {
+  box-shadow: 0 0 0 3px var(--lamplight);
+  border-radius: 12px;
+}
+[data-tutorial-stage="targeting"] .neighbour-card.targetable {
+  box-shadow: 0 0 0 3px var(--lamplight);
+}
+[data-tutorial-stage="trust"] .status-strip,
+[data-tutorial-stage="trust"] .neighbours {
+  box-shadow: 0 0 0 3px var(--lamplight);
+  border-radius: 12px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-tutorial-stage] .hand-row,
+  [data-tutorial-stage] .status-strip,
+  [data-tutorial-stage] .neighbour-card.targetable,
+  [data-tutorial-stage] .neighbours {
+    transition: box-shadow 200ms ease;
+  }
+}
+
+/* --- Review the meeting panel --- */
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+}
+.review-table th,
+.review-table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid #4a3f30;
+}
+.review-table th { color: #cfc3b3; font-weight: normal; }
+.review-section-title {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  color: var(--lamplight);
+  margin: 10px 0 2px;
+}
+.review-line {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  margin: 2px 0;
+}
+
+/* --- Victory / failure result screens --- */
+.result-eyebrow {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lamplight);
+  margin: 0 0 4px;
+}
+.result-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--warm-white);
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+/* --- responsive: compact persistent leader strip + target rail + hand rail --- */
+@media (max-width: 600px) {
+  .game-scroll { padding: 12px 0 10px; gap: 10px; }
+  .action-footer { padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); }
+
+  .scene-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  /* Julia: compact single-row strip, not a large card */
+  .leader-card {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  .leader-card .portrait-frame { width: 40px; height: 40px; }
+  .leader-card .leader-body { gap: 8px; }
+  .leader-card h3 { font-size: 0.9rem; }
+  .leader-card .role { display: none; }
+  .leader-card .ability { display: none; }
+  .leader-card .tone-status {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--lamplight);
+    white-space: nowrap;
+  }
+  .leader-card .btn { padding: 6px 10px; font-size: 0.78rem; white-space: nowrap; }
+
+  /* Evening / Trust / Moments / deck: one compact row, with the round
+     control reserved on its own row inside the same panel so it can never
+     overlap a neighbour card, hand card, choice, or button below it. */
+  .status-strip {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    font-size: 0.78rem;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 6px 12px;
+    max-width: 100%;
+  }
+  .deck-indicator img { width: 18px; height: 26px; }
+
+  /* Neighbours: compact horizontal target rail, not most of the screen */
+  .neighbours {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 20px;
+    padding-inline: 12px 36px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+  }
+  .neighbour-card {
+    width: 128px;
+    flex: 0 0 auto;
+  }
+  .neighbour-card .portrait-frame { aspect-ratio: 1 / 1; }
+  .neighbour-card .portrait-frame img { height: 100%; }
+  .neighbour-card .body { padding: 6px 8px 8px; gap: 3px; }
+  .neighbour-card h3 { font-size: 0.85rem; }
+  .neighbour-card .role { display: none; }
+  .neighbour-card .trait-tag { font-size: 0.66rem; padding: 0 4px; }
+  .neighbour-card .meter-label { font-size: 0.68rem; }
+  .neighbour-card .state-badge { font-size: 9px; padding: 1px 6px; }
+
+  /* Hand: bottom horizontally-scrollable rail */
+  .hand-area { padding-inline: 12px; gap: 8px; }
+  .hand-row {
+    width: 100%;
+    justify-content: flex-start;
+    padding-inline: 0 24px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+  }
+  .card { width: 138px; min-height: 150px; }
+
+  .objective-banner { margin-inline: 12px; font-size: 0.78rem; padding: 6px 10px; gap: 8px; }
+  .play-action-bar, .meeting-log { margin-inline: 12px; max-width: none; width: auto; }
+}

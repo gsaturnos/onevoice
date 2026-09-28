@@ -1,0 +1,117 @@
+import type { CardId, NeighbourId } from '../engine/types';
+
+export const NEIGHBOUR_COPY: Record<NeighbourId, { name: string; role: string; trait: string; initial: string }> = {
+  rosa: { name: 'Rosa', role: 'the nurse', trait: 'Online', initial: 'R' },
+  ines: { name: 'Inés', role: 'the shopkeeper', trait: 'Talker', initial: 'I' },
+  hugo: { name: 'Hugo', role: 'the bus driver', trait: 'Wary', initial: 'H' },
+};
+
+export const JULIA_ABILITY =
+  "Once per Evening, before your first card, name one neighbour. After that card's trait multiplier is applied, add a flat +5 Understanding to that neighbour.";
+
+// Exact mechanical text for every card, verified against the engine's actual
+// numbers (v2/src/cardgame/engine/engine.ts and content.ts — the locked
+// rules doc's own §7, its declared source of truth). Cards' multiplierClass
+// stamp (Talk/Broadcast) reflects the trait tag; the multiplier itself is
+// only actually computed in engine code for Ask Directly and Spread the
+// Word, so it is named here only where the code applies it.
+export const CARD_EFFECT: Partial<Record<CardId, string>> = {
+  ask_directly:
+    'Choose one neighbour; gain 13–18 Understanding scaled by Trust and the applicable talk-style trait multiplier; then gain 2 Trust.',
+  open_circle:
+    'All three neighbours gain 4.5–6 Understanding, scaling with Trust. Gain 4 Trust.',
+  spread_word:
+    "Choose one neighbour; gain 5.5 Understanding, ×2.2 if they're Online. Gain 2 Trust.",
+  build_on_known:
+    "Choose one neighbour; gain 13 Understanding if they're already Listening or Clear, otherwise 4. Gain 1 Trust.",
+  press_point:
+    'Choose one neighbour; gain 13 Understanding. Lose 3 Trust.',
+  hold_space:
+    'Choose one neighbour; gain 5 Understanding. Gain 6 Trust.',
+  bring_together:
+    'Requires Trust 40. All three neighbours gain 4.5 Understanding. Gain 5 Trust.',
+  quiet_confidence:
+    'Requires Trust 30. Choose one neighbour; gain 16 Understanding. Gain 2 Trust.',
+  second_thoughts:
+    'Draw 2 cards.',
+  think_it_over:
+    'Discard this card to retain up to 2 cards into next Evening, instead of 1.',
+  speak_your_piece:
+    "Costs all 3 Moments. All three neighbours gain 8 Understanding; gain 8 Trust. Added at Evening 3; may be retained once into Evening 4 — if still unplayed after that it's discarded for good. Exhausts once played.",
+};
+
+export const CARD_FLAVOR: Record<CardId, string> = {
+  ask_directly: 'Sit down with them, one on one.',
+  open_circle: 'Bring the whole table into it at once.',
+  spread_word: 'Let it travel beyond this room.',
+  build_on_known: "Pick up where they're already listening.",
+  press_point: 'Push, even if it costs some goodwill.',
+  hold_space: 'Just listen. Trust grows slowly.',
+  bring_together: 'The room is ready to move as one.',
+  quiet_confidence: 'Say the thing plainly, and mean it.',
+  second_thoughts: 'Think it through before you commit.',
+  think_it_over: 'Hold onto what you meant to say.',
+  speak_your_piece: 'The moment the whole evening was for.',
+};
+
+// Each option is broken into exactly what Giorgio's comprehension pass asks
+// for (item 8): the immediate effect, the delayed effect, and what is given
+// up to get it — shown as three separate lines before the player commits,
+// not folded into one sentence.
+export interface DilemmaOption {
+  label: string;
+  immediate: string;
+  delayed: string;
+  sacrifice: string;
+}
+
+export const DILEMMA_COPY: Record<string, { title: string; body: string; a: DilemmaOption; b: DilemmaOption }> = {
+  rosas_numbers: {
+    title: "Rosa has the numbers.",
+    body: 'She wants to read the real consequences of the closure aloud, tonight.',
+    a: {
+      label: 'Push forward now',
+      immediate: 'Trust +5, right away.',
+      delayed: 'None.',
+      sacrifice: 'Next Evening starts with only 2 Moments instead of 3.',
+    },
+    b: {
+      label: 'Hold it for later',
+      immediate: 'No immediate effect.',
+      delayed: 'Rosa gets +10 Understanding next Evening.',
+      sacrifice: "Rosa's Understanding gains are reduced to 30% this Evening.",
+    },
+  },
+  hugos_question: {
+    title: 'Hugo asks why nobody told him sooner.',
+    body: "He's not backing down from the question.",
+    a: {
+      label: 'Answer him straight',
+      immediate: 'Hugo +20 Understanding, Trust +3.',
+      delayed: 'None.',
+      sacrifice: 'Discard one card from your hand right now.',
+    },
+    b: {
+      label: 'Let Inés smooth it over',
+      immediate: 'Trust +4.',
+      delayed: 'None.',
+      sacrifice: "Hugo's Understanding gains are halved this Evening.",
+    },
+  },
+  room_decides: {
+    title: 'The room has to decide.',
+    body: 'Last evening, last chance.',
+    a: {
+      label: 'Push for a unified stand',
+      immediate: 'Spends 2 Moments now.',
+      delayed: 'If everyone is already at 55+ Understanding, +10 to all three.',
+      sacrifice: 'The 2 Moments spent, whether or not the bonus lands.',
+    },
+    b: {
+      label: 'Let it rest, end calmly',
+      immediate: 'No cost, no bonus.',
+      delayed: 'None.',
+      sacrifice: 'None.',
+    },
+  },
+};
