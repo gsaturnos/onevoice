@@ -154,7 +154,7 @@ describe('dilemma clarity (item 8)', () => {
       if (q('#retention-continue')) { click(q('#retention-continue')); continue; }
       if (q('#dilemma-intro-ok')) { click(q('#dilemma-intro-ok')); continue; }
       if (q('#retain-done')) { click(q('#retain-done')); continue; }
-      click(q('.end-evening-bottom'));
+      click(q('.end-evening-btn'));
     }
     const dilemma = q('.dilemma-card');
     expect(dilemma).not.toBeNull();
@@ -196,7 +196,7 @@ function autoplayToResult(maxSteps = 500) {
       if (confirmBtn && !confirmBtn.disabled) click(confirmBtn);
       continue;
     }
-    click(q('.end-evening-bottom'));
+    click(q('.end-evening-btn'));
   }
   throw new Error('autoplay did not reach a result screen within the step budget');
 }

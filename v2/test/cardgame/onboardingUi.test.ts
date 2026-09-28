@@ -77,7 +77,7 @@ describe('opening scenario and tutorial progression', () => {
 
     // "Continue the Evening" -> ending the Evening retires the 3-step
     // tutorial and (Evening 1 only) shows the retention explanation next.
-    click(q('.end-evening-bottom'));
+    click(q('.end-evening-btn'));
     expect(q('.tutorial-callout')).toBeNull();
     expect(localStorage.getItem(STORAGE_KEY)).toBe('1');
     expect(q('.overlay h2')!.textContent).toBe(RETENTION_INTRO.heading);
@@ -245,7 +245,7 @@ function autoplayToResult(maxSteps = 500) {
       if (confirmBtn && !confirmBtn.disabled) click(confirmBtn);
       continue;
     }
-    click(q('.end-evening-bottom'));
+    click(q('.end-evening-btn'));
   }
   throw new Error('autoplay did not reach a result screen within the step budget');
 }

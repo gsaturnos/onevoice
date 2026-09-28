@@ -123,6 +123,22 @@ export function resetInteractionMode() {
   toneMode = false;
 }
 
+// --- "More below" scroll cue (Giorgio: item 4 of the viewport-layout fix) ---
+// One `resize` listener for the page's whole lifetime, rather than one per
+// render() call, so it never accumulates across re-renders — it always
+// reads whichever scroll region the most recent render() produced.
+let currentScrollRegion: HTMLElement | null = null;
+let currentScrollCue: HTMLElement | null = null;
+function updateScrollCue() {
+  if (!currentScrollRegion || !currentScrollCue || !currentScrollRegion.isConnected) return;
+  const scrollable = currentScrollRegion.scrollHeight > currentScrollRegion.clientHeight + 2;
+  const atBottom = currentScrollRegion.scrollHeight - currentScrollRegion.scrollTop - currentScrollRegion.clientHeight < 4;
+  currentScrollCue.classList.toggle('visible', scrollable && !atBottom);
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', updateScrollCue);
+}
+
 function tutorialCalloutHtml(stage: Exclude<ThreeStepStage, null>): string {
   const step = THREE_STEP[stage];
   const stateKey = 'stateKey' in step ? `<p class="tutorial-state-key">${step.stateKey}</p>` : '';
@@ -151,6 +167,30 @@ export function render(
 
   const rerender = () => render(root, state, toneAvailable, cb, cb.getTutorialStage ? cb.getTutorialStage() : tutorialStage);
 
+  // --- Layout: an independently-scrollable card region plus a persistent,
+  // never-overlapping action footer for the primary progression control
+  // (Giorgio: "the End Evening control and content below the cards are
+  // outside the viewport"). Everything that used to be a direct child of
+  // #cardgame now lives inside `.game-scroll`; only the action footer sits
+  // outside it, so it can never be scrolled away. ---
+  const scrollWrap = document.createElement('div');
+  scrollWrap.className = 'game-scroll-wrap';
+  const scroll = document.createElement('div');
+  scroll.className = 'game-scroll';
+  scrollWrap.appendChild(scroll);
+  const scrollCue = document.createElement('button');
+  scrollCue.type = 'button';
+  scrollCue.className = 'scroll-cue';
+  scrollCue.textContent = '▾ More below';
+  scrollCue.setAttribute('aria-hidden', 'true');
+  scrollCue.tabIndex = -1;
+  scrollCue.addEventListener('click', () => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    scroll.scrollBy({ top: scroll.clientHeight * 0.8, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+  scrollWrap.appendChild(scrollCue);
+  root.appendChild(scrollWrap);
+
   // --- Persistent objective banner (item 1): never depends on the opening
   // screen or tutorial memory, always visible. ---
   const clearCount = NEIGHBOURS.filter((n) => bandFor(state.u[n]) === 'clear').length;
@@ -162,7 +202,7 @@ export function render(
     <span class="objective-progress">${clearCount}/3 Clear</span>
     ${consequence ? `<span class="consequence-reminder">${consequence}</span>` : ''}
   `;
-  root.appendChild(objective);
+  scroll.appendChild(objective);
 
   const header = document.createElement('div');
   header.className = 'scene-header';
@@ -190,10 +230,9 @@ export function render(
         <img src="${cardBack}" alt="" />
         <span>${state.deck.length}</span>
       </div>
-      <button class="btn end-evening-rail">End Evening</button>
     </div>
   `;
-  root.appendChild(header);
+  scroll.appendChild(header);
 
   if (tutorialStage === 'trust') {
     header.insertAdjacentHTML('afterend', tutorialCalloutHtml('trust'));
@@ -257,7 +296,7 @@ export function render(
     }
     neighbourRow.appendChild(card);
   }
-  root.appendChild(neighbourRow);
+  scroll.appendChild(neighbourRow);
 
   if (tutorialStage === 'targeting') {
     neighbourRow.insertAdjacentHTML('afterend', tutorialCalloutHtml('targeting'));
@@ -362,12 +401,6 @@ export function render(
     });
   }
 
-  const endBtn = document.createElement('button');
-  endBtn.className = 'btn end-evening-bottom';
-  endBtn.textContent = 'End Evening';
-  endBtn.addEventListener('click', () => cb.onEndEvening());
-  handArea.appendChild(endBtn);
-
   // --- Meeting log (item 7): the latest three engine-authored entries, kept
   // visible without opening a developer-style console. ---
   const recentLog = state.log.slice(-3).reverse();
@@ -381,10 +414,26 @@ export function render(
     handArea.appendChild(log);
   }
 
-  root.appendChild(handArea);
+  scroll.appendChild(handArea);
 
-  const endBtnRail = header.querySelector('.end-evening-rail');
-  endBtnRail?.addEventListener('click', () => cb.onEndEvening());
+  // --- Persistent action footer (items 1-2): the primary progression
+  // control lives OUTSIDE `.game-scroll`, so scrolling the cards can never
+  // carry it off-screen, and it can never overlap anything inside the
+  // scroll region since it's a separate flex sibling with its own background.
+  const footer = document.createElement('div');
+  footer.className = 'action-footer';
+  const endBtn = document.createElement('button');
+  endBtn.type = 'button';
+  endBtn.className = 'btn end-evening-btn';
+  endBtn.textContent = 'End Evening';
+  endBtn.addEventListener('click', () => cb.onEndEvening());
+  footer.appendChild(endBtn);
+  root.appendChild(footer);
+
+  currentScrollRegion = scroll;
+  currentScrollCue = scrollCue;
+  scroll.addEventListener('scroll', updateScrollCue);
+  updateScrollCue();
 
   const toneBtn = header.querySelector('#tone-btn');
   toneBtn?.addEventListener('click', () => {
