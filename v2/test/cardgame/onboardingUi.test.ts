@@ -60,14 +60,16 @@ describe('opening scenario and tutorial progression', () => {
     expect(firstAffordable).toBeTruthy();
     click(firstAffordable);
 
-    // Either the card needed a target (step 2 shows) or it resolved
-    // immediately and the tutorial skips straight to step 3 — both are
-    // spec-correct, so follow whichever happened.
+    // Either the card needs a target (step 2 shows, and the neighbour must
+    // be chosen before Play card is enabled) or it needs none (Play card is
+    // enabled immediately) — both are spec-correct, so follow whichever
+    // happened, then confirm to actually resolve the card.
     if (q('.tutorial-callout h3')!.textContent === THREE_STEP.targeting.heading) {
       const target = q('.neighbour-card.targetable');
       expect(target).toBeTruthy();
       click(target);
     }
+    click(q('#confirm-play'));
 
     // Step 3: Trust vs Understanding.
     expect(q('.tutorial-callout h3')!.textContent).toBe(THREE_STEP.trust.heading);
@@ -129,14 +131,15 @@ describe('accessibility', () => {
     expect(card.getAttribute('tabindex')).toBe('0');
 
     keydown(card, 'Enter');
-    // Either a neighbour became targetable, or the card resolved and a new
-    // hand rendered — both prove the keydown handler ran the same activation
-    // the click handler does.
+    // Either a neighbour became targetable (needs a target chosen before
+    // confirming) or Play card is already enabled — both prove the keydown
+    // handler ran the same activation the click handler does.
     const targetable = q('.neighbour-card.targetable');
     if (targetable) {
       expect(targetable.getAttribute('tabindex')).toBe('0');
       keydown(targetable, 'Enter');
     }
+    click(q('#confirm-play'));
     // No exception thrown and the board re-rendered — reaching here proves
     // keyboard activation drove real state changes end to end.
     expect(q('#cardgame')).not.toBeNull();
@@ -154,13 +157,8 @@ describe('accessibility', () => {
     for (const card of qAll('.hand-row .card:not(.unaffordable)')) {
       click(card);
       const target = q('.neighbour-card.targetable');
-      if (target) {
-        click(target);
-        played = true;
-        break;
-      }
-      // resolved without a target — try the next one instead, this one may
-      // not have moved the needle in a way we asserted on above.
+      if (target) click(target);
+      click(q('#confirm-play'));
       if (live.textContent !== before) { played = true; break; }
     }
     expect(played).toBe(true);
@@ -205,6 +203,7 @@ describe('reduced motion', () => {
       click(card);
       const target = q('.neighbour-card.targetable');
       if (target) click(target);
+      click(q('#confirm-play'));
       if (live.textContent !== before) break;
     }
     expect(live.textContent).not.toBe(before);
@@ -242,6 +241,8 @@ function autoplayToResult(maxSteps = 500) {
       click(card);
       const target = q('.neighbour-card.targetable');
       if (target) click(target);
+      const confirmBtn = q<HTMLButtonElement>('#confirm-play');
+      if (confirmBtn && !confirmBtn.disabled) click(confirmBtn);
       continue;
     }
     click(q('.end-evening-bottom'));

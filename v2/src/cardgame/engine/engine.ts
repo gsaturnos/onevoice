@@ -8,20 +8,101 @@ import { NEIGHBOURS, TRAIT_OF } from './types';
 
 export { CLEAR_THRESHOLD, LISTENING_THRESHOLD, TOTAL_EVENINGS, MOMENTS_PER_EVENING };
 
+// Named so the UI can state exactly what the engine will do (trait
+// explanations, outcome previews) without hand-copying these numbers.
+export const TALKER_MULTIPLIER = 1.6;
+export const WARY_MULTIPLIER_LOW = 0.55;
+export const WARY_MULTIPLIER_HIGH = 1.2;
+export const WARY_TRUST_THRESHOLD = 30;
+export const ONLINE_MULTIPLIER = 2.2;
+export const TONE_BONUS = 5;
+
 function talkMul(target: NeighbourId, trust: number): number {
-  if (TRAIT_OF[target] === 'talker') return 1.6;
-  if (TRAIT_OF[target] === 'wary') return trust >= 30 ? 1.2 : 0.55;
+  if (TRAIT_OF[target] === 'talker') return TALKER_MULTIPLIER;
+  if (TRAIT_OF[target] === 'wary') return trust >= WARY_TRUST_THRESHOLD ? WARY_MULTIPLIER_HIGH : WARY_MULTIPLIER_LOW;
   return 1.0;
 }
 
 function broadcastMul(target: NeighbourId): number {
-  return TRAIT_OF[target] === 'online' ? 2.2 : 1.0;
+  return TRAIT_OF[target] === 'online' ? ONLINE_MULTIPLIER : 1.0;
 }
 
 export interface PlayResult {
   card: CardId;
   target?: NeighbourId;
   gain?: number; // Understanding delta actually applied to `target` (single-target cards only)
+}
+
+/** The Understanding/Trust delta a card would apply, computed by the exact
+ * same math `playCard` uses — shared so a pre-play preview can never drift
+ * from what actually happens on play. Pure: takes/returns plain values, never
+ * touches session state. `toneBonus` is `TONE_BONUS` when the leader's "Set
+ * the Tone" bonus would apply to `target`, else 0. */
+function computeCardEffect(
+  card: CardId,
+  target: NeighbourId | undefined,
+  trust: number,
+  u: Record<NeighbourId, number>,
+  toneBonus: number,
+): { uDelta: Partial<Record<NeighbourId, number>>; trustDelta: number; gain?: number } {
+  switch (card) {
+    case 'ask_directly': {
+      const base = 9 + 3 * (trust / 100);
+      const gain = base * talkMul(target!, trust) + toneBonus;
+      return { uDelta: { [target!]: gain }, trustDelta: 2, gain };
+    }
+    case 'open_circle': {
+      const per = 4.5 + 1.5 * (trust / 100);
+      return { uDelta: { rosa: per, ines: per, hugo: per }, trustDelta: 4 };
+    }
+    case 'spread_word': {
+      const gain = 5.5 * broadcastMul(target!) + toneBonus;
+      return { uDelta: { [target!]: gain }, trustDelta: 2, gain };
+    }
+    case 'build_on_known': {
+      const base = u[target!] >= LISTENING_THRESHOLD ? 13 : 4;
+      const gain = base + toneBonus;
+      return { uDelta: { [target!]: gain }, trustDelta: 1, gain };
+    }
+    case 'press_point': {
+      const gain = 13 + toneBonus;
+      return { uDelta: { [target!]: gain }, trustDelta: -3, gain };
+    }
+    case 'hold_space': {
+      const gain = 5 + toneBonus;
+      return { uDelta: { [target!]: gain }, trustDelta: 6, gain };
+    }
+    case 'bring_together':
+      return { uDelta: { rosa: 4.5, ines: 4.5, hugo: 4.5 }, trustDelta: 5 };
+    case 'quiet_confidence': {
+      const gain = 16 + toneBonus;
+      return { uDelta: { [target!]: gain }, trustDelta: 2, gain };
+    }
+    case 'speak_your_piece':
+      return { uDelta: { rosa: 8, ines: 8, hugo: 8 }, trustDelta: 8 };
+    case 'second_thoughts':
+    case 'think_it_over':
+      return { uDelta: {}, trustDelta: 0 };
+  }
+}
+
+const NEIGHBOUR_LABEL: Record<NeighbourId, string> = { rosa: 'Rosa', ines: 'Inés', hugo: 'Hugo' };
+
+function bandLabelFor(u: number): string {
+  if (u >= CLEAR_THRESHOLD) return 'Clear';
+  if (u >= LISTENING_THRESHOLD) return 'Listening';
+  return 'Guarded';
+}
+
+export interface CardPreview {
+  card: CardId;
+  target?: NeighbourId;
+  uDelta: Partial<Record<NeighbourId, number>>;
+  trustDelta: number;
+  gain?: number;
+  toneApplied: boolean;
+  /** Same wording `state.log` would carry if this exact play were committed. */
+  summary: string;
 }
 
 export class CardGameSession {
@@ -105,12 +186,76 @@ export class CardGameSession {
     return true;
   }
 
+  /** Non-mutating: whether playing a card targeting `target` right now would
+   * consume the pending "Set the Tone" bonus, without consuming it. */
+  peekTone(target: NeighbourId | undefined): number {
+    return target && this.toneTarget === target ? TONE_BONUS : 0;
+  }
+
   private consumeTone(target: NeighbourId | undefined): number {
-    if (target && this.toneTarget === target) {
-      this.toneTarget = null;
-      return 5;
+    const bonus = this.peekTone(target);
+    if (bonus) this.toneTarget = null;
+    return bonus;
+  }
+
+  private effectSummary(card: CardId, target: NeighbourId | undefined, uDelta: Partial<Record<NeighbourId, number>>, trustDelta: number): string {
+    const name = CARDS[card].name;
+    const parts: string[] = [];
+    const targets = target ? [target] : (Object.keys(uDelta) as NeighbourId[]);
+    for (const n of targets) {
+      const d = uDelta[n];
+      if (d === undefined) continue;
+      const after = this.state.u[n]; // already-updated value at call time
+      parts.push(`${NEIGHBOUR_LABEL[n]} ${d >= 0 ? '+' : ''}${Math.round(d)} Understanding (now ${bandLabelFor(after)})`);
     }
-    return 0;
+    if (trustDelta !== 0) parts.push(`Trust ${trustDelta >= 0 ? '+' : ''}${trustDelta}`);
+    return parts.length ? `${name} → ${parts.join(' · ')}` : `${name} played`;
+  }
+
+  private pushLog(entry: string) {
+    this.state.log.push(entry);
+    if (this.state.log.length > 20) this.state.log.shift();
+  }
+
+  /** Predicts exactly what `playCard(handIndex, target)` would do, using the
+   * same math, without mutating state — so the UI can show an outcome
+   * preview before the player commits. Returns null if the play is illegal. */
+  previewPlayCard(handIndex: number, target?: NeighbourId): CardPreview | null {
+    const card = this.state.hand[handIndex];
+    if (!card) return null;
+    const def = CARDS[card];
+    if (!this.canPlay(card)) return null;
+    if (def.needsTarget && !target) return null;
+    const toneBonus = this.peekTone(target);
+    const { uDelta, trustDelta, gain } = computeCardEffect(card, target, this.state.trust, this.state.u, toneBonus);
+    const parts: string[] = [];
+    for (const n of Object.keys(uDelta) as NeighbourId[]) {
+      const d = uDelta[n]!;
+      const before = this.state.u[n];
+      const after = Math.max(0, Math.min(100, before + d));
+      parts.push(`${NEIGHBOUR_LABEL[n]} ${d >= 0 ? '+' : ''}${Math.round(d)} Understanding (${Math.round(before)} → ${Math.round(after)} · ${bandLabelFor(after)})`);
+    }
+    if (trustDelta !== 0) {
+      const after = Math.max(0, Math.min(100, this.state.trust + trustDelta));
+      parts.push(`Trust ${trustDelta >= 0 ? '+' : ''}${trustDelta} (${Math.round(this.state.trust)} → ${Math.round(after)})`);
+    }
+    return {
+      card, target, uDelta, trustDelta, gain, toneApplied: toneBonus > 0,
+      summary: parts.length ? parts.join(' · ') : 'No board effect.',
+    };
+  }
+
+  /** One-line reminder of a dilemma consequence still in effect this Evening,
+   * or null when none is active. Wording mirrors the values actually applied
+   * in `endEvening`, never a separate hand-copied number. */
+  activeConsequenceText(): string | null {
+    if (this.rosaCappedThisEvening !== null) {
+      return `Rosa's Understanding gains are reduced to ${Math.round(this.rosaCappedThisEvening * 100)}% this Evening.`;
+    }
+    if (this.hugoHalvedThisEvening !== null) {
+      return `Hugo's Understanding gains are reduced to ${Math.round(this.hugoHalvedThisEvening * 100)}% this Evening.`;
+    }
+    return null;
   }
 
   /** Exposes the session's seeded RNG stream for strategy policies (e.g. the
@@ -138,104 +283,69 @@ export class CardGameSession {
     this.state.moments -= def.cost;
     this.state.hand.splice(handIndex, 1);
 
-    let gain: number | undefined;
     const u = this.state.u;
+    const toneBonus = this.consumeTone(target);
+    const { uDelta, trustDelta, gain } = computeCardEffect(card, target, this.state.trust, u, toneBonus);
+    for (const n of Object.keys(uDelta) as NeighbourId[]) u[n] += uDelta[n]!;
+    this.state.trust += trustDelta;
 
-    switch (card) {
-      case 'ask_directly': {
-        const base = 9 + 3 * (this.state.trust / 100);
-        gain = base * talkMul(target!, this.state.trust) + this.consumeTone(target);
-        u[target!] += gain; this.state.trust += 2;
-        break;
-      }
-      case 'open_circle': {
-        const per = 4.5 + 1.5 * (this.state.trust / 100);
-        for (const n of NEIGHBOURS) u[n] += per;
-        this.state.trust += 4;
-        break;
-      }
-      case 'spread_word': {
-        gain = 5.5 * broadcastMul(target!) + this.consumeTone(target);
-        u[target!] += gain; this.state.trust += 2;
-        break;
-      }
-      case 'build_on_known': {
-        const base = u[target!] >= LISTENING_THRESHOLD ? 13 : 4;
-        gain = base + this.consumeTone(target);
-        u[target!] += gain; this.state.trust += 1;
-        break;
-      }
-      case 'press_point': {
-        gain = 13 + this.consumeTone(target);
-        u[target!] += gain; this.state.trust -= 3;
-        break;
-      }
-      case 'hold_space': {
-        gain = 5 + this.consumeTone(target);
-        u[target!] += gain; this.state.trust += 6;
-        break;
-      }
-      case 'bring_together': {
-        for (const n of NEIGHBOURS) u[n] += 4.5;
-        this.state.trust += 5;
-        break;
-      }
-      case 'quiet_confidence': {
-        gain = 16 + this.consumeTone(target);
-        u[target!] += gain; this.state.trust += 2;
-        break;
-      }
-      case 'second_thoughts': {
-        const extra = this.draw(2);
-        this.state.hand.push(...extra);
-        break;
-      }
-      case 'think_it_over': {
-        // No board effect. Marks that this Evening's retain slot may hold TWO
-        // cards instead of one (handled in endEvening via `extraRetain`).
-        this.extraRetainThisEvening = true;
-        break;
-      }
-      case 'speak_your_piece': {
-        for (const n of NEIGHBOURS) u[n] += 8;
-        this.state.trust += 8;
-        this.state.speakYourPieceState = 'exhausted';
-        break;
-      }
+    // Side effects with no Understanding/Trust delta of their own.
+    if (card === 'second_thoughts') {
+      this.state.hand.push(...this.draw(2));
+    } else if (card === 'think_it_over') {
+      // Marks that this Evening's retain slot may hold TWO cards instead of
+      // one (handled in endEvening via `extraRetainThisEvening`).
+      this.extraRetainThisEvening = true;
+    } else if (card === 'speak_your_piece') {
+      this.state.speakYourPieceState = 'exhausted';
     }
+
     for (const n of NEIGHBOURS) u[n] = Math.max(0, Math.min(100, u[n]));
     this.state.trust = Math.max(0, Math.min(100, this.state.trust));
+    this.pushLog(this.effectSummary(card, target, uDelta, trustDelta));
     return { card, target, gain };
   }
 
   private extraRetainThisEvening = false;
 
   resolveDilemma(dilemmaId: string, choice: DilemmaChoice) {
+    let summary: string;
     if (dilemmaId === 'rosas_numbers') {
       if (choice === 'A') {
         this.state.trust = Math.min(100, this.state.trust + 5);
         this.state.pendingMomentPenalty = 1;
+        summary = 'Push forward now → Trust +5. Next Evening starts with only 2 Moments.';
       } else {
         this.rosaCappedThisEvening = 0.3;
         this.rosaDeferredBonusNextEvening = 10;
+        summary = "Hold it for later → Rosa's Understanding gains reduced to 30% this Evening, then +10 to Rosa next Evening.";
       }
     } else if (dilemmaId === 'hugos_question') {
       if (choice === 'A' && this.state.hand.length > 0) {
         this.state.discard.push(this.state.hand.pop()!);
         this.state.u.hugo = Math.min(100, this.state.u.hugo + 20);
         this.state.trust = Math.min(100, this.state.trust + 3);
+        summary = 'Answer him straight → discarded a card, Hugo +20 Understanding, Trust +3.';
       } else {
         this.hugoHalvedThisEvening = 0.5;
         this.state.trust = Math.min(100, this.state.trust + 4);
+        summary = "Let Inés smooth it over → Hugo's Understanding gains halved this Evening, Trust +4.";
       }
     } else if (dilemmaId === 'room_decides') {
       if (choice === 'A') {
         this.state.moments = Math.max(0, this.state.moments - 2);
-        if (NEIGHBOURS.every((n) => this.state.u[n] >= 55)) {
-          for (const n of NEIGHBOURS) this.state.u[n] = Math.min(100, this.state.u[n] + 10);
-        }
+        const bonus = NEIGHBOURS.every((n) => this.state.u[n] >= 55);
+        if (bonus) for (const n of NEIGHBOURS) this.state.u[n] = Math.min(100, this.state.u[n] + 10);
+        summary = bonus
+          ? 'Push for a unified stand → spent 2 Moments, everyone was ready: +10 Understanding to all.'
+          : 'Push for a unified stand → spent 2 Moments, the room was not ready enough for the bonus.';
+      } else {
+        summary = 'Let it rest, end calmly → no cost, no bonus.';
       }
+    } else {
+      summary = 'Dilemma resolved.';
     }
+    this.pushLog(summary);
   }
 
   private rosaCappedThisEvening: number | null = null;
@@ -296,6 +406,7 @@ export class CardGameSession {
       if (c === syp) {
         if (this.state.speakYourPieceState !== 'retained_once') {
           this.state.speakYourPieceState = 'discarded';
+          this.pushLog('Speak Your Piece expired unplayed and left the game.');
         }
         continue; // never goes to the normal discard pile / reshuffle
       }

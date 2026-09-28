@@ -10,6 +10,10 @@ export const SCENARIO = {
   secondary: 'How to play',
 };
 
+export const OBJECTIVE = {
+  text: 'Make Rosa, Inés, and Hugo Clear by the end of Evening 6.',
+};
+
 export const THREE_STEP = {
   moments: {
     heading: 'Choose what to spend this Evening.',
@@ -17,13 +21,13 @@ export const THREE_STEP = {
     prompt: 'Choose a 1-Moment card.',
   },
   targeting: {
-    heading: 'Choose who needs to hear it.',
-    body: 'A glowing edge marks every legal target. Some cards affect one neighbour; cards marked All neighbours affect the whole table.',
-    prompt: 'Choose a neighbour.',
+    heading: 'Choose who needs to hear it, then check the outcome.',
+    body: 'A glowing edge marks every legal target. Choosing one shows the exact predicted result — nothing happens until you confirm with Play card.',
+    prompt: 'Choose a highlighted neighbour, then Play card.',
   },
   trust: {
     heading: 'Progress has two parts.',
-    body: 'Understanding belongs to each neighbour. Trust belongs to the whole table. Trust strengthens some cards and unlocks others.',
+    body: 'Understanding belongs to each neighbour: reach 70 and they go Clear. Trust belongs to the whole table and changes how some cards perform — Inés is a Talker, so Ask Directly hits her ×1.6. The game is won when Rosa, Inés, and Hugo are all Clear by the end of Evening 6.',
     stateKey: 'Guarded 0–34 · Listening 35–69 · Clear 70–100',
     prompt: 'Continue the Evening.',
   },

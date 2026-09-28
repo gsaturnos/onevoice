@@ -50,6 +50,34 @@ html, body {
   outline-offset: 2px;
 }
 
+/* --- Persistent objective banner (item 1) --- */
+.objective-banner {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  background: rgba(214, 155, 62, 0.1);
+  border: 1px solid rgba(214, 155, 62, 0.4);
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+}
+.objective-banner .objective-progress {
+  font-weight: bold;
+  color: var(--lamplight);
+  white-space: nowrap;
+}
+.objective-banner .consequence-reminder {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--rust);
+  width: 100%;
+}
+
 .scene-header {
   display: flex;
   align-items: center;
@@ -211,13 +239,26 @@ html, body {
 .neighbour-card .role { font-size: 0.82rem; color: #cfc3b3; margin-top: -4px; }
 .neighbour-card .trait-tag {
   align-self: flex-start;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
   color: var(--teal);
   border: 1px solid var(--teal);
   border-radius: 4px;
   padding: 1px 6px;
+  line-height: 1.3;
+}
+.neighbour-card .resolution-note {
+  font-size: 0.72rem;
+  color: var(--lamplight);
+  background: rgba(214, 155, 62, 0.12);
+  border-radius: 4px;
+  padding: 3px 5px;
+  line-height: 1.3;
+}
+.neighbour-card.dimmed { opacity: 0.5; }
+.neighbour-card.armed {
+  border-color: var(--lamplight);
+  box-shadow: 0 0 0 2px var(--lamplight), 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 .neighbour-card .meter {
   width: 100%;
@@ -326,9 +367,44 @@ html, body {
 }
 .card h3 { font-family: var(--serif); margin: 6px 0 0; font-size: 1.02rem; padding-right: 22px; }
 .card .requirement { font-size: 0.72rem; opacity: 0.75; }
+.card .lock-text { color: var(--rust); opacity: 1; font-weight: bold; }
+.card .syp-timing { color: var(--rust); opacity: 1; font-weight: bold; }
 .card .effect { font-size: 0.82rem; line-height: 1.35; }
 .card .flavor { font-size: 0.76rem; font-style: italic; opacity: 0.75; margin-top: auto; }
 .card .flavor.primary { font-size: 0.82rem; font-style: normal; opacity: 0.95; margin-top: 2px; }
+
+/* --- Outcome preview + confirm bar (item 3) --- */
+.play-action-bar {
+  background: var(--panel);
+  border: 2px solid var(--lamplight);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 auto;
+  max-width: 640px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--sans);
+}
+.play-instruction { font-weight: bold; color: var(--lamplight); font-size: 0.85rem; }
+.play-preview { font-size: 0.85rem; color: var(--warm-white); }
+.play-trait-note { font-size: 0.8rem; color: var(--teal); }
+.play-action-buttons { display: flex; gap: 8px; margin-top: 4px; }
+.play-action-buttons .btn { padding: 7px 14px; font-size: 0.85rem; }
+
+/* --- Meeting log (item 7) --- */
+.meeting-log {
+  margin: 0 auto;
+  max-width: 640px;
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: #cfc3b3;
+}
+.meeting-log h4 { margin: 0 0 2px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #cfc3b3; }
+.meeting-log ul { margin: 0; padding-left: 16px; }
+.meeting-log li { margin: 1px 0; }
 
 .btn {
   background: var(--lamplight);
@@ -407,6 +483,9 @@ html, body {
 }
 .dilemma-card .choice:hover { border-color: var(--lamplight); }
 .dilemma-card .choice:focus-visible { outline: 3px solid var(--lamplight); outline-offset: 2px; }
+.dilemma-card .choice-label { font-weight: bold; margin-bottom: 4px; }
+.dilemma-card .choice-detail { font-size: 0.82rem; opacity: 0.9; line-height: 1.35; }
+.dilemma-card .choice-detail b { color: var(--lamplight); font-weight: bold; }
 
 /* --- accessibility utility --- */
 .sr-only {
@@ -655,4 +734,7 @@ html, body {
     mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
   }
   .card { width: 138px; min-height: 150px; }
+
+  .objective-banner { margin-inline: 12px; font-size: 0.78rem; padding: 6px 10px; gap: 8px; }
+  .play-action-bar, .meeting-log { margin-inline: 12px; max-width: none; width: auto; }
 }

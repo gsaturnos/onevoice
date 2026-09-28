@@ -1,4 +1,4 @@
-import { CardGameSession } from '../engine/engine';
+import { CardGameSession, CLEAR_THRESHOLD } from '../engine/engine';
 import { CARDS, TOTAL_EVENINGS } from '../engine/content';
 import type { CardId, NeighbourId } from '../engine/types';
 import { NEIGHBOURS } from '../engine/types';
@@ -131,6 +131,8 @@ function renderScene() {
         renderScene();
       },
       getTutorialStage: () => tutorial.stage,
+      getPreview: (handIndex, target) => session.previewPlayCard(handIndex, target),
+      getActiveConsequence: () => session.activeConsequenceText(),
     },
     tutorial.stage,
   );
@@ -308,6 +310,15 @@ function showSpeakYourPieceIntro(onDone: () => void) {
   );
 }
 
+function dilemmaOptionHtml(opt: { label: string; immediate: string; delayed: string; sacrifice: string }): string {
+  return `
+    <div class="choice-label">${opt.label}</div>
+    <div class="choice-detail"><b>Immediate:</b> ${opt.immediate}</div>
+    <div class="choice-detail"><b>Delayed:</b> ${opt.delayed}</div>
+    <div class="choice-detail"><b>Sacrifice:</b> ${opt.sacrifice}</div>
+  `;
+}
+
 function showDilemma(id: string, onDone: () => void) {
   const copy = DILEMMA_COPY[id];
   const overlay = showOverlay(
@@ -315,8 +326,8 @@ function showDilemma(id: string, onDone: () => void) {
        <h2>${copy.title}</h2>
        <p>${copy.body}</p>
        <div class="choices">
-         <button class="choice" id="opt-a">${copy.a}</button>
-         <button class="choice" id="opt-b">${copy.b}</button>
+         <button class="choice" id="opt-a">${dilemmaOptionHtml(copy.a)}</button>
+         <button class="choice" id="opt-b">${dilemmaOptionHtml(copy.b)}</button>
        </div>
      </div>`,
     () => {},
@@ -355,7 +366,7 @@ function showReview() {
 
   const dilemmaRows = Object.entries(dilemmaChoicesMade).map(([id, choice]) => {
     const copy = DILEMMA_COPY[id];
-    const chosenText = choice === 'A' ? copy.a : copy.b;
+    const chosenText = (choice === 'A' ? copy.a : copy.b).label;
     return `<tr><td>${copy.title}</td><td>${chosenText}</td></tr>`;
   }).join('') || '<tr><td colspan="2">None reached</td></tr>';
 
@@ -384,14 +395,55 @@ function showReview() {
   );
 }
 
+// A concise, neutral causal explanation of how the session actually ended
+// (item 10) — built entirely from real session data (session.state,
+// dilemmaChoicesMade, cardsPlayedByCategory), never a grade or a guess.
+function buildCausalSummary(): string[] {
+  const lines: string[] = [];
+  for (const n of NEIGHBOURS) {
+    const u = session.state.u[n];
+    if (u >= CLEAR_THRESHOLD) {
+      lines.push(`${neighbourName(n)} reached Clear (${Math.round(u)}%).`);
+    } else {
+      const short = Math.ceil(CLEAR_THRESHOLD - u);
+      lines.push(`${neighbourName(n)} finished ${short} Understanding short of Clear (${Math.round(u)}%).`);
+    }
+  }
+  lines.push(`Final Trust: ${Math.round(session.state.trust)}.`);
+
+  const neverUnlocked = Object.values(CARDS).filter(
+    (def) => def.requiresTrust !== undefined && session.state.trust < def.requiresTrust,
+  );
+  if (neverUnlocked.length) {
+    lines.push(
+      `Never unlocked: ${neverUnlocked.map((def) => `${def.name} (needs ${def.requiresTrust} Trust)`).join(', ')}.`,
+    );
+  }
+
+  lines.push(`Speak Your Piece: ${speakYourPieceStatusLabel()}.`);
+
+  for (const [id, choice] of Object.entries(dilemmaChoicesMade)) {
+    const copy = DILEMMA_COPY[id];
+    const opt = choice === 'A' ? copy.a : copy.b;
+    const consequence = opt.sacrifice !== 'None.' ? opt.sacrifice : opt.delayed !== 'None.' ? opt.delayed : null;
+    lines.push(`${copy.title} → chose "${opt.label}"${consequence ? `: ${consequence}` : ''}`);
+  }
+
+  const totalCards = Object.values(cardsPlayedByCategory).reduce((a, b) => a + b, 0);
+  if (totalCards > 0) {
+    const [dominantCategory, dominantCount] = (Object.entries(cardsPlayedByCategory) as [CardCategory, number][])
+      .sort((a, b) => b[1] - a[1])[0];
+    lines.push(`Most-played card type this session: ${dominantCategory} (${dominantCount} of ${totalCards} cards) — an observation about how you played, not a verdict.`);
+  }
+
+  return lines;
+}
+
 function showResult() {
   const won = session.state.won;
   const copy = won ? VICTORY : FAILURE;
   const eyebrow = won ? VICTORY.eyebrow(session.state.evening) : FAILURE.eyebrow;
-  const summaryLines = NEIGHBOURS
-    .map((n) => `${neighbourName(n)} · ${bandLabel(session.state.u[n])} · ${Math.round(session.state.u[n])}%`)
-    .concat([`Shared Trust · ${Math.round(session.state.trust)}`])
-    .concat(won ? [`Cleared in Evening ${session.state.evening} of ${TOTAL_EVENINGS}`] : []);
+  const summaryLines = buildCausalSummary();
 
   showOverlay(
     `<p class="result-eyebrow">${eyebrow}</p>

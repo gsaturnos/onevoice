@@ -54,23 +54,64 @@ export const CARD_FLAVOR: Record<CardId, string> = {
   speak_your_piece: 'The moment the whole evening was for.',
 };
 
-export const DILEMMA_COPY: Record<string, { title: string; body: string; a: string; b: string }> = {
+// Each option is broken into exactly what Giorgio's comprehension pass asks
+// for (item 8): the immediate effect, the delayed effect, and what is given
+// up to get it — shown as three separate lines before the player commits,
+// not folded into one sentence.
+export interface DilemmaOption {
+  label: string;
+  immediate: string;
+  delayed: string;
+  sacrifice: string;
+}
+
+export const DILEMMA_COPY: Record<string, { title: string; body: string; a: DilemmaOption; b: DilemmaOption }> = {
   rosas_numbers: {
     title: "Rosa has the numbers.",
     body: 'She wants to read the real consequences of the closure aloud, tonight.',
-    a: 'Push forward now — Trust +5, but tomorrow starts with only 2 Moments.',
-    b: "Hold it for later — Rosa's Understanding gains are reduced to 30% this Evening.",
+    a: {
+      label: 'Push forward now',
+      immediate: 'Trust +5, right away.',
+      delayed: 'None.',
+      sacrifice: 'Next Evening starts with only 2 Moments instead of 3.',
+    },
+    b: {
+      label: 'Hold it for later',
+      immediate: 'No immediate effect.',
+      delayed: 'Rosa gets +10 Understanding next Evening.',
+      sacrifice: "Rosa's Understanding gains are reduced to 30% this Evening.",
+    },
   },
   hugos_question: {
     title: 'Hugo asks why nobody told him sooner.',
     body: "He's not backing down from the question.",
-    a: 'Answer him straight — discard a card, Hugo +20 Understanding, Trust +3.',
-    b: "Let Inés smooth it over — Hugo's growth is halved tonight, Trust +4.",
+    a: {
+      label: 'Answer him straight',
+      immediate: 'Hugo +20 Understanding, Trust +3.',
+      delayed: 'None.',
+      sacrifice: 'Discard one card from your hand right now.',
+    },
+    b: {
+      label: 'Let Inés smooth it over',
+      immediate: 'Trust +4.',
+      delayed: 'None.',
+      sacrifice: "Hugo's Understanding gains are halved this Evening.",
+    },
   },
   room_decides: {
     title: 'The room has to decide.',
     body: 'Last evening, last chance.',
-    a: 'Push for a unified stand — spend 2 Moments now; if everyone is already at 55+, +10 to all.',
-    b: 'Let it rest, end calmly — no cost, no bonus.',
+    a: {
+      label: 'Push for a unified stand',
+      immediate: 'Spends 2 Moments now.',
+      delayed: 'If everyone is already at 55+ Understanding, +10 to all three.',
+      sacrifice: 'The 2 Moments spent, whether or not the bonus lands.',
+    },
+    b: {
+      label: 'Let it rest, end calmly',
+      immediate: 'No cost, no bonus.',
+      delayed: 'None.',
+      sacrifice: 'None.',
+    },
   },
 };
